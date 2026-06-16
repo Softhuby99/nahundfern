@@ -71,7 +71,7 @@ function StoryPage() {
             {trip.excerpt}
           </p>
           <div className="space-y-6 text-lg leading-relaxed text-foreground/90">
-            {trip.body.map((p, i) => (
+            {trip.body.map((p: string, i: number) => (
               <p key={i}>{p}</p>
             ))}
           </div>
