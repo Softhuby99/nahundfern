@@ -1,0 +1,167 @@
+import { Link } from "@tanstack/react-router";
+import { useState } from "react";
+import type { Trip } from "@/data/trips";
+
+type Props = {
+  trips: Trip[];
+  /** Slug that should render in the bloomed/expanded state on first render */
+  defaultActiveSlug?: string;
+};
+
+/**
+ * Horizontal photo timeline:
+ * - continuous spine line across the middle
+ * - photo cards alternate above/below the line, anchored to year-node markers
+ * - hover/click on a card "blooms" a meta-card with Where / When / Who + image strip
+ */
+export function HorizontalTimeline({ trips, defaultActiveSlug }: Props) {
+  const [active, setActive] = useState<string | null>(defaultActiveSlug ?? null);
+
+  return (
+    <section className="relative py-32 overflow-hidden">
+      <div className="px-6 md:px-8 mb-12 flex justify-between items-end max-w-7xl mx-auto">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary mb-3">The Route</p>
+          <h2 className="font-display text-4xl md:text-6xl uppercase tracking-tighter">A year on the line</h2>
+        </div>
+        <span className="hidden md:block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+          Scroll horizontally →
+        </span>
+      </div>
+
+      <div className="relative">
+        {/* Spine */}
+        <div
+          className="absolute top-1/2 left-0 w-full h-px bg-foreground/20 origin-left"
+          style={{ animation: "drawLine 1.5s var(--ease-cinematic) both" }}
+        />
+
+        <div className="flex overflow-x-auto scrollbar-hide px-[10vw] snap-x relative py-48">
+          {trips.map((trip, i) => {
+            const above = i % 2 === 0;
+            const isActive = active === trip.slug;
+            return (
+              <TimelineNode
+                key={trip.slug}
+                trip={trip}
+                above={above}
+                isActive={isActive}
+                onHover={() => setActive(trip.slug)}
+                onLeave={() => setActive(defaultActiveSlug ?? null)}
+              />
+            );
+          })}
+          {/* trailing padding so last card can center */}
+          <div className="flex-none w-[10vw]" />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TimelineNode({
+  trip,
+  above,
+  isActive,
+  onHover,
+  onLeave,
+}: {
+  trip: Trip;
+  above: boolean;
+  isActive: boolean;
+  onHover: () => void;
+  onLeave: () => void;
+}) {
+  return (
+    <div
+      className="relative flex-none w-[320px] md:w-[400px] snap-center group"
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
+      onFocus={onHover}
+      onBlur={onLeave}
+    >
+      {/* Label (year + headline) opposite of the photo */}
+      <div
+        className={`absolute left-1/2 -translate-x-1/2 flex flex-col items-center text-center w-[260px] ${
+          above ? "-top-36" : "-bottom-36"
+        }`}
+      >
+        {above ? (
+          <>
+            <div className={`h-24 w-px mb-4 ${isActive ? "bg-primary" : "bg-foreground/20"}`} />
+            <span className={`font-mono text-[10px] tracking-widest ${isActive ? "text-primary" : "text-muted-foreground"}`}>
+              {trip.monthLabel}
+            </span>
+            <h3 className={`font-display text-2xl uppercase mt-1 tracking-tight ${isActive ? "text-primary" : "text-foreground"}`}>
+              {trip.title}
+            </h3>
+          </>
+        ) : (
+          <>
+            <h3 className={`font-display text-2xl uppercase mb-1 tracking-tight ${isActive ? "text-primary" : "text-foreground"}`}>
+              {trip.title}
+            </h3>
+            <span className={`font-mono text-[10px] tracking-widest ${isActive ? "text-primary" : "text-muted-foreground"}`}>
+              {trip.monthLabel}
+            </span>
+            <div className={`h-24 w-px mt-4 ${isActive ? "bg-primary" : "bg-foreground/20"}`} />
+          </>
+        )}
+      </div>
+
+      {/* Node marker on the spine */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+        <div
+          className={`rounded-full transition-all duration-500 ${
+            isActive
+              ? "size-5 bg-primary ring-8 ring-primary/15"
+              : "size-3 bg-background border-2 border-foreground/40 group-hover:border-primary"
+          }`}
+        />
+      </div>
+
+      {/* Bloom meta card (only when active) */}
+      {isActive && (
+        <div
+          className={`absolute left-1/2 -translate-x-1/2 z-30 w-[300px] md:w-[360px] bg-card/80 border border-border backdrop-blur-xl p-5 rounded-md shadow-2xl ${
+            above ? "top-1/2 mt-16" : "bottom-1/2 mb-16"
+          }`}
+          style={{ animation: "revealNode 0.35s var(--ease-cinematic) both" }}
+        >
+          <p className="font-mono text-[10px] text-primary uppercase tracking-widest mb-2">Where / When / Crew</p>
+          <p className="text-xs leading-relaxed text-foreground/80 mb-4">
+            {trip.where}<br />
+            {trip.when} · {trip.who}
+          </p>
+          <Link
+            to="/stories/$slug"
+            params={{ slug: trip.slug }}
+            className="inline-block px-3 py-2 border border-primary text-primary font-mono text-[10px] tracking-widest uppercase hover:bg-primary hover:text-primary-foreground transition-colors"
+          >
+            Read report →
+          </Link>
+        </div>
+      )}
+
+      {/* Photo on the side the line points to */}
+      <div className={above ? "mt-4 px-4" : "mb-4 px-4 -mt-[calc(2rem+0px)]"}>
+        <Link
+          to="/stories/$slug"
+          params={{ slug: trip.slug }}
+          className="block"
+        >
+          <img
+            src={trip.cover}
+            alt={trip.title}
+            width={1024}
+            height={1280}
+            loading="lazy"
+            className={`w-full aspect-[2/3] object-cover rounded-sm outline-1 -outline-offset-1 outline-foreground/5 transition-all duration-700 ${
+              isActive ? "grayscale-0 ring-1 ring-primary/30" : "grayscale group-hover:grayscale-0"
+            }`}
+          />
+        </Link>
+      </div>
+    </div>
+  );
+}
