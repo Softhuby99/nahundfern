@@ -182,8 +182,16 @@ docker compose exec app node scripts/create-user.js redakteur@example.com
 
 **Neue npm-Pakete:** `postgres`, `sharp`, `argon2`, `jose`.
 
-## Offene Punkte — bitte klären, bevor ich anfange
+## Entscheidungen (geklärt)
 
-1. **Migration der aktuellen 8 Demo-Reisen**: Beim ersten Container-Start automatisch in die DB seeden (inkl. der KI-generierten Bilder aus `src/assets/`, die dann durch die Thumb-Pipeline laufen)? Oder mit leerer DB starten und du legst alles neu an?
-2. **Certbot-Setup**: Beim ersten Deploy braucht certbot einen Bootstrap-Schritt (HTTP-01-Challenge, bevor TLS steht). Soll ich das in `DEPLOYMENT.md` als „Erst-Setup" beschreiben, oder ist dir lieber, du nutzt weiter certbot **auf dem Host** und ich baue nur einen HTTP-only-nginx-Container mit dokumentierter TLS-Terminierung außen herum? Erste Variante ist „alles in Docker", zweite ist einfacher zu debuggen.
-3. **Umfang jetzt**: Soll ich alle Extras (Sitemap, RSS, Impressum-Stub, Health, Rate-Limit, Backup-Container, Async-Thumbs) direkt mitbauen — oder in Etappen (erst Kernstack: Docker + nginx + Postgres + Editor + Bilder, danach die Extras)?
+1. **Migration der aktuellen 8 Demo-Reisen**: Ja — automatisch beim ersten Start seeden (`SEED_ON_START=true`).
+2. **Certbot-Setup**: Variante A — alles in Docker, Bootstrap in `DEPLOYMENT.md` beschrieben.
+3. **Umfang**: Etappe 1 (Kernstack) zuerst, dann Etappe 2 (Extras).
+
+## GitHub-Status
+
+- Projekt mit GitHub verbunden. Änderungen werden automatisch synchronisiert.
+
+## Aktueller Fokus
+
+Etappe 1 — Teil 2: DB-Client, Auth, API-Routen, Admin-Editor (`/_admin/studio`), Public-Routes aus DB.
