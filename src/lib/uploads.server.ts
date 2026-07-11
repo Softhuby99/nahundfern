@@ -90,7 +90,13 @@ export async function storeImage(buffer: Buffer, originalName: string): Promise<
   };
 }
 
-export async function deleteImageFiles(stored: StoredImage) {
+export type ImagePaths = {
+  originalPath: string;
+  webp: Record<number, string>;
+  avif: Record<number, string>;
+};
+
+export async function deleteImageFiles(stored: ImagePaths) {
   const dirs = await ensureUploadDirs();
   const files = [
     path.join(dirs.root, stored.originalPath),
@@ -116,7 +122,7 @@ export function imagePathsFromRow(row: {
   avif_400: string;
   avif_1200: string;
   avif_2000: string;
-}): StoredImage["webp"] & StoredImage["avif"] & { original: string } {
+}): ImagePaths["webp"] & ImagePaths["avif"] & { original: string } {
   return {
     original: row.original_path,
     400: row.webp_400,

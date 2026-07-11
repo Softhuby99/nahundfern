@@ -19,6 +19,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as StoriesSlugRouteImport } from './routes/stories.$slug'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiStudioTripsRouteImport } from './routes/api/studio/trips'
+import { Route as ApiStudioImagesRouteImport } from './routes/api/studio/images'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 
@@ -72,6 +73,11 @@ const ApiStudioTripsRoute = ApiStudioTripsRouteImport.update({
   path: '/api/studio/trips',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiStudioImagesRoute = ApiStudioImagesRouteImport.update({
+  id: '/api/studio/images',
+  path: '/api/studio/images',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthLogoutRoute = ApiAuthLogoutRouteImport.update({
   id: '/api/auth/logout',
   path: '/api/auth/logout',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/stories/$slug': typeof StoriesSlugRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/studio/images': typeof ApiStudioImagesRoute
   '/api/studio/trips': typeof ApiStudioTripsRoute
 }
 export interface FileRoutesByTo {
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/stories/$slug': typeof StoriesSlugRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/studio/images': typeof ApiStudioImagesRoute
   '/api/studio/trips': typeof ApiStudioTripsRoute
 }
 export interface FileRoutesById {
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/stories/$slug': typeof StoriesSlugRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/studio/images': typeof ApiStudioImagesRoute
   '/api/studio/trips': typeof ApiStudioTripsRoute
 }
 export interface FileRouteTypes {
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
     | '/stories/$slug'
     | '/api/auth/login'
     | '/api/auth/logout'
+    | '/api/studio/images'
     | '/api/studio/trips'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
     | '/stories/$slug'
     | '/api/auth/login'
     | '/api/auth/logout'
+    | '/api/studio/images'
     | '/api/studio/trips'
   id:
     | '__root__'
@@ -168,6 +179,7 @@ export interface FileRouteTypes {
     | '/stories/$slug'
     | '/api/auth/login'
     | '/api/auth/logout'
+    | '/api/studio/images'
     | '/api/studio/trips'
   fileRoutesById: FileRoutesById
 }
@@ -182,6 +194,7 @@ export interface RootRouteChildren {
   ApiHealthRoute: typeof ApiHealthRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
+  ApiStudioImagesRoute: typeof ApiStudioImagesRoute
   ApiStudioTripsRoute: typeof ApiStudioTripsRoute
 }
 
@@ -257,6 +270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStudioTripsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/studio/images': {
+      id: '/api/studio/images'
+      path: '/api/studio/images'
+      fullPath: '/api/studio/images'
+      preLoaderRoute: typeof ApiStudioImagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/logout': {
       id: '/api/auth/logout'
       path: '/api/auth/logout'
@@ -296,6 +316,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiHealthRoute: ApiHealthRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
+  ApiStudioImagesRoute: ApiStudioImagesRoute,
   ApiStudioTripsRoute: ApiStudioTripsRoute,
 }
 export const routeTree = rootRouteImport
