@@ -99,7 +99,7 @@ export const Route = createFileRoute("/api/studio/images")({
           originalPath: row.original_path,
           webp: { 400: row.webp_400, 1200: row.webp_1200, 2000: row.webp_2000 },
           avif: { 400: row.avif_400, 1200: row.avif_1200, 2000: row.avif_2000 },
-        } as Parameters<typeof deleteImageFiles>[0]);
+        });
         return Response.json({ ok: true });
       },
     },
