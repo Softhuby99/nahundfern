@@ -95,8 +95,8 @@ tee /etc/cron.daily/nahundfern-backup >/dev/null <<'SH'
 set -e
 DEST=/var/backups/nahundfern
 mkdir -p "$DEST"
-cd /opt/nahundfern
-su - deploy -c "docker compose exec -T db pg_dump -U \"$(grep DB_USER .env | cut -d= -f2)\" \"$(grep DB_NAME .env | cut -d= -f2)\" | gzip" > "$DEST/db-$(date +%F).sql.gz"
+cd /opt/nahundfern || exit 1
+su - deploy -c 'cd /opt/nahundfern && docker compose exec -T db pg_dump -U "$(grep DB_USER .env | cut -d= -f2)" "$(grep DB_NAME .env | cut -d= -f2)" | gzip' > "$DEST/db-$(date +%F).sql.gz"
 find "$DEST" -name 'db-*.sql.gz' -mtime +14 -delete
 SH
 chmod +x /etc/cron.daily/nahundfern-backup
