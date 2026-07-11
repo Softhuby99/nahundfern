@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import sharp from "sharp";
+import sharp, { type ResizeOptions } from "sharp";
 import { randomUUID } from "node:crypto";
 
 const UPLOADS_DIR = process.env.UPLOADS_DIR ?? "/app/uploads";
