@@ -90,17 +90,16 @@ Login: `https://nahundfern.servuswir.de/admin/login` — dort landest du im Reis
 Nächtliches DB-Backup (Cron auf dem Host):
 
 ```bash
-sudo tee /etc/cron.daily/nahundfern-backup >/dev/null <<'SH'
+tee /etc/cron.daily/nahundfern-backup >/dev/null <<'SH'
 #!/bin/sh
 set -e
 DEST=/var/backups/nahundfern
 mkdir -p "$DEST"
-cd /path/to/nahundfern
-docker compose exec -T db pg_dump -U "$(grep DB_USER .env|cut -d= -f2)" \
-  "$(grep DB_NAME .env|cut -d= -f2)" | gzip > "$DEST/db-$(date +%F).sql.gz"
+cd /opt/nahundfern
+su - deploy -c "docker compose exec -T db pg_dump -U \"$(grep DB_USER .env | cut -d= -f2)\" \"$(grep DB_NAME .env | cut -d= -f2)\" | gzip" > "$DEST/db-$(date +%F).sql.gz"
 find "$DEST" -name 'db-*.sql.gz' -mtime +14 -delete
 SH
-sudo chmod +x /etc/cron.daily/nahundfern-backup
+chmod +x /etc/cron.daily/nahundfern-backup
 ```
 
 Uploads separat sichern (extern):
