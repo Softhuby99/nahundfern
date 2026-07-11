@@ -15,6 +15,7 @@ RUN if [ -f bun.lock ]; then \
 
 COPY . .
 ENV NODE_ENV=production
+ENV NITRO_PRESET=node-server
 RUN if [ -f bun.lock ]; then bun run build ; else npm run build ; fi
 
 # ---------- runtime stage ----------
