@@ -33,7 +33,7 @@ function StoriesPage() {
       </section>
 
       <section className="px-6 md:px-8 pb-24 max-w-7xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-10">
-        {trips.map((t) => (
+        {trips.map((t: PublicTrip) => (
           <Link key={t.slug} to="/stories/$slug" params={{ slug: t.slug }} className="group">
             <div className="overflow-hidden aspect-[4/5] mb-4 bg-card">
               <ResponsivePicture

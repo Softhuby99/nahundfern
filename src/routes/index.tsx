@@ -68,7 +68,7 @@ function HomePage() {
           </Link>
         </div>
         <div className="grid md:grid-cols-3 gap-10">
-          {latest.map((t) => (
+          {latest.map((t: PublicTrip) => (
             <Link
               key={t.slug}
               to="/stories/$slug"

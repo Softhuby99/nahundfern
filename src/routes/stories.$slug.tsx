@@ -46,7 +46,7 @@ export const Route = createFileRoute("/stories/$slug")({
 
 function StoryPage() {
   const { trip, all } = Route.useLoaderData();
-  const idx = all.findIndex((t) => t.slug === trip.slug);
+  const idx = all.findIndex((t: PublicTrip) => t.slug === trip.slug);
   const next = all[(idx + 1) % all.length];
 
   return (
