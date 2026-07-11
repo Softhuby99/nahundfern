@@ -12,4 +12,8 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Override the default Cloudflare preset for self-hosted Docker/Node.js deployments.
+  nitro: {
+    preset: "node-server",
+  },
 });
