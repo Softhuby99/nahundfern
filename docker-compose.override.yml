@@ -1,0 +1,9 @@
+# HTTP-only override for local testing.
+# Keeps docker-compose.yml and nginx/conf.d/site.conf untouched.
+# In production, remove or rename this file and use TLS as described in DEPLOYMENT.md.
+
+services:
+  nginx:
+    volumes:
+      - ./nginx/conf.d/site.dev.conf:/etc/nginx/conf.d/site.conf:ro
+      - uploads:/var/www/uploads:ro
