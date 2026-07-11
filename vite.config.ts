@@ -11,5 +11,9 @@ export default defineConfig({
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+    // Build for self-hosted Node.js Docker deployment, not Cloudflare Workers.
+    nitro: {
+      preset: "node-server",
+    },
   },
 });
