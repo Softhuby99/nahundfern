@@ -69,17 +69,17 @@ function EditorPage() {
 
   useEffect(() => {
     if (isNew) return;
-    fetch("/api/studio/trips", { credentials: "same-origin" })
+    fetch(`/api/studio/trips?slug=${encodeURIComponent(slug)}`, { credentials: "same-origin" })
       .then(async (res) => {
         if (res.status === 401) {
           await navigate({ to: "/admin/login" });
           return;
         }
-        if (!res.ok) throw new Error("Failed to load trips");
+        if (!res.ok) throw new Error("Failed to load trip");
         const data = await res.json();
-        const found = data.trips.find((t: StudioTrip) => t.slug === slug);
+        const found = data.trip;
         if (!found) throw new Error("Trip not found");
-        setTrip({ ...found, body: found.body });
+        setTrip({ ...found, body: found.body_md });
         return found.id;
       })
       .then((id) => {
