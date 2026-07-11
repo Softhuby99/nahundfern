@@ -41,4 +41,4 @@ RUN mkdir -p /app/uploads/originals /app/uploads/webp /app/uploads/avif \
 USER app
 EXPOSE 3000
 ENTRYPOINT ["/sbin/tini", "--"]
-CMD ["node", ".output/server/index.mjs"]
+CMD ["sh", "scripts/start.sh"]
