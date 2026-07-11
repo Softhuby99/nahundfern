@@ -1,12 +1,43 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import type { Trip } from "@/data/trips";
+import type { PublicTrip } from "@/lib/trips.functions";
 
 type Props = {
-  trips: Trip[];
+  trips: PublicTrip[];
   /** Slug that should render in the bloomed/expanded state on first render */
   defaultActiveSlug?: string;
 };
+
+function ResponsivePicture({
+  webp,
+  avif,
+  alt,
+  className,
+  width,
+  height,
+}: {
+  webp: Record<number, string>;
+  avif: Record<number, string>;
+  alt: string;
+  className?: string;
+  width?: number;
+  height?: number;
+}) {
+  return (
+    <picture>
+      <source srcSet={`${avif[400]} 400w, ${avif[1200]} 1200w, ${avif[2000]} 2000w`} type="image/avif" />
+      <source srcSet={`${webp[400]} 400w, ${webp[1200]} 1200w, ${webp[2000]} 2000w`} type="image/webp" />
+      <img
+        src={webp[1200]}
+        alt={alt}
+        width={width ?? 1200}
+        height={height ?? 1500}
+        loading="lazy"
+        className={className}
+      />
+    </picture>
+  );
+}
 
 /**
  * Horizontal photo timeline:
@@ -66,7 +97,7 @@ function TimelineNode({
   onHover,
   onLeave,
 }: {
-  trip: Trip;
+  trip: PublicTrip;
   above: boolean;
   isActive: boolean;
   onHover: () => void;
@@ -150,12 +181,12 @@ function TimelineNode({
           params={{ slug: trip.slug }}
           className="block"
         >
-          <img
-            src={trip.cover}
-            alt={trip.title}
+          <ResponsivePicture
+            webp={trip.cover.webp}
+            avif={trip.cover.avif}
+            alt={trip.cover.alt ?? trip.title}
             width={1024}
             height={1280}
-            loading="lazy"
             className={`w-full aspect-[2/3] object-cover rounded-sm outline-1 -outline-offset-1 outline-foreground/5 transition-all duration-700 ${
               isActive ? "grayscale-0 ring-1 ring-primary/30" : "grayscale group-hover:grayscale-0"
             }`}
@@ -165,3 +196,5 @@ function TimelineNode({
     </div>
   );
 }
+
+export { ResponsivePicture };
