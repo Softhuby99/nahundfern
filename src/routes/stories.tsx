@@ -1,9 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { trips } from "@/data/trips";
+import { ResponsivePicture } from "@/components/HorizontalTimeline";
+import { listPublishedTrips } from "@/lib/trips.functions";
 
 export const Route = createFileRoute("/stories")({
+  loader: async () => {
+    const trips = await listPublishedTrips();
+    return { trips };
+  },
   head: () => ({
     meta: [
       { title: "Stories — Vagabond" },
@@ -16,6 +21,7 @@ export const Route = createFileRoute("/stories")({
 });
 
 function StoriesPage() {
+  const { trips } = Route.useLoaderData();
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
@@ -30,10 +36,10 @@ function StoriesPage() {
         {trips.map((t) => (
           <Link key={t.slug} to="/stories/$slug" params={{ slug: t.slug }} className="group">
             <div className="overflow-hidden aspect-[4/5] mb-4 bg-card">
-              <img
-                src={t.cover}
-                alt={t.title}
-                loading="lazy"
+              <ResponsivePicture
+                webp={t.cover.webp}
+                avif={t.cover.avif}
+                alt={t.cover.alt ?? t.title}
                 width={1024}
                 height={1280}
                 className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"

@@ -1,11 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { HorizontalTimeline } from "@/components/HorizontalTimeline";
-import { trips } from "@/data/trips";
+import { HorizontalTimeline, ResponsivePicture } from "@/components/HorizontalTimeline";
+import { listPublishedTrips, type PublicTrip } from "@/lib/trips.functions";
 import aboutDesk from "@/assets/about-desk.jpg";
 
 export const Route = createFileRoute("/")({
+  loader: async () => {
+    const trips = await listPublishedTrips();
+    return { trips };
+  },
   head: () => ({
     meta: [
       { title: "Vagabond — Reisejournal Europa & Nordamerika" },
@@ -18,6 +22,7 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
+  const { trips } = Route.useLoaderData();
   const latest = trips.slice(0, 3);
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -71,10 +76,10 @@ function HomePage() {
               className="group"
             >
               <div className="overflow-hidden mb-4 aspect-[4/5] bg-card">
-                <img
-                  src={t.cover}
-                  alt={t.title}
-                  loading="lazy"
+                <ResponsivePicture
+                  webp={t.cover.webp}
+                  avif={t.cover.avif}
+                  alt={t.cover.alt ?? t.title}
                   width={1024}
                   height={1280}
                   className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"

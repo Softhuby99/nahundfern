@@ -1,25 +1,31 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { getTrip, trips } from "@/data/trips";
+import { ResponsivePicture } from "@/components/HorizontalTimeline";
+import { getPublishedTrip, listPublishedTrips } from "@/lib/trips.functions";
 
 export const Route = createFileRoute("/stories/$slug")({
-  loader: ({ params }) => {
-    const trip = getTrip(params.slug);
-    if (!trip) throw notFound();
-    return { trip };
+  loader: async ({ params }) => {
+    try {
+      const trip = await getPublishedTrip({ data: params.slug });
+      const all = await listPublishedTrips();
+      return { trip, all };
+    } catch {
+      throw notFound();
+    }
   },
   head: ({ loaderData }) => {
     const t = loaderData?.trip;
     if (!t) return { meta: [{ title: "Story — Vagabond" }] };
+    const cover = t.cover.webp[1200];
     return {
       meta: [
         { title: `${t.title} — Vagabond` },
         { name: "description", content: t.excerpt },
         { property: "og:title", content: `${t.title} — Vagabond` },
         { property: "og:description", content: t.excerpt },
-        { property: "og:image", content: t.cover },
-        { name: "twitter:image", content: t.cover },
+        { property: "og:image", content: cover },
+        { name: "twitter:image", content: cover },
       ],
     };
   },
@@ -39,9 +45,9 @@ export const Route = createFileRoute("/stories/$slug")({
 });
 
 function StoryPage() {
-  const { trip } = Route.useLoaderData();
-  const idx = trips.findIndex((t) => t.slug === trip.slug);
-  const next = trips[(idx + 1) % trips.length];
+  const { trip, all } = Route.useLoaderData();
+  const idx = all.findIndex((t) => t.slug === trip.slug);
+  const next = all[(idx + 1) % all.length];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -50,7 +56,14 @@ function StoryPage() {
       <article>
         {/* Cover */}
         <div className="relative h-[60vh] md:h-[80vh] overflow-hidden">
-          <img src={trip.cover} alt={trip.title} width={1024} height={1280} className="absolute inset-0 w-full h-full object-cover" />
+          <ResponsivePicture
+            webp={trip.cover.webp}
+            avif={trip.cover.avif}
+            alt={trip.cover.alt ?? trip.title}
+            width={1600}
+            height={2000}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/20" />
           <div className="absolute bottom-0 left-0 right-0 px-6 md:px-8 pb-12 max-w-5xl mx-auto">
             <p className="font-mono text-primary text-xs uppercase tracking-[0.3em] mb-4">{trip.monthLabel} · {trip.region}</p>
