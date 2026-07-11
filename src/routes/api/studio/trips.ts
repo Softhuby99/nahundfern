@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import postgres from "postgres";
 import { sql } from "@/lib/db.server";
 import { requireAuth } from "@/lib/auth.server";
 
@@ -47,13 +48,15 @@ export const Route = createFileRoute("/api/studio/trips")({
           return Response.json({ error: "Invalid input", details: parsed.error.format() }, { status: 400 });
         }
         const data = parsed.data;
+        const coverId = data.coverImageId ?? null;
+        const kicker = data.kicker ?? null;
 
         try {
           const [trip] = await sql`
             INSERT INTO trips (slug, title, kicker, region, where_text, when_text, month_label, who_text, excerpt, body_md, published, cover_image_id)
             VALUES (
-              ${data.slug}, ${data.title}, ${data.kicker ?? null}, ${data.region}, ${data.where}, ${data.when},
-              ${data.monthLabel}, ${data.who}, ${data.excerpt}, ${data.body}, ${data.published}, ${data.coverImageId ?? null}
+              ${data.slug}, ${data.title}, ${kicker}, ${data.region}, ${data.where}, ${data.when},
+              ${data.monthLabel}, ${data.who}, ${data.excerpt}, ${data.body}, ${data.published}, ${coverId}
             )
             RETURNING *
           `;
@@ -74,13 +77,15 @@ export const Route = createFileRoute("/api/studio/trips")({
           return Response.json({ error: "Invalid input" }, { status: 400 });
         }
         const data = parsed.data;
+        const coverId = data.coverImageId ?? null;
+        const kicker = data.kicker ?? null;
 
         try {
           const [trip] = await sql`
             UPDATE trips SET
               slug = ${data.slug},
               title = ${data.title},
-              kicker = ${data.kicker ?? null},
+              kicker = ${kicker},
               region = ${data.region},
               where_text = ${data.where},
               when_text = ${data.when},
@@ -89,7 +94,7 @@ export const Route = createFileRoute("/api/studio/trips")({
               excerpt = ${data.excerpt},
               body_md = ${data.body},
               published = ${data.published},
-              cover_image_id = ${data.coverImageId ?? null},
+              cover_image_id = ${coverId},
               updated_at = now()
             WHERE id = ${data.id}
             RETURNING *
@@ -119,5 +124,3 @@ export const Route = createFileRoute("/api/studio/trips")({
     },
   },
 });
-
-import postgres from "postgres";
