@@ -1,30 +1,44 @@
 # Deployment — nahundfern.servuswir.de
 
-Kompletter Self-Host-Stack: Docker Compose auf Debian 12, TLS via Let's Encrypt, alles in Containern.
+Kompletter Self-Host-Stack: Docker Compose auf Debian 12, TLS via Let's Encrypt, alles in Containern. Für die allererste Testphase ohne Domain und TLS siehe `TEST.md`.
 
 ## 1. Server vorbereiten (Debian 12)
 
+Als `root` ausführen:
+
 ```bash
 # Docker + Compose
-sudo apt update && sudo apt install -y ca-certificates curl gnupg git
-sudo install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+apt update && apt install -y ca-certificates curl gnupg git
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable" \
-  | sudo tee /etc/apt/sources.list.d/docker.list
-sudo apt update && sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-sudo usermod -aG docker $USER   # neu einloggen
+  | tee /etc/apt/sources.list.d/docker.list
+apt update && apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Deploy-User anlegen/vorbereiten
+useradd -m -s /bin/bash deploy 2>/dev/null || true
+usermod -aG docker deploy
+usermod -aG sudo deploy 2>/dev/null || true
+
+# Installationsverzeichnis
+mkdir -p /opt/nahundfern
+chown -R deploy:deploy /opt/nahundfern
 
 # Firewall
-sudo apt install -y ufw
-sudo ufw allow OpenSSH && sudo ufw allow 80 && sudo ufw allow 443 && sudo ufw enable
+apt install -y ufw
+ufw allow OpenSSH && ufw allow 80 && ufw allow 443 && ufw enable
 ```
 
 DNS: A-Record `nahundfern.servuswir.de` → Server-IP.
 
 ## 2. Projekt holen und konfigurieren
 
+Ab jetzt als User `deploy` arbeiten:
+
 ```bash
-git clone <deine-repo-url> nahundfern && cd nahundfern
+su - deploy
+cd /opt/nahundfern
+git clone https://github.com/Softhuby99/Reiseblog.git .
 cp .env.example .env
 # .env editieren: DB_PASSWORD, JWT_SECRET (openssl rand -hex 32), LETSENCRYPT_EMAIL
 ```
@@ -76,17 +90,16 @@ Login: `https://nahundfern.servuswir.de/admin/login` — dort landest du im Reis
 Nächtliches DB-Backup (Cron auf dem Host):
 
 ```bash
-sudo tee /etc/cron.daily/nahundfern-backup >/dev/null <<'SH'
+tee /etc/cron.daily/nahundfern-backup >/dev/null <<'SH'
 #!/bin/sh
 set -e
 DEST=/var/backups/nahundfern
 mkdir -p "$DEST"
-cd /path/to/nahundfern
-docker compose exec -T db pg_dump -U "$(grep DB_USER .env|cut -d= -f2)" \
-  "$(grep DB_NAME .env|cut -d= -f2)" | gzip > "$DEST/db-$(date +%F).sql.gz"
+cd /opt/nahundfern || exit 1
+su - deploy -c 'cd /opt/nahundfern && docker compose exec -T db pg_dump -U "$(grep DB_USER .env | cut -d= -f2)" "$(grep DB_NAME .env | cut -d= -f2)" | gzip' > "$DEST/db-$(date +%F).sql.gz"
 find "$DEST" -name 'db-*.sql.gz' -mtime +14 -delete
 SH
-sudo chmod +x /etc/cron.daily/nahundfern-backup
+chmod +x /etc/cron.daily/nahundfern-backup
 ```
 
 Uploads separat sichern (extern):
