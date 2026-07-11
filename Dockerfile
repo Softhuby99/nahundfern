@@ -15,6 +15,7 @@ RUN if [ -f bun.lock ]; then \
 
 COPY . .
 ENV NODE_ENV=production
+ENV NITRO_PRESET=node-server
 RUN if [ -f bun.lock ]; then bun run build ; else npm run build ; fi
 
 # ---------- runtime stage ----------
@@ -40,4 +41,4 @@ RUN mkdir -p /app/uploads/originals /app/uploads/webp /app/uploads/avif \
 USER app
 EXPOSE 3000
 ENTRYPOINT ["/sbin/tini", "--"]
-CMD ["node", ".output/server/index.mjs"]
+CMD ["sh", "scripts/start.sh"]

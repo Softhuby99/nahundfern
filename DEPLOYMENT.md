@@ -69,7 +69,7 @@ docker compose exec app node scripts/create-user.js du@nahundfern.servuswir.de
 # Passwort interaktiv eingeben (min. 10 Zeichen)
 ```
 
-Login: `https://nahundfern.servuswir.de/_admin` — dort landest du im Reise-Editor.
+Login: `https://nahundfern.servuswir.de/admin/login` — dort landest du im Reise-Editor (`/admin/studio`).
 
 ## 6. Backups
 

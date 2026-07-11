@@ -14,9 +14,19 @@ import { Route as TimelineRouteImport } from './routes/timeline'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as StoriesRouteImport } from './routes/stories'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StoriesSlugRouteImport } from './routes/stories.$slug'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as AdminStudioRouteImport } from './routes/admin.studio'
+import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as ApiStudioTripsRouteImport } from './routes/api/studio/trips'
+import { Route as ApiStudioImagesRouteImport } from './routes/api/studio/images'
+import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
+import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
+import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
+import { Route as AdminStudioSlugRouteImport } from './routes/admin.studio.$slug'
 
 const TipsRoute = TipsRouteImport.update({
   id: '/tips',
@@ -43,6 +53,11 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -58,79 +73,191 @@ const StoriesSlugRoute = StoriesSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => StoriesRoute,
 } as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminStudioRoute = AdminStudioRouteImport.update({
+  id: '/studio',
+  path: '/studio',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AdminRoute,
+} as any)
+const ApiStudioTripsRoute = ApiStudioTripsRouteImport.update({
+  id: '/api/studio/trips',
+  path: '/api/studio/trips',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStudioImagesRoute = ApiStudioImagesRouteImport.update({
+  id: '/api/studio/images',
+  path: '/api/studio/images',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthMeRoute = ApiAuthMeRouteImport.update({
+  id: '/api/auth/me',
+  path: '/api/auth/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthLogoutRoute = ApiAuthLogoutRouteImport.update({
+  id: '/api/auth/logout',
+  path: '/api/auth/logout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
+  id: '/api/auth/login',
+  path: '/api/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminStudioSlugRoute = AdminStudioSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => AdminStudioRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/contact': typeof ContactRoute
   '/stories': typeof StoriesRouteWithChildren
   '/studio': typeof StudioRoute
   '/timeline': typeof TimelineRoute
   '/tips': typeof TipsRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/studio': typeof AdminStudioRouteWithChildren
+  '/api/health': typeof ApiHealthRoute
   '/stories/$slug': typeof StoriesSlugRoute
+  '/admin/studio/$slug': typeof AdminStudioSlugRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/me': typeof ApiAuthMeRoute
+  '/api/studio/images': typeof ApiStudioImagesRoute
+  '/api/studio/trips': typeof ApiStudioTripsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/contact': typeof ContactRoute
   '/stories': typeof StoriesRouteWithChildren
   '/studio': typeof StudioRoute
   '/timeline': typeof TimelineRoute
   '/tips': typeof TipsRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/studio': typeof AdminStudioRouteWithChildren
+  '/api/health': typeof ApiHealthRoute
   '/stories/$slug': typeof StoriesSlugRoute
+  '/admin/studio/$slug': typeof AdminStudioSlugRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/me': typeof ApiAuthMeRoute
+  '/api/studio/images': typeof ApiStudioImagesRoute
+  '/api/studio/trips': typeof ApiStudioTripsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/contact': typeof ContactRoute
   '/stories': typeof StoriesRouteWithChildren
   '/studio': typeof StudioRoute
   '/timeline': typeof TimelineRoute
   '/tips': typeof TipsRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/studio': typeof AdminStudioRouteWithChildren
+  '/api/health': typeof ApiHealthRoute
   '/stories/$slug': typeof StoriesSlugRoute
+  '/admin/studio/$slug': typeof AdminStudioSlugRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/me': typeof ApiAuthMeRoute
+  '/api/studio/images': typeof ApiStudioImagesRoute
+  '/api/studio/trips': typeof ApiStudioTripsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/about'
+    | '/admin'
     | '/contact'
     | '/stories'
     | '/studio'
     | '/timeline'
     | '/tips'
+    | '/admin/login'
+    | '/admin/studio'
+    | '/api/health'
     | '/stories/$slug'
+    | '/admin/studio/$slug'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/me'
+    | '/api/studio/images'
+    | '/api/studio/trips'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
+    | '/admin'
     | '/contact'
     | '/stories'
     | '/studio'
     | '/timeline'
     | '/tips'
+    | '/admin/login'
+    | '/admin/studio'
+    | '/api/health'
     | '/stories/$slug'
+    | '/admin/studio/$slug'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/me'
+    | '/api/studio/images'
+    | '/api/studio/trips'
   id:
     | '__root__'
     | '/'
     | '/about'
+    | '/admin'
     | '/contact'
     | '/stories'
     | '/studio'
     | '/timeline'
     | '/tips'
+    | '/admin/login'
+    | '/admin/studio'
+    | '/api/health'
     | '/stories/$slug'
+    | '/admin/studio/$slug'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/me'
+    | '/api/studio/images'
+    | '/api/studio/trips'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AdminRoute: typeof AdminRouteWithChildren
   ContactRoute: typeof ContactRoute
   StoriesRoute: typeof StoriesRouteWithChildren
   StudioRoute: typeof StudioRoute
   TimelineRoute: typeof TimelineRoute
   TipsRoute: typeof TipsRoute
+  ApiHealthRoute: typeof ApiHealthRoute
+  ApiAuthLoginRoute: typeof ApiAuthLoginRoute
+  ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
+  ApiAuthMeRoute: typeof ApiAuthMeRoute
+  ApiStudioImagesRoute: typeof ApiStudioImagesRoute
+  ApiStudioTripsRoute: typeof ApiStudioTripsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -170,6 +297,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -191,8 +325,95 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoriesSlugRouteImport
       parentRoute: typeof StoriesRoute
     }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/studio': {
+      id: '/admin/studio'
+      path: '/studio'
+      fullPath: '/admin/studio'
+      preLoaderRoute: typeof AdminStudioRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/api/studio/trips': {
+      id: '/api/studio/trips'
+      path: '/api/studio/trips'
+      fullPath: '/api/studio/trips'
+      preLoaderRoute: typeof ApiStudioTripsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/studio/images': {
+      id: '/api/studio/images'
+      path: '/api/studio/images'
+      fullPath: '/api/studio/images'
+      preLoaderRoute: typeof ApiStudioImagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/me': {
+      id: '/api/auth/me'
+      path: '/api/auth/me'
+      fullPath: '/api/auth/me'
+      preLoaderRoute: typeof ApiAuthMeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/logout': {
+      id: '/api/auth/logout'
+      path: '/api/auth/logout'
+      fullPath: '/api/auth/logout'
+      preLoaderRoute: typeof ApiAuthLogoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/login': {
+      id: '/api/auth/login'
+      path: '/api/auth/login'
+      fullPath: '/api/auth/login'
+      preLoaderRoute: typeof ApiAuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/studio/$slug': {
+      id: '/admin/studio/$slug'
+      path: '/$slug'
+      fullPath: '/admin/studio/$slug'
+      preLoaderRoute: typeof AdminStudioSlugRouteImport
+      parentRoute: typeof AdminStudioRoute
+    }
   }
 }
+
+interface AdminStudioRouteChildren {
+  AdminStudioSlugRoute: typeof AdminStudioSlugRoute
+}
+
+const AdminStudioRouteChildren: AdminStudioRouteChildren = {
+  AdminStudioSlugRoute: AdminStudioSlugRoute,
+}
+
+const AdminStudioRouteWithChildren = AdminStudioRoute._addFileChildren(
+  AdminStudioRouteChildren,
+)
+
+interface AdminRouteChildren {
+  AdminLoginRoute: typeof AdminLoginRoute
+  AdminStudioRoute: typeof AdminStudioRouteWithChildren
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminLoginRoute: AdminLoginRoute,
+  AdminStudioRoute: AdminStudioRouteWithChildren,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface StoriesRouteChildren {
   StoriesSlugRoute: typeof StoriesSlugRoute
@@ -208,11 +429,18 @@ const StoriesRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AdminRoute: AdminRouteWithChildren,
   ContactRoute: ContactRoute,
   StoriesRoute: StoriesRouteWithChildren,
   StudioRoute: StudioRoute,
   TimelineRoute: TimelineRoute,
   TipsRoute: TipsRoute,
+  ApiHealthRoute: ApiHealthRoute,
+  ApiAuthLoginRoute: ApiAuthLoginRoute,
+  ApiAuthLogoutRoute: ApiAuthLogoutRoute,
+  ApiAuthMeRoute: ApiAuthMeRoute,
+  ApiStudioImagesRoute: ApiStudioImagesRoute,
+  ApiStudioTripsRoute: ApiStudioTripsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

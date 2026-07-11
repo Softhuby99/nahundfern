@@ -12,4 +12,10 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Build for self-hosted Node.js Docker deployment. Inside the Lovable sandbox
+  // this preset is forced to cloudflare-module for preview, but on your own server
+  // (docker compose build) it will be respected and produce a Node-compatible server.
+  nitro: {
+    preset: "node-server",
+  },
 });

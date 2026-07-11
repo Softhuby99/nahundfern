@@ -150,40 +150,46 @@ docker compose exec app node scripts/create-user.js redakteur@example.com
 7. **Bild-Optimierung asynchron** — Upload gibt sofort das Original zurück, Thumbnails werden in einem `setImmediate`-Job erzeugt; Studio zeigt „Wird verarbeitet..." bis fertig. Bei 6 Varianten × 3–5 MB lohnt sich das.
 8. **Deploy-Update-Skript** (`deploy.sh` auf dem Host): `git pull && docker compose build app && docker compose up -d`. Kein Runtime-Downtime für nginx/db.
 
-## Konkrete Datei-Änderungen
+## Konkrete Datei-Änderungen (Etappe 1 – Teil 2 fertig)
 
 **Neu:**
-- `docker-compose.yml` (4 Services, 3 Volumes, 1 Netz)
-- `Dockerfile` (Multi-Stage: Bun-Build → Node 20 Alpine Runner, non-root)
-- `.dockerignore`, `.env.example`
-- `nginx/conf.d/site.conf` (Vhost, TLS, `/uploads` statisch, Proxy, Rate-Limit)
-- `nginx/Dockerfile` (falls Custom-Config nötig)
-- `db/schema.sql`
-- `scripts/create-user.js` (CLI: argon2id-Hash + INSERT)
-- `scripts/seed.js` (übernimmt aktuelle 8 Demo-Reisen inkl. Bilder in die DB)
-- `scripts/backup.sh` (für Backup-Container)
 - `src/lib/db.server.ts` — `postgres`-Client (Singleton)
 - `src/lib/uploads.server.ts` — sharp-Pipeline (WebP + AVIF, 3 Größen)
-- `src/lib/auth.server.ts` — argon2id-Verify + JWT-Sign/Verify + Cookie
-- `src/routes/api/auth/login.ts`, `logout.ts`
+- `src/lib/auth.server.ts` — argon2id-Hash + JWT-Sign/Verify + Cookie
+- `src/lib/trips.functions.ts` — öffentliche Server-Funktionen für Trips
+- `src/routes/api/health.ts` — DB-Healthcheck
+- `src/routes/api/auth/login.ts`, `logout.ts`, `me.ts`
 - `src/routes/api/studio/trips.ts` (`GET`/`POST`/`PATCH`/`DELETE`)
-- `src/routes/api/studio/images.ts` (`POST`/`DELETE`/`PATCH` für sort/alt)
-- `src/routes/api/health.ts`, `src/routes/sitemap[.]xml.ts`, `src/routes/feed[.]xml.ts`, `src/routes/robots[.]txt.ts`
-- `src/routes/_admin/route.tsx` (auth-gate), `src/routes/_admin/studio.tsx`, `_admin/studio.$slug.tsx` (Editor)
-- `src/routes/impressum.tsx`, `src/routes/datenschutz.tsx`
-- `DEPLOYMENT.md` — komplette Schritt-Anleitung Debian 12
+- `src/routes/api/studio/images.ts` (`GET`/`POST`/`DELETE`/`PATCH` für sort/alt)
+- `src/routes/admin.tsx` — Admin-Layout/Redirect
+- `src/routes/admin.login.tsx` — Login-Seite
+- `src/routes/admin.studio.tsx` — Reise-Übersicht
+- `src/routes/admin.studio.$slug.tsx` — Reise-Editor
+- `scripts/start.sh` — Seed + App-Start
 
 **Geändert:**
-- `vite.config.ts` — Build-Target `node-server`
+- `vite.config.ts` — `nitro: { preset: "node-server" }` (wird außerhalb des Lovable-Sandbox-Builds für Docker angewendet)
+- `Dockerfile` — `NITRO_PRESET=node-server`, Start über `scripts/start.sh`
 - `src/lib/studio-store.ts` — **entfernt** (localStorage weg, DB-basiert)
-- `src/routes/index.tsx`, `timeline.tsx`, `stories.tsx`, `stories.$slug.tsx` — Loader ziehen aus DB via `/api/…`
+- `src/data/trips.ts` — **entfernt** (Daten jetzt in DB + Seed-Script)
+- `src/routes/index.tsx`, `timeline.tsx`, `stories.tsx`, `stories.$slug.tsx` — Loader ziehen aus DB
 - `src/components/HorizontalTimeline.tsx` — `<picture>` mit AVIF/WebP/srcset
-- alter `/studio`-Pfad → Redirect nach `/_admin/studio`
+- `src/components/SiteHeader.tsx` — Studio-Link auf `/admin/studio`
+- `src/routes/studio.tsx` — Redirect nach `/admin/studio`
+- `DEPLOYMENT.md` — Admin-URL aktualisiert
 
 **Neue npm-Pakete:** `postgres`, `sharp`, `argon2`, `jose`.
 
-## Offene Punkte — bitte klären, bevor ich anfange
+## Entscheidungen (geklärt)
 
-1. **Migration der aktuellen 8 Demo-Reisen**: Beim ersten Container-Start automatisch in die DB seeden (inkl. der KI-generierten Bilder aus `src/assets/`, die dann durch die Thumb-Pipeline laufen)? Oder mit leerer DB starten und du legst alles neu an?
-2. **Certbot-Setup**: Beim ersten Deploy braucht certbot einen Bootstrap-Schritt (HTTP-01-Challenge, bevor TLS steht). Soll ich das in `DEPLOYMENT.md` als „Erst-Setup" beschreiben, oder ist dir lieber, du nutzt weiter certbot **auf dem Host** und ich baue nur einen HTTP-only-nginx-Container mit dokumentierter TLS-Terminierung außen herum? Erste Variante ist „alles in Docker", zweite ist einfacher zu debuggen.
-3. **Umfang jetzt**: Soll ich alle Extras (Sitemap, RSS, Impressum-Stub, Health, Rate-Limit, Backup-Container, Async-Thumbs) direkt mitbauen — oder in Etappen (erst Kernstack: Docker + nginx + Postgres + Editor + Bilder, danach die Extras)?
+1. **Migration der aktuellen 8 Demo-Reisen**: Ja — automatisch beim ersten Start seeden (`SEED_ON_START=true`).
+2. **Certbot-Setup**: Variante A — alles in Docker, Bootstrap in `DEPLOYMENT.md` beschrieben.
+3. **Umfang**: Etappe 1 (Kernstack) zuerst, dann Etappe 2 (Extras).
+
+## GitHub-Status
+
+- Projekt mit GitHub verbunden. Änderungen werden automatisch synchronisiert.
+
+## Aktueller Fokus
+
+Etappe 1 — Teil 2: DB-Client, Auth, API-Routen, Admin-Editor (`/_admin/studio`), Public-Routes aus DB.

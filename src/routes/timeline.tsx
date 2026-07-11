@@ -2,9 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { HorizontalTimeline } from "@/components/HorizontalTimeline";
-import { trips } from "@/data/trips";
+import { listPublishedTrips } from "@/lib/trips.functions";
 
 export const Route = createFileRoute("/timeline")({
+  loader: async () => {
+    const trips = await listPublishedTrips();
+    return { trips };
+  },
   head: () => ({
     meta: [
       { title: "Timeline — Vagabond" },
@@ -17,6 +21,7 @@ export const Route = createFileRoute("/timeline")({
 });
 
 function TimelinePage() {
+  const { trips } = Route.useLoaderData();
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
@@ -29,7 +34,7 @@ function TimelinePage() {
           Acht Reisen, zwei Kontinente, eine Linie. Bewege den Mauszeiger über eine Karte, um Ort, Zeit und Begleitung zu sehen — und öffne den Reisebericht.
         </p>
       </section>
-      <HorizontalTimeline trips={trips} defaultActiveSlug={trips[0].slug} />
+      <HorizontalTimeline trips={trips} defaultActiveSlug={trips[0]?.slug} />
       <SiteFooter />
     </div>
   );
