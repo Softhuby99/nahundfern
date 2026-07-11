@@ -19,6 +19,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StoriesSlugRouteImport } from './routes/stories.$slug'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as AdminStudioRouteImport } from './routes/admin.studio'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as ApiStudioTripsRouteImport } from './routes/api/studio/trips'
 import { Route as ApiStudioImagesRouteImport } from './routes/api/studio/images'
@@ -76,6 +77,11 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminStudioRoute = AdminStudioRouteImport.update({
+  id: '/studio',
+  path: '/studio',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/timeline': typeof TimelineRoute
   '/tips': typeof TipsRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/studio': typeof AdminStudioRoute
   '/api/health': typeof ApiHealthRoute
   '/stories/$slug': typeof StoriesSlugRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -135,6 +142,7 @@ export interface FileRoutesByTo {
   '/timeline': typeof TimelineRoute
   '/tips': typeof TipsRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/studio': typeof AdminStudioRoute
   '/api/health': typeof ApiHealthRoute
   '/stories/$slug': typeof StoriesSlugRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -154,6 +162,7 @@ export interface FileRoutesById {
   '/timeline': typeof TimelineRoute
   '/tips': typeof TipsRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/studio': typeof AdminStudioRoute
   '/api/health': typeof ApiHealthRoute
   '/stories/$slug': typeof StoriesSlugRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -174,6 +183,7 @@ export interface FileRouteTypes {
     | '/timeline'
     | '/tips'
     | '/admin/login'
+    | '/admin/studio'
     | '/api/health'
     | '/stories/$slug'
     | '/api/auth/login'
@@ -192,6 +202,7 @@ export interface FileRouteTypes {
     | '/timeline'
     | '/tips'
     | '/admin/login'
+    | '/admin/studio'
     | '/api/health'
     | '/stories/$slug'
     | '/api/auth/login'
@@ -210,6 +221,7 @@ export interface FileRouteTypes {
     | '/timeline'
     | '/tips'
     | '/admin/login'
+    | '/admin/studio'
     | '/api/health'
     | '/stories/$slug'
     | '/api/auth/login'
@@ -308,6 +320,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/studio': {
+      id: '/admin/studio'
+      path: '/studio'
+      fullPath: '/admin/studio'
+      preLoaderRoute: typeof AdminStudioRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/login': {
       id: '/admin/login'
       path: '/login'
@@ -355,10 +374,12 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
+  AdminStudioRoute: typeof AdminStudioRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
+  AdminStudioRoute: AdminStudioRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
