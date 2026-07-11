@@ -1,195 +1,47 @@
-# Self-Hosting-Architektur — nahundfern.servuswir.de
+# Anpassung auf User `deploy`
 
-Alles in Docker, ein einziges `docker compose up -d` startet den kompletten Stack auf deinem Debian-12-Server.
+## Bestätigung
 
-## Gesamtarchitektur
+User `deploy` ist vollkommen in Ordnung. Wir passen nur Pfade und Besitzer an — am Docker-Setup selbst ändert sich nichts.
 
-```text
-                 Internet :80 / :443
-                          │
-                          ▼
-        ┌─────────────────────────────────┐
-        │  nginx (Container)              │
-        │  nahundfern.servuswir.de        │
-        │  TLS via certbot-Volume         │
-        │  /uploads/*  → statisch aus     │
-        │               shared-Volume     │
-        │  /*          → proxy app:3000   │
-        └────────┬────────────────────────┘
-                 │ intern (Docker-Netz)
-                 ▼
-   ┌──────────────────────────┐        ┌────────────────────┐
-   │ app (Node 20)            │◀──────▶│ db (Postgres 16)   │
-   │ TanStack Start SSR       │  :5432 │ Volume: pgdata     │
-   │ + /api/* Server-Routes   │        └────────────────────┘
-   │ + sharp (Thumbs WebP+AVIF)│
-   │ schreibt → uploads-Volume│
-   └────────┬─────────────────┘
-            │
-            ▼
-   ┌──────────────────────────┐
-   │ certbot (Container)      │  erneuert Let's-Encrypt-Zertifikate,
-   │ läuft periodisch         │  teilt Volume mit nginx
-   └──────────────────────────┘
+## Was sich ändert
 
-   Gemeinsame Volumes:
-     • uploads     → app schreibt, nginx liest
-     • letsencrypt → certbot schreibt, nginx liest
-     • pgdata      → nur db
-```
+| Vorher (Doku) | Neu |
+|---------------|-----|
+| `/opt/nahundfern` | `/opt/nahundfern` bleibt als Installationsverzeichnis, gehört aber `deploy` |
+| User `nahundfern` | User `deploy` |
+| `chown -R nahundfern:nahundfern` | `chown -R deploy:deploy` |
 
-Nach außen offen: nur Ports **80** und **443** auf nginx. `app` und `db` sind ausschließlich im internen Docker-Netz erreichbar.
+## Einmalige Einrichtung als root
 
-## Container-Übersicht
+Führe das jetzt auf dem Server aus:
 
-| Service   | Image                | Zweck                                              | Volumes                          |
-|-----------|----------------------|----------------------------------------------------|----------------------------------|
-| `nginx`   | `nginx:alpine`       | Reverse-Proxy, TLS, statisches `/uploads`          | `uploads` (ro), `letsencrypt` (ro), `./nginx/conf.d` |
-| `app`     | Eigenes Dockerfile   | SSR-App + API + Upload/Thumbnail-Pipeline          | `uploads` (rw)                   |
-| `db`      | `postgres:16-alpine` | Datenbank                                          | `pgdata`                         |
-| `certbot` | `certbot/certbot`    | TLS-Zertifikat, Auto-Renew                          | `letsencrypt`, `./certbot/www`   |
-
-## Datenbank-Schema
-
-Bilder liegen als **Dateien im Volume**, in Postgres stehen nur Pfade + Metadaten (klein, schnell, gutes Backup-Verhalten).
-
-```sql
-CREATE TABLE trips (
-  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug           text UNIQUE NOT NULL,
-  title          text NOT NULL,
-  kicker         text,
-  region         text NOT NULL,        -- 'Europe' | 'North America' | ...
-  where_text     text NOT NULL,
-  when_text      text NOT NULL,
-  month_label    text NOT NULL,
-  who_text       text NOT NULL,
-  excerpt        text NOT NULL,
-  body_md        text NOT NULL,        -- Markdown, Absätze per Leerzeile
-  cover_image_id uuid REFERENCES images(id) ON DELETE SET NULL,
-  published      boolean NOT NULL DEFAULT false,
-  created_at     timestamptz NOT NULL DEFAULT now(),
-  updated_at     timestamptz NOT NULL DEFAULT now()
-);
-
-CREATE TABLE images (
-  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  trip_id        uuid REFERENCES trips(id) ON DELETE CASCADE,
-  original_path  text NOT NULL,        -- /uploads/originals/<uuid>.jpg
-  webp_400       text NOT NULL,
-  webp_1200      text NOT NULL,
-  webp_2000      text NOT NULL,
-  avif_400       text NOT NULL,
-  avif_1200      text NOT NULL,
-  avif_2000      text NOT NULL,
-  width          int  NOT NULL,
-  height         int  NOT NULL,
-  mime           text NOT NULL,
-  alt            text,
-  sort_order     int  NOT NULL DEFAULT 0,
-  created_at     timestamptz NOT NULL DEFAULT now()
-);
-
-CREATE TABLE users (
-  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  email         text UNIQUE NOT NULL,
-  password_hash text NOT NULL,         -- argon2id
-  created_at    timestamptz NOT NULL DEFAULT now()
-);
-```
-
-Migrations via einfacher SQL-Datei (`db/schema.sql`), ausgeführt beim App-Start wenn Tabellen fehlen.
-
-## Bild-Pipeline (Upload → Thumbnails)
-
-Für **jedes** hochgeladene Bild erzeugt `sharp` **6 Varianten**:
-- WebP in 400 / 1200 / 2000 px
-- AVIF in 400 / 1200 / 2000 px
-
-Ablage:
-```
-/uploads/
-  originals/<uuid>.<ext>
-  webp/<uuid>_400.webp   <uuid>_1200.webp   <uuid>_2000.webp
-  avif/<uuid>_400.avif   <uuid>_1200.avif   <uuid>_2000.avif
-```
-
-Im Frontend wird pro `<img>` ein `<picture>` mit AVIF-first, WebP-Fallback und `srcset` (400/1200/2000) gerendert. nginx liefert das ganze `/uploads/*` direkt mit `Cache-Control: public, max-age=31536000, immutable` aus (App wird dafür nicht geweckt).
-
-EXIF-Rotation wird vor dem Resize angewendet (`.rotate()`), Metadaten werden gestrippt (Privatsphäre, kleinere Dateien).
-
-## Admin-Bereich (`/studio`) — Reise-Editor
-
-Ablösung des Demo-Passwort-Gates durch echten Login mit signiertem httpOnly-Cookie (JWT, HS256).
-
-**Reise anlegen/bearbeiten** — ein Formular pro Reise:
-- Basis: Titel, Slug, Region, Ort, Zeitraum, Monats-Label, Begleitung
-- Teaser (kurz) + Reisebericht (Markdown, Absätze durch Leerzeile)
-- **Cover-Bild** (Dropzone, Vorschau nach Upload)
-- **Galerie** (Multi-Upload, Drag-zum-Umsortieren, Alt-Text pro Bild, Löschen)
-- Toggle „Online stellen" (published)
-- Speichern → `POST/PATCH /api/studio/trips`, Bilder → `POST /api/studio/images`
-- Löschen entfernt Zeile + alle 7 Dateien (Original + 6 Thumbs) vom Volume
-
-**Übersicht** — Liste aller Reisen mit Status (online/entwurf), Bearbeiten, Vorschau, Löschen.
-
-**User-Verwaltung** — bewusst kein UI. Neuer Redakteur wird per CLI angelegt:
 ```bash
-docker compose exec app node scripts/create-user.js redakteur@example.com
-# fragt interaktiv das Passwort ab, hasht mit argon2id
+# deploy gehört zu docker
+groups deploy | grep -q docker || sudo usermod -aG docker deploy
+
+# Verzeichnis anlegen und auf deploy überschreiben
+sudo mkdir -p /opt/nahundfern
+sudo chown -R deploy:deploy /opt/nahundfern
 ```
 
-## Was ich zusätzlich empfehle („was noch?")
+## Weiter als User deploy
 
-1. **Sitemap + robots.txt** dynamisch aus DB — jede veröffentlichte Reise erscheint automatisch (`/sitemap.xml`, `/robots.txt` als Server-Routes).
-2. **RSS-Feed** (`/feed.xml`) für die Reiseberichte — für Leser mit Feedreader.
-3. **Impressum + Datenschutz** als statische Route-Stubs — für die deutsche Rechtslage nötig, sobald `nahundfern.servuswir.de` öffentlich ist.
-4. **Health-Endpoint** (`/api/health`) — prüft DB-Verbindung; nginx-Healthcheck nutzt das.
-5. **Rate-Limit auf `/api/auth/login`** — nginx-Direktive `limit_req_zone`, 5 Versuche/Minute pro IP, schützt vor Brute-Force.
-6. **Automatisches DB-Backup** — kleiner `backup`-Container, führt nächtlich `pg_dump | gzip` in `/backups/` aus, hält 14 Tage vor. `uploads/` per `rsync`/`restic` extern sichern (Cron auf dem Host, nicht im Compose).
-7. **Bild-Optimierung asynchron** — Upload gibt sofort das Original zurück, Thumbnails werden in einem `setImmediate`-Job erzeugt; Studio zeigt „Wird verarbeitet..." bis fertig. Bei 6 Varianten × 3–5 MB lohnt sich das.
-8. **Deploy-Update-Skript** (`deploy.sh` auf dem Host): `git pull && docker compose build app && docker compose up -d`. Kein Runtime-Downtime für nginx/db.
+```bash
+su - deploy
+cd /opt/nahundfern
+git clone https://github.com/Softhuby99/Reiseblog.git .
+cp .env.example .env
+# .env bearbeiten
+```
 
-## Konkrete Datei-Änderungen (Etappe 1 – Teil 2 fertig)
+## Was ich im Code ändere
 
-**Neu:**
-- `src/lib/db.server.ts` — `postgres`-Client (Singleton)
-- `src/lib/uploads.server.ts` — sharp-Pipeline (WebP + AVIF, 3 Größen)
-- `src/lib/auth.server.ts` — argon2id-Hash + JWT-Sign/Verify + Cookie
-- `src/lib/trips.functions.ts` — öffentliche Server-Funktionen für Trips
-- `src/routes/api/health.ts` — DB-Healthcheck
-- `src/routes/api/auth/login.ts`, `logout.ts`, `me.ts`
-- `src/routes/api/studio/trips.ts` (`GET`/`POST`/`PATCH`/`DELETE`)
-- `src/routes/api/studio/images.ts` (`GET`/`POST`/`DELETE`/`PATCH` für sort/alt)
-- `src/routes/admin.tsx` — Admin-Layout/Redirect
-- `src/routes/admin.login.tsx` — Login-Seite
-- `src/routes/admin.studio.tsx` — Reise-Übersicht
-- `src/routes/admin.studio.$slug.tsx` — Reise-Editor
-- `scripts/start.sh` — Seed + App-Start
+- `DEPLOYMENT.md`: Hinweis auf User `deploy` (statt `nahundfern`) und `/opt/nahundfern` als Installationspfad.
+- `TEST.md` (falls angelegt): denselben User anpassen.
+- `docker-compose.yml`: bleibt wie ist, Container-User bleibt `app` im Dockerfile.
+- `scripts/start.sh`: prüft, ob Upload-Verzeichnisse beschreibbar sind, egal welcher Host-User.
 
-**Geändert:**
-- `vite.config.ts` — `nitro: { preset: "node-server" }` (wird außerhalb des Lovable-Sandbox-Builds für Docker angewendet)
-- `Dockerfile` — `NITRO_PRESET=node-server`, Start über `scripts/start.sh`
-- `src/lib/studio-store.ts` — **entfernt** (localStorage weg, DB-basiert)
-- `src/data/trips.ts` — **entfernt** (Daten jetzt in DB + Seed-Script)
-- `src/routes/index.tsx`, `timeline.tsx`, `stories.tsx`, `stories.$slug.tsx` — Loader ziehen aus DB
-- `src/components/HorizontalTimeline.tsx` — `<picture>` mit AVIF/WebP/srcset
-- `src/components/SiteHeader.tsx` — Studio-Link auf `/admin/studio`
-- `src/routes/studio.tsx` — Redirect nach `/admin/studio`
-- `DEPLOYMENT.md` — Admin-URL aktualisiert
+## Frage
 
-**Neue npm-Pakete:** `postgres`, `sharp`, `argon2`, `jose`.
-
-## Entscheidungen (geklärt)
-
-1. **Migration der aktuellen 8 Demo-Reisen**: Ja — automatisch beim ersten Start seeden (`SEED_ON_START=true`).
-2. **Certbot-Setup**: Variante A — alles in Docker, Bootstrap in `DEPLOYMENT.md` beschrieben.
-3. **Umfang**: Etappe 1 (Kernstack) zuerst, dann Etappe 2 (Extras).
-
-## GitHub-Status
-
-- Projekt mit GitHub verbunden. Änderungen werden automatisch synchronisiert.
-
-## Aktueller Fokus
-
-Etappe 1 — Teil 2: DB-Client, Auth, API-Routen, Admin-Editor (`/_admin/studio`), Public-Routes aus DB.
+Soll ich jetzt die Dokumentation und ggf. ein HTTP-Test-Setup auf User `deploy` + `/opt/nahundfern` umstellen, oder willst du zuerst den aktuellen `main`-Branch auf dem Server bauen?
