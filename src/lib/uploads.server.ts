@@ -46,7 +46,7 @@ export async function storeImage(buffer: Buffer, originalName: string): Promise<
   const originalPath = path.join(dirs.originals, originalFileName);
 
   // Apply EXIF orientation and strip metadata, then read metadata.
-  const processed = sharp(buffer).rotate().withMetadata({ exif: {}, iptc: {}, xmp: {} });
+  const processed = sharp(buffer).rotate().withMetadata({ exif: {}, xmp: {} });
   await processed.toFile(originalPath);
   const metadata = await sharp(originalPath).metadata();
   const width = metadata.width ?? 0;
@@ -57,7 +57,7 @@ export async function storeImage(buffer: Buffer, originalName: string): Promise<
   const avif: Record<number, string> = {};
 
   for (const size of SIZES) {
-    const resizeOptions: sharp.ResizeOptions = {
+    const resizeOptions: ResizeOptions = {
       width: size,
       withoutEnlargement: true,
       fit: "inside",
