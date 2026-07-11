@@ -18,12 +18,35 @@ type StudioTrip = {
   slug: string;
   title: string;
   kicker: string | null;
-  region: string;
+  region: "Europe" | "North America";
+  where: string;
+  when: string;
   month_label: string;
+  who: string;
   excerpt: string;
+  body_md: string;
   published: boolean;
+  cover_image_id: string | null;
   cover_webp_400: string | null;
 };
+
+function toApiPayload(trip: StudioTrip) {
+  return {
+    id: trip.id,
+    slug: trip.slug,
+    title: trip.title,
+    kicker: trip.kicker ?? "",
+    region: trip.region,
+    where: trip.where,
+    when: trip.when,
+    monthLabel: trip.month_label,
+    who: trip.who,
+    excerpt: trip.excerpt,
+    body: trip.body_md,
+    published: trip.published,
+    coverImageId: trip.cover_image_id,
+  };
+}
 
 function StudioPage() {
   const [trips, setTrips] = useState<StudioTrip[]>([]);
@@ -52,7 +75,7 @@ function StudioPage() {
   };
 
   const togglePublish = async (trip: StudioTrip) => {
-    const next = { ...trip, published: !trip.published, monthLabel: trip.month_label, coverImageId: null };
+    const next = { ...toApiPayload(trip), published: !trip.published };
     const res = await fetch("/api/studio/trips", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
