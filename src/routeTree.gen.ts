@@ -26,6 +26,7 @@ import { Route as ApiStudioImagesRouteImport } from './routes/api/studio/images'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
+import { Route as AdminStudioSlugRouteImport } from './routes/admin.studio.$slug'
 
 const TipsRoute = TipsRouteImport.update({
   id: '/tips',
@@ -112,6 +113,11 @@ const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
   path: '/api/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminStudioSlugRoute = AdminStudioSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => AdminStudioRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -123,9 +129,10 @@ export interface FileRoutesByFullPath {
   '/timeline': typeof TimelineRoute
   '/tips': typeof TipsRoute
   '/admin/login': typeof AdminLoginRoute
-  '/admin/studio': typeof AdminStudioRoute
+  '/admin/studio': typeof AdminStudioRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/stories/$slug': typeof StoriesSlugRoute
+  '/admin/studio/$slug': typeof AdminStudioSlugRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
@@ -142,9 +149,10 @@ export interface FileRoutesByTo {
   '/timeline': typeof TimelineRoute
   '/tips': typeof TipsRoute
   '/admin/login': typeof AdminLoginRoute
-  '/admin/studio': typeof AdminStudioRoute
+  '/admin/studio': typeof AdminStudioRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/stories/$slug': typeof StoriesSlugRoute
+  '/admin/studio/$slug': typeof AdminStudioSlugRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
@@ -162,9 +170,10 @@ export interface FileRoutesById {
   '/timeline': typeof TimelineRoute
   '/tips': typeof TipsRoute
   '/admin/login': typeof AdminLoginRoute
-  '/admin/studio': typeof AdminStudioRoute
+  '/admin/studio': typeof AdminStudioRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/stories/$slug': typeof StoriesSlugRoute
+  '/admin/studio/$slug': typeof AdminStudioSlugRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
@@ -186,6 +195,7 @@ export interface FileRouteTypes {
     | '/admin/studio'
     | '/api/health'
     | '/stories/$slug'
+    | '/admin/studio/$slug'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
     | '/admin/studio'
     | '/api/health'
     | '/stories/$slug'
+    | '/admin/studio/$slug'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
@@ -224,6 +235,7 @@ export interface FileRouteTypes {
     | '/admin/studio'
     | '/api/health'
     | '/stories/$slug'
+    | '/admin/studio/$slug'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
@@ -369,17 +381,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/studio/$slug': {
+      id: '/admin/studio/$slug'
+      path: '/$slug'
+      fullPath: '/admin/studio/$slug'
+      preLoaderRoute: typeof AdminStudioSlugRouteImport
+      parentRoute: typeof AdminStudioRoute
+    }
   }
 }
 
+interface AdminStudioRouteChildren {
+  AdminStudioSlugRoute: typeof AdminStudioSlugRoute
+}
+
+const AdminStudioRouteChildren: AdminStudioRouteChildren = {
+  AdminStudioSlugRoute: AdminStudioSlugRoute,
+}
+
+const AdminStudioRouteWithChildren = AdminStudioRoute._addFileChildren(
+  AdminStudioRouteChildren,
+)
+
 interface AdminRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
-  AdminStudioRoute: typeof AdminStudioRoute
+  AdminStudioRoute: typeof AdminStudioRouteWithChildren
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
-  AdminStudioRoute: AdminStudioRoute,
+  AdminStudioRoute: AdminStudioRouteWithChildren,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
