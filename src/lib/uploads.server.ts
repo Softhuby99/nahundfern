@@ -45,8 +45,8 @@ export async function storeImage(buffer: Buffer, originalName: string): Promise<
   const originalFileName = `${id}${ext}`;
   const originalPath = path.join(dirs.originals, originalFileName);
 
-  // Apply EXIF orientation and strip metadata, then read metadata.
-  const processed = sharp(buffer).rotate().withMetadata({ exif: {}, xmp: {} });
+  // Apply EXIF orientation and read metadata.
+  const processed = sharp(buffer).rotate();
   await processed.toFile(originalPath);
   const metadata = await sharp(originalPath).metadata();
   const width = metadata.width ?? 0;
