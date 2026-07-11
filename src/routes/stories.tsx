@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ResponsivePicture } from "@/components/HorizontalTimeline";
-import { listPublishedTrips } from "@/lib/trips.functions";
+import { listPublishedTrips, type PublicTrip } from "@/lib/trips.functions";
 
 export const Route = createFileRoute("/stories")({
   loader: async () => {

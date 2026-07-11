@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ResponsivePicture } from "@/components/HorizontalTimeline";
-import { getPublishedTrip, listPublishedTrips } from "@/lib/trips.functions";
+import { getPublishedTrip, listPublishedTrips, type PublicTrip } from "@/lib/trips.functions";
 
 export const Route = createFileRoute("/stories/$slug")({
   loader: async ({ params }) => {
