@@ -12,8 +12,10 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
-  // Override the default Cloudflare preset for self-hosted Docker/Node.js deployments.
+  // Lovable's config forces cloudflare-module whenever an explicit `preset` is set.
+  // Setting only `defaultPreset` keeps `preset` undefined and lets Nitro fall back to
+  // the self-hosted Node.js preset for Docker builds.
   nitro: {
-    preset: "node-server",
+    defaultPreset: "node-server",
   },
 });
