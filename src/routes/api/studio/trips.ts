@@ -36,6 +36,20 @@ export const Route = createFileRoute("/api/studio/trips")({
     handlers: {
       GET: async ({ request }) => {
         await requireAuth(request);
+        const { searchParams } = new URL(request.url);
+        const slug = searchParams.get("slug");
+        if (slug) {
+          const [trip] = await sql`
+            SELECT t.*, i.webp_400 as cover_webp_400
+            FROM trips t
+            LEFT JOIN images i ON i.id = t.cover_image_id
+            WHERE t.slug = ${slug}
+          `;
+          if (!trip) {
+            return Response.json({ error: "Trip not found" }, { status: 404 });
+          }
+          return Response.json({ trip });
+        }
         const trips = await getTripsWithCover();
         return Response.json({ trips });
       },
