@@ -77,6 +77,7 @@ export const Route = createFileRoute("/api/studio/trips")({
           return Response.json({ error: "Invalid input" }, { status: 400 });
         }
         const data = parsed.data;
+        const tripId = data.id;
         const coverId = data.coverImageId ?? null;
         const kicker = data.kicker ?? null;
 
@@ -96,7 +97,7 @@ export const Route = createFileRoute("/api/studio/trips")({
               published = ${data.published},
               cover_image_id = ${coverId},
               updated_at = now()
-            WHERE id = ${data.id}
+            WHERE id = ${tripId}
             RETURNING *
           `;
           if (!trip) {
