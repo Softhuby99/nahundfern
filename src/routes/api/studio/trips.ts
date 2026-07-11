@@ -77,7 +77,7 @@ export const Route = createFileRoute("/api/studio/trips")({
           return Response.json({ error: "Invalid input" }, { status: 400 });
         }
         const data = parsed.data;
-        const tripId = data.id;
+        const tripId = data.id!;
         const coverId = data.coverImageId ?? null;
         const kicker = data.kicker ?? null;
 
