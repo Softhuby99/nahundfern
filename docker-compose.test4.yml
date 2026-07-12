@@ -1,0 +1,5 @@
+# test4 — Live mode with Let's Encrypt TLS (production).
+# Uses the base docker-compose.yml unchanged. Requires valid certificates in
+# the `letsencrypt` volume (see DEPLOYMENT.md for the bootstrap procedure).
+
+services: {}
