@@ -1,0 +1,13 @@
+# test3 — Live domain, HTTP-only (e.g. behind an external TLS-terminating proxy).
+# Same nginx config as test1, but intended to be reached via the productive domain.
+
+services:
+  nginx:
+    volumes:
+      - ./nginx/conf.d.http:/etc/nginx/conf.d:ro
+      - uploads:/var/www/uploads:ro
+    ports:
+      - "80:80"
+
+  certbot:
+    profiles: ["disabled"]

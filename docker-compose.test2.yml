@@ -1,0 +1,12 @@
+# test2 — Test mode with self-signed TLS.
+# scripts/run.sh test2 creates ./nginx/certs/{fullchain.pem,privkey.pem} on first run.
+
+services:
+  nginx:
+    volumes:
+      - ./nginx/conf.d.selfsigned:/etc/nginx/conf.d:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - uploads:/var/www/uploads:ro
+
+  certbot:
+    profiles: ["disabled"]

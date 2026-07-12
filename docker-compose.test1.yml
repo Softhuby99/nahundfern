@@ -1,0 +1,13 @@
+# test1 — Test mode, HTTP-only, no certificates.
+# Any IP/hostname works. Certbot is disabled.
+
+services:
+  nginx:
+    volumes:
+      - ./nginx/conf.d.http:/etc/nginx/conf.d:ro
+      - uploads:/var/www/uploads:ro
+    ports:
+      - "80:80"
+
+  certbot:
+    profiles: ["disabled"]
