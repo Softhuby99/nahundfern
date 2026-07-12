@@ -19,8 +19,8 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StoriesSlugRouteImport } from './routes/stories.$slug'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
-import { Route as AdminStudioRouteImport } from './routes/admin.studio'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AdminStudioIndexRouteImport } from './routes/admin.studio.index'
 import { Route as ApiStudioTripsRouteImport } from './routes/api/studio/trips'
 import { Route as ApiStudioImagesRouteImport } from './routes/api/studio/images'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
@@ -78,14 +78,14 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminStudioRoute = AdminStudioRouteImport.update({
-  id: '/studio',
-  path: '/studio',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminStudioIndexRoute = AdminStudioIndexRouteImport.update({
+  id: '/studio/',
+  path: '/studio/',
   getParentRoute: () => AdminRoute,
 } as any)
 const ApiStudioTripsRoute = ApiStudioTripsRouteImport.update({
@@ -114,9 +114,9 @@ const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminStudioSlugRoute = AdminStudioSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => AdminStudioRoute,
+  id: '/studio/$slug',
+  path: '/studio/$slug',
+  getParentRoute: () => AdminRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -129,7 +129,6 @@ export interface FileRoutesByFullPath {
   '/timeline': typeof TimelineRoute
   '/tips': typeof TipsRoute
   '/admin/login': typeof AdminLoginRoute
-  '/admin/studio': typeof AdminStudioRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/stories/$slug': typeof StoriesSlugRoute
   '/admin/studio/$slug': typeof AdminStudioSlugRoute
@@ -138,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/studio/images': typeof ApiStudioImagesRoute
   '/api/studio/trips': typeof ApiStudioTripsRoute
+  '/admin/studio/': typeof AdminStudioIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -149,7 +149,6 @@ export interface FileRoutesByTo {
   '/timeline': typeof TimelineRoute
   '/tips': typeof TipsRoute
   '/admin/login': typeof AdminLoginRoute
-  '/admin/studio': typeof AdminStudioRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/stories/$slug': typeof StoriesSlugRoute
   '/admin/studio/$slug': typeof AdminStudioSlugRoute
@@ -158,6 +157,7 @@ export interface FileRoutesByTo {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/studio/images': typeof ApiStudioImagesRoute
   '/api/studio/trips': typeof ApiStudioTripsRoute
+  '/admin/studio': typeof AdminStudioIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -170,7 +170,6 @@ export interface FileRoutesById {
   '/timeline': typeof TimelineRoute
   '/tips': typeof TipsRoute
   '/admin/login': typeof AdminLoginRoute
-  '/admin/studio': typeof AdminStudioRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/stories/$slug': typeof StoriesSlugRoute
   '/admin/studio/$slug': typeof AdminStudioSlugRoute
@@ -179,6 +178,7 @@ export interface FileRoutesById {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/studio/images': typeof ApiStudioImagesRoute
   '/api/studio/trips': typeof ApiStudioTripsRoute
+  '/admin/studio/': typeof AdminStudioIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -192,7 +192,6 @@ export interface FileRouteTypes {
     | '/timeline'
     | '/tips'
     | '/admin/login'
-    | '/admin/studio'
     | '/api/health'
     | '/stories/$slug'
     | '/admin/studio/$slug'
@@ -201,6 +200,7 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/studio/images'
     | '/api/studio/trips'
+    | '/admin/studio/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -212,7 +212,6 @@ export interface FileRouteTypes {
     | '/timeline'
     | '/tips'
     | '/admin/login'
-    | '/admin/studio'
     | '/api/health'
     | '/stories/$slug'
     | '/admin/studio/$slug'
@@ -221,6 +220,7 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/studio/images'
     | '/api/studio/trips'
+    | '/admin/studio'
   id:
     | '__root__'
     | '/'
@@ -232,7 +232,6 @@ export interface FileRouteTypes {
     | '/timeline'
     | '/tips'
     | '/admin/login'
-    | '/admin/studio'
     | '/api/health'
     | '/stories/$slug'
     | '/admin/studio/$slug'
@@ -241,6 +240,7 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/studio/images'
     | '/api/studio/trips'
+    | '/admin/studio/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -332,18 +332,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/studio': {
-      id: '/admin/studio'
-      path: '/studio'
-      fullPath: '/admin/studio'
-      preLoaderRoute: typeof AdminStudioRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/login': {
       id: '/admin/login'
       path: '/login'
       fullPath: '/admin/login'
       preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/studio/': {
+      id: '/admin/studio/'
+      path: '/studio'
+      fullPath: '/admin/studio/'
+      preLoaderRoute: typeof AdminStudioIndexRouteImport
       parentRoute: typeof AdminRoute
     }
     '/api/studio/trips': {
@@ -383,34 +383,24 @@ declare module '@tanstack/react-router' {
     }
     '/admin/studio/$slug': {
       id: '/admin/studio/$slug'
-      path: '/$slug'
+      path: '/studio/$slug'
       fullPath: '/admin/studio/$slug'
       preLoaderRoute: typeof AdminStudioSlugRouteImport
-      parentRoute: typeof AdminStudioRoute
+      parentRoute: typeof AdminRoute
     }
   }
 }
 
-interface AdminStudioRouteChildren {
-  AdminStudioSlugRoute: typeof AdminStudioSlugRoute
-}
-
-const AdminStudioRouteChildren: AdminStudioRouteChildren = {
-  AdminStudioSlugRoute: AdminStudioSlugRoute,
-}
-
-const AdminStudioRouteWithChildren = AdminStudioRoute._addFileChildren(
-  AdminStudioRouteChildren,
-)
-
 interface AdminRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
-  AdminStudioRoute: typeof AdminStudioRouteWithChildren
+  AdminStudioSlugRoute: typeof AdminStudioSlugRoute
+  AdminStudioIndexRoute: typeof AdminStudioIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
-  AdminStudioRoute: AdminStudioRouteWithChildren,
+  AdminStudioSlugRoute: AdminStudioSlugRoute,
+  AdminStudioIndexRoute: AdminStudioIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)

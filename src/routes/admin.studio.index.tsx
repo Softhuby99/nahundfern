@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 
-export const Route = createFileRoute("/admin/studio")({
+export const Route = createFileRoute("/admin/studio/")({
   head: () => ({
     meta: [
       { title: "Studio — Vagabond" },
