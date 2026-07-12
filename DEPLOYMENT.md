@@ -67,12 +67,15 @@ docker compose restart nginx
 
 Danach erneuert der `certbot`-Container automatisch alle 12h.
 
-## 4. Vollen Stack starten
+## 4. Vollen Stack starten (Modus `test4` = Live + Let's Encrypt)
 
 ```bash
-docker compose up -d --build
-docker compose logs -f app     # bis "listening on :3000" erscheint
+./scripts/run.sh test4
+docker compose logs -f app     # bis "Listening on :3000" erscheint
 ```
+
+`test4` verwendet die Base-`docker-compose.yml` unverändert (inkl. Certbot-Renewal).
+Für die anderen Modi (`test1`–`test3`) siehe `TEST.md`.
 
 Beim ersten Start läuft `scripts/seed.js` (weil `SEED_ON_START=true`) und importiert die 8 Demo-Reisen inklusive Bilder in die Datenbank. Danach kannst du `SEED_ON_START=false` setzen.
 
