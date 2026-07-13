@@ -30,6 +30,12 @@ type StudioTrip = {
   cover_webp_400?: string | null;
   tripStartDate: string;
   tripEndDate: string;
+  countryCode: string;
+  city: string;
+  latitude: string;
+  longitude: string;
+  travelType: string;
+  featured: boolean;
 };
 
 type StudioImage = {
@@ -57,6 +63,12 @@ function emptyTrip(): StudioTrip {
     coverImageId: null,
     tripStartDate: "",
     tripEndDate: "",
+    countryCode: "",
+    city: "",
+    latitude: "",
+    longitude: "",
+    travelType: "",
+    featured: false,
   };
 }
 
