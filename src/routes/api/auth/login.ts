@@ -36,7 +36,7 @@ export const Route = createFileRoute("/api/auth/login")({
           return Response.json({ error: "Invalid credentials" }, { status: 401 });
         }
 
-        const token = await createSessionToken(user.id, user.email);
+        const token = await createSessionToken(user.id);
         const isSecure = request.headers.get("x-forwarded-proto") === "https" || new URL(request.url).protocol === "https:";
         return Response.json({ ok: true }, {
           status: 200,
