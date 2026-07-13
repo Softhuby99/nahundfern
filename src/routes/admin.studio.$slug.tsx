@@ -219,7 +219,27 @@ function EditorPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <Input label="Ort" value={trip.where} onChange={(v) => setField("where", v)} />
-              <Input label="Zeitraum" value={trip.when} onChange={(v) => setField("when", v)} />
+              <Input label="Zeitraum (Text)" value={trip.when} onChange={(v) => setField("when", v)} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">Startdatum</label>
+                <input
+                  type="date"
+                  value={trip.tripStartDate}
+                  onChange={(e) => setField("tripStartDate", e.target.value)}
+                  className="w-full bg-card border border-border focus:border-primary p-3 rounded-sm"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">Enddatum</label>
+                <input
+                  type="date"
+                  value={trip.tripEndDate}
+                  onChange={(e) => setField("tripEndDate", e.target.value)}
+                  className="w-full bg-card border border-border focus:border-primary p-3 rounded-sm"
+                />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <Input label="Begleitung" value={trip.who} onChange={(v) => setField("who", v)} />
