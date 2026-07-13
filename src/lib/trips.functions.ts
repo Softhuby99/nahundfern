@@ -91,6 +91,7 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
       excerpt: row.excerpt,
       body: splitBody(row.body_md),
       published: row.published,
+      createdAt: (row.created_at instanceof Date ? row.created_at.toISOString() : String(row.created_at)),
       cover: {
         webp: { 400: row.webp_400, 1200: row.webp_1200, 2000: row.webp_2000 },
         avif: { 400: row.avif_400, 1200: row.avif_1200, 2000: row.avif_2000 },
