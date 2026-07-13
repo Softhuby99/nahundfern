@@ -18,7 +18,7 @@ export function SiteHeader() {
       <header className="sticky top-0 z-50 flex items-center justify-between px-6 md:px-8 py-5 backdrop-blur-md border-b border-border bg-background/70">
         <Link to="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
           <div className="size-3 bg-primary rounded-full" />
-          <span className="font-display text-2xl tracking-tighter uppercase">Vagabond.</span>
+          <span className="font-display text-2xl tracking-tight font-medium">Vagabond.</span>
         </Link>
         <button
           aria-label="Toggle menu"
@@ -39,7 +39,7 @@ export function SiteHeader() {
                 key={n.to}
                 to={n.to}
                 onClick={() => setOpen(false)}
-                className="font-display uppercase text-5xl md:text-7xl tracking-tighter hover:text-primary transition-colors"
+                className="font-display text-5xl md:text-7xl tracking-tight font-light hover:text-primary transition-colors"
                 style={{ animation: `revealNode 0.5s var(--ease-cinematic) ${i * 60}ms both` }}
               >
                 {String(i + 1).padStart(2, "0")} — {n.label}

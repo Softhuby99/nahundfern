@@ -53,15 +53,15 @@ function TipsPage() {
       <SiteHeader />
       <section className="px-6 md:px-8 pt-16 pb-12 max-w-5xl mx-auto">
         <p className="font-mono text-primary text-xs uppercase tracking-[0.3em] mb-4">Field Notes</p>
-        <h1 className="font-display text-5xl md:text-7xl uppercase leading-[0.9] tracking-tighter">Sechs Regeln</h1>
+        <h1 className="font-display text-5xl md:text-7xl tracking-tight font-light leading-[1.05]">Sechs Regeln</h1>
         <p className="mt-6 max-w-2xl text-muted-foreground">Alles, was ich in zehn Jahren Reisen gelernt habe und was tatsächlich funktioniert. Keine Listen mit zwanzig Punkten.</p>
       </section>
       <section className="px-6 md:px-8 max-w-5xl mx-auto pb-24 grid md:grid-cols-2 gap-px bg-border">
         {tips.map((t) => (
           <div key={t.n} className="bg-background p-8 md:p-10">
             <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-4">{t.n}</p>
-            <h2 className="font-display text-3xl uppercase tracking-tight mb-4">{t.title}</h2>
-            <p className="text-foreground/80 leading-relaxed">{t.body}</p>
+            <h2 className="font-display text-3xl tracking-tight font-medium mb-4">{t.title}</h2>
+            <p className="text-muted-foreground leading-relaxed">{t.body}</p>
           </div>
         ))}
       </section>

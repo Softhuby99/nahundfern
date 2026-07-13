@@ -22,7 +22,7 @@ function AboutPage() {
 
       <section className="px-6 md:px-8 pt-16 pb-12 max-w-5xl mx-auto">
         <p className="font-mono text-primary text-xs uppercase tracking-[0.3em] mb-4">About</p>
-        <h1 className="font-display text-5xl md:text-8xl uppercase leading-[0.9] tracking-tighter">
+        <h1 className="font-display text-5xl md:text-7xl tracking-tight font-light leading-[1.05]">
           Slow movement.<br />Sharp images.
         </h1>
       </section>
@@ -40,7 +40,7 @@ function AboutPage() {
           </p>
         </div>
         <div>
-          <div className="aspect-[4/5] bg-card overflow-hidden mb-6">
+          <div className="aspect-[4/5] bg-card overflow-hidden mb-6 rounded-sm">
             <img src={aboutDesk} alt="Desk with camera and maps" loading="lazy" width={1024} height={1280} className="w-full h-full object-cover" />
           </div>
           <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-3">Gear</p>

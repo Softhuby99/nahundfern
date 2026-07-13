@@ -4,30 +4,30 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Cinematic Noir travel-blog theme */
+/* Warm Sand travel-journal theme — light, friendly, airy */
 @theme {
-  --color-background: hsl(220 15% 5%);
-  --color-foreground: hsl(45 20% 96%);
-  --color-muted: hsl(220 10% 96% / 0.4);
-  --color-muted-foreground: hsl(220 10% 96% / 0.55);
-  --color-primary: hsl(38 90% 55%);
-  --color-primary-foreground: hsl(220 15% 5%);
-  --color-border: hsl(0 0% 100% / 0.1);
-  --color-card: hsl(220 15% 8%);
-  --color-card-foreground: hsl(45 20% 96%);
-  --color-accent: hsl(38 90% 55%);
-  --color-accent-foreground: hsl(220 15% 5%);
-  --color-secondary: hsl(0 0% 100% / 0.05);
-  --color-secondary-foreground: hsl(45 20% 96%);
-  --color-popover: hsl(220 15% 8%);
-  --color-popover-foreground: hsl(45 20% 96%);
-  --color-input: hsl(0 0% 100% / 0.1);
-  --color-ring: hsl(38 90% 55%);
-  --color-destructive: hsl(0 70% 55%);
-  --color-destructive-foreground: hsl(45 20% 96%);
+  --color-background: hsl(33 33% 97%);
+  --color-foreground: hsl(30 25% 23%);
+  --color-muted: hsl(35 24% 70%);
+  --color-muted-foreground: hsl(30 18% 42%);
+  --color-primary: hsl(34 26% 44%);
+  --color-primary-foreground: hsl(33 33% 97%);
+  --color-border: hsl(33 20% 85%);
+  --color-card: hsl(33 30% 93%);
+  --color-card-foreground: hsl(30 25% 23%);
+  --color-accent: hsl(35 28% 55%);
+  --color-accent-foreground: hsl(33 33% 97%);
+  --color-secondary: hsl(33 30% 93%);
+  --color-secondary-foreground: hsl(30 25% 23%);
+  --color-popover: hsl(33 33% 97%);
+  --color-popover-foreground: hsl(30 25% 23%);
+  --color-input: hsl(33 33% 97%);
+  --color-ring: hsl(34 26% 44%);
+  --color-destructive: hsl(8 55% 52%);
+  --color-destructive-foreground: hsl(33 33% 97%);
 
-  --font-display: "Anton", "Arial Narrow", sans-serif;
-  --font-body: "Inter", system-ui, sans-serif;
+  --font-display: "Outfit", system-ui, sans-serif;
+  --font-body: "Figtree", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   --ease-cinematic: cubic-bezier(0.32, 0.72, 0, 1);
