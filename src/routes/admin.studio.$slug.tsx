@@ -107,7 +107,12 @@ function EditorPage() {
     setSaving(true);
     setError("");
     try {
-      const payload = { ...trip, body: trip.body };
+      const payload = {
+        ...trip,
+        body: trip.body,
+        tripStartDate: trip.tripStartDate ? trip.tripStartDate : null,
+        tripEndDate: trip.tripEndDate ? trip.tripEndDate : null,
+      };
       const method = isNew ? "POST" : "PATCH";
       const res = await fetch("/api/studio/trips", {
         method,
