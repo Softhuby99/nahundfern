@@ -64,7 +64,9 @@ export function HorizontalTimeline({ trips, defaultActiveSlug, windowSize = 10 }
   }, [trips, fromDate, toDate]);
 
   const total = filtered.length;
-  const safeOffset = Math.min(Math.max(0, offset), Math.max(0, total - windowSize));
+  const maxOffset = Math.max(0, total - windowSize);
+  const effectiveOffset = offset === null ? maxOffset : offset;
+  const safeOffset = Math.min(Math.max(0, effectiveOffset), maxOffset);
   const visible = filtered.slice(safeOffset, safeOffset + windowSize);
 
   const hasOlder = safeOffset > 0;
