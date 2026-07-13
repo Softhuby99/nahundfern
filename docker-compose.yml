@@ -1,6 +1,6 @@
 services:
   nginx:
-    image: nginx:alpine
+    image: nginx:1.27-alpine
     container_name: nahundfern-nginx
     restart: unless-stopped
     depends_on:
@@ -13,6 +13,15 @@ services:
       - uploads:/var/www/uploads:ro
       - letsencrypt:/etc/letsencrypt:ro
       - certbot-www:/var/www/certbot:ro
+    # Reload nginx every 6h so freshly renewed Let's Encrypt certificates
+    # are picked up without a container restart.
+    command: >
+      /bin/sh -c "nginx -g 'daemon off;' &
+      NGINX_PID=$$!;
+      while :; do sleep 6h;
+        nginx -s reload 2>/dev/null || true;
+      done &
+      wait $$NGINX_PID"
     networks: [web]
 
   app:
@@ -31,13 +40,16 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
       UPLOADS_DIR: /app/uploads
-      SEED_ON_START: ${SEED_ON_START:-true}
+      # Seeding is opt-in. Set SEED_ON_START=true explicitly on the first boot
+      # of a fresh deployment; leave it off in normal operation so the seed
+      # script cannot resurrect demo data after a wipe.
+      SEED_ON_START: ${SEED_ON_START:-false}
     volumes:
       - uploads:/app/uploads
     networks: [web, internal]
 
   db:
-    image: postgres:16-alpine
+    image: postgres:16.6-alpine
     container_name: nahundfern-db
     restart: unless-stopped
     environment:
@@ -55,7 +67,7 @@ services:
     networks: [internal]
 
   certbot:
-    image: certbot/certbot:latest
+    image: certbot/certbot:v3.0.1
     container_name: nahundfern-certbot
     restart: unless-stopped
     volumes:
@@ -66,11 +78,39 @@ services:
       while :; do certbot renew --webroot -w /var/www/certbot --quiet;
       sleep 12h & wait $${!}; done;"
 
+  backup:
+    image: postgres:16.6-alpine
+    container_name: nahundfern-backup
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGUSER: ${DB_USER}
+      PGPASSWORD: ${DB_PASSWORD}
+      PGDATABASE: ${DB_NAME}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+    volumes:
+      - backups:/backups
+      - ./scripts/backup.sh:/usr/local/bin/backup.sh:ro
+    entrypoint: /bin/sh
+    # Run once every 24h. The backup script keeps a rolling window of
+    # BACKUP_KEEP_DAYS daily dumps and deletes older ones.
+    command: >
+      -c "trap exit TERM;
+      while :; do
+        /bin/sh /usr/local/bin/backup.sh || echo 'backup: run failed';
+        sleep 24h & wait $${!};
+      done"
+    networks: [internal]
+
 volumes:
   uploads:
   pgdata:
   letsencrypt:
   certbot-www:
+  backups:
 
 networks:
   web:
