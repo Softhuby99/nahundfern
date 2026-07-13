@@ -1,48 +1,72 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { Heart, Search, Menu, X } from "lucide-react";
 
 const nav = [
-  { to: "/", label: "Home" },
+  { to: "/", label: "Startseite" },
   { to: "/timeline", label: "Timeline" },
-  { to: "/stories", label: "Stories" },
-  { to: "/about", label: "About" },
-  { to: "/tips", label: "Tips" },
-  { to: "/contact", label: "Contact" },
-  { to: "/admin/studio", label: "Studio" },
+  { to: "/stories", label: "Reiseberichte" },
+  { to: "/journal", label: "Reisetagebuch" },
+  { to: "/gallery", label: "Fotogalerie" },
+  { to: "/about", label: "Über mich" },
+  { to: "/contact", label: "Kontakt" },
 ] as const;
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <header className="sticky top-0 z-50 flex items-center justify-between px-6 md:px-8 py-5 backdrop-blur-md border-b border-border bg-background/70">
-        <Link to="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-          <div className="size-3 bg-primary rounded-full" />
-          <span className="font-display text-2xl tracking-tight font-medium">Vagabond.</span>
-        </Link>
-        <button
-          aria-label="Toggle menu"
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-          className="group flex flex-col gap-1.5 p-2"
-        >
-          <span className={`block w-6 h-0.5 bg-foreground transition-all ${open ? "translate-y-2 rotate-45" : ""}`} />
-          <span className={`block w-6 h-0.5 bg-foreground transition-all ${open ? "opacity-0" : ""}`} />
-          <span className={`block w-6 h-0.5 bg-foreground transition-all ${open ? "-translate-y-2 -rotate-45" : ""}`} />
-        </button>
+      <header className="sticky top-0 z-50 bg-background/85 backdrop-blur-md border-b border-border">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 md:px-8 py-4">
+          <Link to="/" className="group" onClick={() => setOpen(false)}>
+            <div className="flex items-baseline gap-2 leading-none">
+              <span className="font-display text-3xl md:text-4xl font-semibold tracking-tight">Reisejournal</span>
+              <Heart className="size-4 text-primary fill-primary/40" strokeWidth={1.5} />
+            </div>
+            <p className="font-script text-lg text-primary/80 mt-0.5">Mein Weg. Meine Welt.</p>
+          </Link>
+
+          <nav className="hidden lg:flex items-center gap-7">
+            {nav.map((n) => (
+              <Link
+                key={n.to}
+                to={n.to}
+                className="text-sm text-foreground/80 hover:text-primary transition-colors"
+                activeProps={{ className: "text-primary font-medium border-b-2 border-primary pb-1" }}
+                activeOptions={{ exact: n.to === "/" }}
+              >
+                {n.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-3">
+            <button aria-label="Suche" className="hidden md:inline-flex p-2 text-foreground/70 hover:text-primary transition-colors">
+              <Search className="size-5" strokeWidth={1.5} />
+            </button>
+            <button
+              aria-label="Menü"
+              onClick={() => setOpen((v) => !v)}
+              className="lg:hidden p-2 text-foreground"
+            >
+              {open ? <X className="size-6" /> : <Menu className="size-6" />}
+            </button>
+          </div>
+        </div>
       </header>
+
       {open && (
-        <div className="fixed inset-0 z-40 bg-background/95 backdrop-blur-xl pt-24 px-8">
-          <nav className="flex flex-col gap-6 max-w-7xl mx-auto">
+        <div className="fixed inset-0 z-40 bg-background/97 backdrop-blur-xl pt-24 px-8 lg:hidden">
+          <nav className="flex flex-col gap-5 max-w-7xl mx-auto">
             {nav.map((n, i) => (
               <Link
                 key={n.to}
                 to={n.to}
                 onClick={() => setOpen(false)}
-                className="font-display text-5xl md:text-7xl tracking-tight font-light hover:text-primary transition-colors"
-                style={{ animation: `revealNode 0.5s var(--ease-cinematic) ${i * 60}ms both` }}
+                className="font-display text-3xl md:text-5xl tracking-tight font-medium hover:text-primary transition-colors"
+                style={{ animation: `revealNode 0.4s var(--ease-cinematic) ${i * 50}ms both` }}
               >
-                {String(i + 1).padStart(2, "0")} — {n.label}
+                {n.label}
               </Link>
             ))}
           </nav>
