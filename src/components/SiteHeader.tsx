@@ -10,6 +10,7 @@ const nav = [
   { to: "/gallery", label: "Fotogalerie" },
   { to: "/about", label: "Über mich" },
   { to: "/contact", label: "Kontakt" },
+  { to: "/admin/studio", label: "Studio" },
 ] as const;
 
 export function SiteHeader() {
