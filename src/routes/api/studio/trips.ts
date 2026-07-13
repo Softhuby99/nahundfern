@@ -72,13 +72,16 @@ export const Route = createFileRoute("/api/studio/trips")({
         const data = parsed.data;
         const coverId = data.coverImageId ?? null;
         const kicker = data.kicker ?? null;
+        const startDate = data.tripStartDate ?? null;
+        const endDate = data.tripEndDate ?? null;
 
         try {
           const [trip] = await sql`
-            INSERT INTO trips (slug, title, kicker, region, where_text, when_text, month_label, who_text, excerpt, body_md, published, cover_image_id)
+            INSERT INTO trips (slug, title, kicker, region, where_text, when_text, month_label, who_text, excerpt, body_md, published, cover_image_id, trip_start_date, trip_end_date)
             VALUES (
               ${data.slug}, ${data.title}, ${kicker}, ${data.region}, ${data.where}, ${data.when},
-              ${data.monthLabel}, ${data.who}, ${data.excerpt}, ${data.body}, ${data.published}, ${coverId}
+              ${data.monthLabel}, ${data.who}, ${data.excerpt}, ${data.body}, ${data.published}, ${coverId},
+              ${startDate}, ${endDate}
             )
             RETURNING *
           `;
@@ -102,6 +105,8 @@ export const Route = createFileRoute("/api/studio/trips")({
         const tripId = data.id!;
         const coverId = data.coverImageId ?? null;
         const kicker = data.kicker ?? null;
+        const startDate = data.tripStartDate ?? null;
+        const endDate = data.tripEndDate ?? null;
 
         try {
           const [trip] = await sql`
@@ -118,6 +123,8 @@ export const Route = createFileRoute("/api/studio/trips")({
               body_md = ${data.body},
               published = ${data.published},
               cover_image_id = ${coverId},
+              trip_start_date = ${startDate},
+              trip_end_date = ${endDate},
               updated_at = now()
             WHERE id = ${tripId}
             RETURNING *
