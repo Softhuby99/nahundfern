@@ -55,6 +55,26 @@
   50% { transform: translateY(-6px) rotate(var(--r, 0deg)); }
 }
 
+/* Respect the OS "reduce motion" preference: disable timeline reveal
+   animations, spine draw-in and any generic transitions. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .timeline-item,
+  .timeline-line {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
 @utility scrollbar-hide {
   &::-webkit-scrollbar { display: none; }
   -ms-overflow-style: none;

@@ -1,4 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeSanitize from "rehype-sanitize";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ResponsivePicture } from "@/components/HorizontalTimeline";
@@ -83,10 +86,16 @@ function StoryPage() {
           <p className="font-display text-2xl md:text-3xl leading-snug mb-12 tracking-tight font-light text-primary">
             {trip.excerpt}
           </p>
-          <div className="space-y-6 text-lg leading-relaxed text-foreground/90">
-            {trip.body.map((p: string, i: number) => (
-              <p key={i}>{p}</p>
-            ))}
+          <div className="prose-story text-lg leading-relaxed text-foreground/90 space-y-6
+                          [&_h2]:font-display [&_h2]:text-3xl [&_h2]:mt-10 [&_h2]:mb-4
+                          [&_h3]:font-display [&_h3]:text-2xl [&_h3]:mt-8 [&_h3]:mb-3
+                          [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4
+                          [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6
+                          [&_blockquote]:border-l-4 [&_blockquote]:border-primary/50 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-foreground/70
+                          [&_code]:font-mono [&_code]:text-sm [&_code]:bg-card [&_code]:px-1 [&_code]:rounded">
+            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSanitize]}>
+              {trip.bodyMd}
+            </ReactMarkdown>
           </div>
         </div>
 

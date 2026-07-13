@@ -26,6 +26,12 @@ const TripInput = z.object({
   coverImageId: z.string().uuid().optional().nullable(),
   tripStartDate: isoDate,
   tripEndDate: isoDate,
+  countryCode: z.string().length(2).optional().nullable(),
+  city: z.string().max(120).optional().nullable(),
+  latitude: z.number().min(-90).max(90).optional().nullable(),
+  longitude: z.number().min(-180).max(180).optional().nullable(),
+  travelType: z.string().max(50).optional().nullable(),
+  featured: z.boolean().optional(),
 });
 
 async function getTripsWithCover() {
@@ -74,14 +80,26 @@ export const Route = createFileRoute("/api/studio/trips")({
         const kicker = data.kicker ?? null;
         const startDate = data.tripStartDate ?? null;
         const endDate = data.tripEndDate ?? null;
+        const countryCode = data.countryCode ?? null;
+        const city = data.city ?? null;
+        const latitude = data.latitude ?? null;
+        const longitude = data.longitude ?? null;
+        const travelType = data.travelType ?? null;
+        const featured = data.featured ?? false;
 
         try {
           const [trip] = await sql`
-            INSERT INTO trips (slug, title, kicker, region, where_text, when_text, month_label, who_text, excerpt, body_md, published, cover_image_id, trip_start_date, trip_end_date)
+            INSERT INTO trips (
+              slug, title, kicker, region, where_text, when_text, month_label,
+              who_text, excerpt, body_md, published, cover_image_id,
+              trip_start_date, trip_end_date,
+              country_code, city, latitude, longitude, travel_type, featured
+            )
             VALUES (
               ${data.slug}, ${data.title}, ${kicker}, ${data.region}, ${data.where}, ${data.when},
               ${data.monthLabel}, ${data.who}, ${data.excerpt}, ${data.body}, ${data.published}, ${coverId},
-              ${startDate}, ${endDate}
+              ${startDate}, ${endDate},
+              ${countryCode}, ${city}, ${latitude}, ${longitude}, ${travelType}, ${featured}
             )
             RETURNING *
           `;
@@ -107,6 +125,12 @@ export const Route = createFileRoute("/api/studio/trips")({
         const kicker = data.kicker ?? null;
         const startDate = data.tripStartDate ?? null;
         const endDate = data.tripEndDate ?? null;
+        const countryCode = data.countryCode ?? null;
+        const city = data.city ?? null;
+        const latitude = data.latitude ?? null;
+        const longitude = data.longitude ?? null;
+        const travelType = data.travelType ?? null;
+        const featured = data.featured ?? false;
 
         try {
           const [trip] = await sql`
@@ -125,6 +149,12 @@ export const Route = createFileRoute("/api/studio/trips")({
               cover_image_id = ${coverId},
               trip_start_date = ${startDate},
               trip_end_date = ${endDate},
+              country_code = ${countryCode},
+              city = ${city},
+              latitude = ${latitude},
+              longitude = ${longitude},
+              travel_type = ${travelType},
+              featured = ${featured},
               updated_at = now()
             WHERE id = ${tripId}
             RETURNING *

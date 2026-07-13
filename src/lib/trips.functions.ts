@@ -12,11 +12,20 @@ export type PublicTrip = {
   monthLabel: string;
   who: string;
   excerpt: string;
+  /** Raw Markdown source for full-body rendering with react-markdown. */
+  bodyMd: string;
+  /** Legacy: paragraphs split on blank lines. Kept for back-compat. */
   body: string[];
   published: boolean;
   createdAt: string;
   tripStartDate: string | null;
   tripEndDate: string | null;
+  countryCode: string | null;
+  city: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  travelType: string | null;
+  featured: boolean;
   cover: {
     webp: Record<number, string>;
     avif: Record<number, string>;
@@ -34,6 +43,45 @@ function toIsoDate(value: unknown): string | null {
   return String(value).slice(0, 10);
 }
 
+function toNumber(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  const n = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapRow(r: any): PublicTrip {
+  return {
+    id: r.id,
+    slug: r.slug,
+    title: r.title,
+    kicker: r.kicker,
+    region: r.region,
+    where: r.where_text,
+    when: r.when_text,
+    monthLabel: r.month_label,
+    who: r.who_text,
+    excerpt: r.excerpt,
+    bodyMd: r.body_md,
+    body: splitBody(r.body_md),
+    published: r.published,
+    createdAt: r.created_at instanceof Date ? r.created_at.toISOString() : String(r.created_at),
+    tripStartDate: toIsoDate(r.trip_start_date),
+    tripEndDate: toIsoDate(r.trip_end_date),
+    countryCode: r.country_code ?? null,
+    city: r.city ?? null,
+    latitude: toNumber(r.latitude),
+    longitude: toNumber(r.longitude),
+    travelType: r.travel_type ?? null,
+    featured: Boolean(r.featured),
+    cover: {
+      webp: { 400: r.webp_400, 1200: r.webp_1200, 2000: r.webp_2000 },
+      avif: { 400: r.avif_400, 1200: r.avif_1200, 2000: r.avif_2000 },
+      alt: r.cover_alt,
+    },
+  };
+}
+
 export const listPublishedTrips = createServerFn({ method: "GET" })
   .handler(async () => {
     // Order chronologically by actual travel date (newest first). Fall back to
@@ -49,28 +97,7 @@ export const listPublishedTrips = createServerFn({ method: "GET" })
       ORDER BY COALESCE(t.trip_start_date, t.created_at::date) DESC,
                t.created_at DESC
     `;
-    return rows.map((r) => ({
-      id: r.id,
-      slug: r.slug,
-      title: r.title,
-      kicker: r.kicker,
-      region: r.region,
-      where: r.where_text,
-      when: r.when_text,
-      monthLabel: r.month_label,
-      who: r.who_text,
-      excerpt: r.excerpt,
-      body: splitBody(r.body_md),
-      published: r.published,
-      createdAt: (r.created_at instanceof Date ? r.created_at.toISOString() : String(r.created_at)),
-      tripStartDate: toIsoDate(r.trip_start_date),
-      tripEndDate: toIsoDate(r.trip_end_date),
-      cover: {
-        webp: { 400: r.webp_400, 1200: r.webp_1200, 2000: r.webp_2000 },
-        avif: { 400: r.avif_400, 1200: r.avif_1200, 2000: r.avif_2000 },
-        alt: r.cover_alt,
-      },
-    })) as PublicTrip[];
+    return rows.map(mapRow);
   });
 
 export const getPublishedTrip = createServerFn({ method: "GET" })
@@ -91,26 +118,5 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
     if (!row) {
       throw new Error("Trip not found");
     }
-    return {
-      id: row.id,
-      slug: row.slug,
-      title: row.title,
-      kicker: row.kicker,
-      region: row.region,
-      where: row.where_text,
-      when: row.when_text,
-      monthLabel: row.month_label,
-      who: row.who_text,
-      excerpt: row.excerpt,
-      body: splitBody(row.body_md),
-      published: row.published,
-      createdAt: (row.created_at instanceof Date ? row.created_at.toISOString() : String(row.created_at)),
-      tripStartDate: toIsoDate(row.trip_start_date),
-      tripEndDate: toIsoDate(row.trip_end_date),
-      cover: {
-        webp: { 400: row.webp_400, 1200: row.webp_1200, 2000: row.webp_2000 },
-        avif: { 400: row.avif_400, 1200: row.avif_1200, 2000: row.avif_2000 },
-        alt: row.cover_alt,
-      },
-    } as PublicTrip;
+    return mapRow(row);
   });

@@ -30,6 +30,12 @@ type StudioTrip = {
   cover_webp_400?: string | null;
   tripStartDate: string;
   tripEndDate: string;
+  countryCode: string;
+  city: string;
+  latitude: string;
+  longitude: string;
+  travelType: string;
+  featured: boolean;
 };
 
 type StudioImage = {
@@ -57,6 +63,12 @@ function emptyTrip(): StudioTrip {
     coverImageId: null,
     tripStartDate: "",
     tripEndDate: "",
+    countryCode: "",
+    city: "",
+    latitude: "",
+    longitude: "",
+    travelType: "",
+    featured: false,
   };
 }
 
@@ -88,6 +100,12 @@ function EditorPage() {
           body: found.body_md,
           tripStartDate: found.trip_start_date ? String(found.trip_start_date).slice(0, 10) : "",
           tripEndDate: found.trip_end_date ? String(found.trip_end_date).slice(0, 10) : "",
+          countryCode: found.country_code ?? "",
+          city: found.city ?? "",
+          latitude: found.latitude !== null && found.latitude !== undefined ? String(found.latitude) : "",
+          longitude: found.longitude !== null && found.longitude !== undefined ? String(found.longitude) : "",
+          travelType: found.travel_type ?? "",
+          featured: Boolean(found.featured),
         });
         return found.id;
       })
@@ -112,6 +130,12 @@ function EditorPage() {
         body: trip.body,
         tripStartDate: trip.tripStartDate ? trip.tripStartDate : null,
         tripEndDate: trip.tripEndDate ? trip.tripEndDate : null,
+        countryCode: trip.countryCode ? trip.countryCode.toUpperCase().slice(0, 2) : null,
+        city: trip.city || null,
+        latitude: trip.latitude === "" ? null : Number(trip.latitude),
+        longitude: trip.longitude === "" ? null : Number(trip.longitude),
+        travelType: trip.travelType || null,
+        featured: trip.featured,
       };
       const method = isNew ? "POST" : "PATCH";
       const res = await fetch("/api/studio/trips", {
@@ -240,6 +264,26 @@ function EditorPage() {
                   className="w-full bg-card border border-border focus:border-primary p-3 rounded-sm"
                 />
               </div>
+            </div>
+
+            {/* Optional structured metadata for later filters, maps, statistics. */}
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Länder-Code (ISO 3166, z. B. DE, BE)"
+                value={trip.countryCode}
+                onChange={(v) => setField("countryCode", v.toUpperCase().slice(0, 2))}
+                placeholder="DE"
+              />
+              <Input label="Stadt / Region" value={trip.city} onChange={(v) => setField("city", v)} placeholder="Brüssel" />
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <Input label="Breite (Lat)" value={trip.latitude} onChange={(v) => setField("latitude", v)} placeholder="50.8503" />
+              <Input label="Länge (Lng)" value={trip.longitude} onChange={(v) => setField("longitude", v)} placeholder="4.3517" />
+              <Input label="Reisetyp" value={trip.travelType} onChange={(v) => setField("travelType", v)} placeholder="Städtereise" />
+            </div>
+            <div className="flex items-center gap-3">
+              <input id="featured" type="checkbox" checked={trip.featured} onChange={(e) => setField("featured", e.target.checked)} />
+              <label htmlFor="featured" className="font-mono text-[10px] uppercase tracking-widest cursor-pointer">Als Highlight markieren</label>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <Input label="Begleitung" value={trip.who} onChange={(v) => setField("who", v)} />
