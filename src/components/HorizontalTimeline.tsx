@@ -51,7 +51,8 @@ export function HorizontalTimeline({ trips, defaultActiveSlug, windowSize = 10 }
   const [active, setActive] = useState<string | null>(defaultActiveSlug ?? null);
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
-  const [offset, setOffset] = useState(0);
+  // null = auto-pin to the newest window; number = user paged to a specific offset
+  const [offset, setOffset] = useState<number | null>(null);
 
   const filtered = useMemo(() => {
     return trips.filter((t) => {
