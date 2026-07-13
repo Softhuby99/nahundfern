@@ -14,6 +14,7 @@ export type PublicTrip = {
   excerpt: string;
   body: string[];
   published: boolean;
+  createdAt: string;
   cover: {
     webp: Record<number, string>;
     avif: Record<number, string>;
