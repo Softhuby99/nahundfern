@@ -28,6 +28,8 @@ type StudioTrip = {
   published: boolean;
   cover_image_id: string | null;
   cover_webp_400: string | null;
+  trip_start_date: string | null;
+  trip_end_date: string | null;
 };
 
 function toApiPayload(trip: StudioTrip) {
@@ -45,6 +47,8 @@ function toApiPayload(trip: StudioTrip) {
     body: trip.body_md,
     published: trip.published,
     coverImageId: trip.cover_image_id,
+    tripStartDate: trip.trip_start_date ? String(trip.trip_start_date).slice(0, 10) : null,
+    tripEndDate: trip.trip_end_date ? String(trip.trip_end_date).slice(0, 10) : null,
   };
 }
 
