@@ -27,7 +27,7 @@ function TimelinePage() {
       <SiteHeader />
       <section className="px-6 md:px-8 pt-16 pb-8 max-w-7xl mx-auto">
         <p className="font-mono text-primary text-xs uppercase tracking-[0.3em] mb-4">The Route · 2024</p>
-        <h1 className="font-display text-5xl md:text-7xl uppercase leading-[0.9] tracking-tighter mb-6">
+        <h1 className="font-display text-5xl md:text-7xl tracking-tight font-light leading-[1.05] mb-6">
           A year on a single line
         </h1>
         <p className="max-w-2xl text-muted-foreground leading-relaxed">

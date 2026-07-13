@@ -53,7 +53,7 @@ export function HorizontalTimeline({ trips, defaultActiveSlug }: Props) {
       <div className="px-6 md:px-8 mb-12 flex justify-between items-end max-w-7xl mx-auto">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary mb-3">The Route</p>
-          <h2 className="font-display text-4xl md:text-6xl uppercase tracking-tighter">A year on the line</h2>
+          <h2 className="font-display text-4xl md:text-6xl tracking-tight font-light">A year on the line</h2>
         </div>
         <span className="hidden md:block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
           Scroll horizontally →
@@ -123,13 +123,13 @@ function TimelineNode({
             <span className={`font-mono text-[10px] tracking-widest ${isActive ? "text-primary" : "text-muted-foreground"}`}>
               {trip.monthLabel}
             </span>
-            <h3 className={`font-display text-2xl uppercase mt-1 tracking-tight ${isActive ? "text-primary" : "text-foreground"}`}>
+            <h3 className={`font-display text-2xl tracking-tight font-medium ${isActive ? "text-primary" : "text-foreground"}`}>
               {trip.title}
             </h3>
           </>
         ) : (
           <>
-            <h3 className={`font-display text-2xl uppercase mb-1 tracking-tight ${isActive ? "text-primary" : "text-foreground"}`}>
+            <h3 className={`font-display text-2xl tracking-tight font-medium mb-1 ${isActive ? "text-primary" : "text-foreground"}`}>
               {trip.title}
             </h3>
             <span className={`font-mono text-[10px] tracking-widest ${isActive ? "text-primary" : "text-muted-foreground"}`}>
@@ -154,7 +154,7 @@ function TimelineNode({
       {/* Bloom meta card (only when active) */}
       {isActive && (
         <div
-          className={`absolute left-1/2 -translate-x-1/2 z-30 w-[300px] md:w-[360px] bg-card/80 border border-border backdrop-blur-xl p-5 rounded-md shadow-2xl ${
+          className={`absolute left-1/2 -translate-x-1/2 z-30 w-[300px] md:w-[360px] bg-card/95 border border-border backdrop-blur-xl p-5 rounded-md shadow-xl ${
             above ? "top-1/2 mt-16" : "bottom-1/2 mb-16"
           }`}
           style={{ animation: "revealNode 0.35s var(--ease-cinematic) both" }}
@@ -188,7 +188,7 @@ function TimelineNode({
             width={1024}
             height={1280}
             className={`w-full aspect-[2/3] object-cover rounded-sm outline-1 -outline-offset-1 outline-foreground/5 transition-all duration-700 ${
-              isActive ? "grayscale-0 ring-1 ring-primary/30" : "grayscale group-hover:grayscale-0"
+              isActive ? "ring-1 ring-primary/30" : ""
             }`}
           />
         </Link>

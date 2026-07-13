@@ -45,7 +45,7 @@ function LoginPage() {
       <SiteHeader />
       <main className="flex-1 px-6 md:px-8 py-12 max-w-md mx-auto w-full">
         <p className="font-mono text-primary text-xs uppercase tracking-[0.3em] mb-4">Admin</p>
-        <h1 className="font-display text-5xl uppercase tracking-tighter mb-8">Login</h1>
+        <h1 className="font-display text-5xl tracking-tight font-light mb-8">Login</h1>
         <form onSubmit={submit} className="space-y-4">
           <div>
             <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">Email</label>
@@ -54,7 +54,7 @@ function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full bg-background border border-border focus:border-primary focus:outline-none p-3"
+              className="w-full bg-card border border-border focus:border-primary focus:outline-none p-3 rounded-sm"
             />
           </div>
           <div>
@@ -64,14 +64,14 @@ function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full bg-background border border-border focus:border-primary focus:outline-none p-3"
+              className="w-full bg-card border border-border focus:border-primary focus:outline-none p-3 rounded-sm"
             />
           </div>
           {error && <p className="text-destructive text-sm font-mono">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="w-full px-6 py-3 bg-primary text-primary-foreground font-mono text-[10px] tracking-widest uppercase hover:bg-primary/90 disabled:opacity-50"
+            className="w-full px-6 py-3 bg-primary text-primary-foreground font-mono text-[10px] tracking-widest uppercase hover:bg-primary/90 disabled:opacity-50 rounded-sm"
           >
             {loading ? "…" : "Login →"}
           </button>

@@ -214,7 +214,7 @@ function EditorPage() {
                 <select
                   value={trip.region}
                   onChange={(e) => setField("region", e.target.value as StudioTrip["region"])}
-                  className="w-full bg-background border border-border focus:border-primary p-3"
+                  className="w-full bg-card border border-border focus:border-primary p-3 rounded-sm"
                 >
                   <option value="Europe">Europe</option>
                   <option value="North America">North America</option>
@@ -229,7 +229,7 @@ function EditorPage() {
                 value={trip.excerpt}
                 onChange={(e) => setField("excerpt", e.target.value)}
                 rows={3}
-                className="w-full bg-background border border-border focus:border-primary p-3"
+                className="w-full bg-card border border-border focus:border-primary p-3 rounded-sm"
               />
             </div>
 
@@ -239,7 +239,7 @@ function EditorPage() {
                 value={trip.body}
                 onChange={(e) => setField("body", e.target.value)}
                 rows={16}
-                className="w-full bg-background border border-border focus:border-primary p-3 font-mono text-sm"
+                className="w-full bg-card border border-border focus:border-primary p-3 font-mono text-sm rounded-sm"
               />
             </div>
 
@@ -249,10 +249,10 @@ function EditorPage() {
             </div>
 
             <div className="flex gap-3 pt-2">
-              <button onClick={save} disabled={saving} className="px-6 py-3 bg-primary text-primary-foreground font-mono text-[10px] tracking-widest uppercase hover:bg-primary/90 disabled:opacity-50">
+              <button onClick={save} disabled={saving} className="px-6 py-3 bg-primary text-primary-foreground font-mono text-[10px] tracking-widest uppercase hover:bg-primary/90 disabled:opacity-50 rounded-sm">
                 {saving ? "…" : "Speichern"}
               </button>
-              <Link to="/admin/studio" className="px-6 py-3 border border-border font-mono text-[10px] tracking-widest uppercase hover:border-primary hover:text-primary">
+              <Link to="/admin/studio" className="px-6 py-3 border border-border font-mono text-[10px] tracking-widest uppercase hover:border-primary hover:text-primary rounded-sm">
                 Abbrechen
               </Link>
             </div>
@@ -297,7 +297,7 @@ function EditorPage() {
                   {images.map((img) => (
                     <div key={img.id} className={`relative group aspect-square border ${trip.coverImageId === img.id ? "border-primary" : "border-border"}`}>
                       <img src={img.webp_400} alt={img.alt ?? ""} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1 items-center justify-center">
+                      <div className="absolute inset-0 bg-card/90 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1 items-center justify-center">
                         <button onClick={() => setCover(img.id)} className="text-[10px] font-mono uppercase hover:text-primary">Cover</button>
                         <button onClick={() => deleteImage(img.id)} className="text-[10px] font-mono uppercase text-destructive">Löschen</button>
                       </div>
@@ -323,7 +323,7 @@ function Input({ label, value, onChange, placeholder }: { label: string; value: 
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full bg-background border border-border focus:border-primary focus:outline-none p-3"
+        className="w-full bg-card border border-border focus:border-primary focus:outline-none p-3 rounded-sm"
       />
     </div>
   );

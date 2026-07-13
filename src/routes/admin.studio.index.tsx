@@ -106,7 +106,7 @@ function StudioPage() {
         <div className="flex items-end justify-between mb-12 flex-wrap gap-4">
           <div>
             <p className="font-mono text-primary text-xs uppercase tracking-[0.3em] mb-3">Studio</p>
-            <h1 className="font-display text-4xl md:text-6xl uppercase tracking-tighter">Reisen verwalten</h1>
+            <h1 className="font-display text-4xl md:text-6xl tracking-tight font-light">Reisen verwalten</h1>
           </div>
           <div className="flex gap-3">
             <Link
@@ -135,11 +135,11 @@ function StudioPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-mono text-[10px] uppercase tracking-widest text-primary">{t.month_label || "—"}</span>
-                    <span className={`font-mono text-[10px] uppercase tracking-widest px-1.5 py-0.5 ${t.published ? "bg-primary/20 text-primary" : "bg-foreground/10 text-muted-foreground"}`}>
+                    <span className={`font-mono text-[10px] uppercase tracking-widest px-1.5 py-0.5 rounded-sm ${t.published ? "bg-primary/20 text-primary" : "bg-muted/30 text-muted-foreground"}`}>
                       {t.published ? "online" : "entwurf"}
                     </span>
                   </div>
-                  <h3 className="font-display text-xl uppercase tracking-tight truncate">{t.title}</h3>
+                  <h3 className="font-display text-xl tracking-tight font-medium truncate">{t.title}</h3>
                   <p className="text-sm text-muted-foreground truncate">{t.excerpt}</p>
                 </div>
                 <div className="flex gap-2 flex-none">

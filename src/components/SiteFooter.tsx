@@ -6,7 +6,7 @@ export function SiteFooter() {
       <div>
         <div className="flex items-center gap-2 mb-8">
           <div className="size-3 bg-primary rounded-full" />
-          <span className="font-display text-xl uppercase tracking-tighter">Vagabond.</span>
+          <span className="font-display text-xl tracking-tight font-medium">Vagabond.</span>
         </div>
         <nav className="flex flex-wrap gap-6 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
           <Link to="/timeline" className="hover:text-primary transition-colors">Timeline</Link>
@@ -20,7 +20,7 @@ export function SiteFooter() {
         <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-3">Inquiries</p>
         <a
           href="mailto:hello@vagabond.studio"
-          className="font-display text-2xl md:text-4xl uppercase hover:text-primary transition-colors underline decoration-border decoration-1 underline-offset-8 hover:decoration-primary"
+          className="font-display text-2xl md:text-4xl tracking-tight font-light hover:text-primary transition-colors underline decoration-border decoration-1 underline-offset-8 hover:decoration-primary"
         >
           hello@vagabond.studio
         </a>
