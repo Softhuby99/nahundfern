@@ -100,6 +100,12 @@ function EditorPage() {
           body: found.body_md,
           tripStartDate: found.trip_start_date ? String(found.trip_start_date).slice(0, 10) : "",
           tripEndDate: found.trip_end_date ? String(found.trip_end_date).slice(0, 10) : "",
+          countryCode: found.country_code ?? "",
+          city: found.city ?? "",
+          latitude: found.latitude !== null && found.latitude !== undefined ? String(found.latitude) : "",
+          longitude: found.longitude !== null && found.longitude !== undefined ? String(found.longitude) : "",
+          travelType: found.travel_type ?? "",
+          featured: Boolean(found.featured),
         });
         return found.id;
       })
@@ -124,6 +130,12 @@ function EditorPage() {
         body: trip.body,
         tripStartDate: trip.tripStartDate ? trip.tripStartDate : null,
         tripEndDate: trip.tripEndDate ? trip.tripEndDate : null,
+        countryCode: trip.countryCode ? trip.countryCode.toUpperCase().slice(0, 2) : null,
+        city: trip.city || null,
+        latitude: trip.latitude === "" ? null : Number(trip.latitude),
+        longitude: trip.longitude === "" ? null : Number(trip.longitude),
+        travelType: trip.travelType || null,
+        featured: trip.featured,
       };
       const method = isNew ? "POST" : "PATCH";
       const res = await fetch("/api/studio/trips", {
