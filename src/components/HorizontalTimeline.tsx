@@ -113,21 +113,21 @@ export function HorizontalTimeline({ trips, defaultActiveSlug: _defaultActiveSlu
             <button
               type="button"
               onClick={() => setOffset(Math.max(0, safeOffset - windowSize))}
-              disabled={!hasOlder}
+              disabled={!hasNewer}
               className="px-4 py-2 rounded-full border border-border bg-card text-sm hover:border-primary hover:text-primary disabled:opacity-30 transition-colors"
             >
-              ← Ältere
+              ← Neuere
             </button>
-            <span className="text-xs text-muted-foreground min-w-[80px] text-center">
+            <span className="text-xs text-muted-foreground min-w-[80px] text-center" aria-live="polite">
               {total === 0 ? "—" : `${safeOffset + 1}–${Math.min(safeOffset + windowSize, total)} / ${total}`}
             </span>
             <button
               type="button"
               onClick={() => setOffset(safeOffset + windowSize)}
-              disabled={!hasNewer}
+              disabled={!hasOlder}
               className="px-4 py-2 rounded-full border border-border bg-card text-sm hover:border-primary hover:text-primary disabled:opacity-30 transition-colors"
             >
-              Neuere →
+              Ältere →
             </button>
           </div>
         </div>
