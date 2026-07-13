@@ -1,8 +1,11 @@
 #!/bin/sh
 set -e
 
-# Run migrations / schema setup is handled by postgres initdb on first container start.
-# Seed demo data if requested and trips table is empty.
+# Apply pending database migrations before serving traffic.
+# Idempotent: schema_migrations tracks what has already been applied.
+node scripts/migrate.js
+
+# Seed demo data only when explicitly enabled (default: off).
 if [ "${SEED_ON_START}" = "true" ]; then
   node scripts/seed.js || true
 fi

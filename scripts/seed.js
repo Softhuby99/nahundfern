@@ -11,28 +11,28 @@ const UPLOADS = process.env.UPLOADS_DIR || "/app/uploads";
 const ASSETS  = path.resolve("src/assets");
 
 const TRIPS = [
-  { slug:"lisbon-sun",       title:"Lisbon Sun",       kicker:"Lissabon",           region:"Europe",        where:"Portugal · Alfama, Bairro Alto", when:"Mai 2024 · 8 Tage",   month:"MAI 2024",  who:"Solo",              file:"trip-lisbon.jpg",
+  { slug:"lisbon-sun",       title:"Lisbon Sun",       kicker:"Lissabon",           region:"Europe",        where:"Portugal · Alfama, Bairro Alto", when:"Mai 2024 · 8 Tage",   month:"MAI 2024",  who:"Solo",              startDate:"2024-05-04", endDate:"2024-05-12", file:"trip-lisbon.jpg",
     excerpt:"Acht Tage zwischen Azulejos, gelben Trams und dem warmen Wind, der den Tejo hochzieht.",
     body:["Lissabon riecht morgens nach Brot und nach Salz vom Fluss. Ich bin jeden Tag den Hügel von Graça hinaufgelaufen, einmal, um zu schauen, ob die Stadt da unten noch da ist.","Die Tram 28 ist ein Klischee, aber sie funktioniert wie eine Zeitmaschine. Setze dich nach vorn, schließe die Augen halb, und du fährst durch sechs Jahrzehnte gleichzeitig.","Tipp: Geh nicht in die Pastéis-Schlange im Zentrum. Geh stattdessen nach Belém, früh, mit einem Espresso."]},
-  { slug:"geiranger",        title:"Geiranger",        kicker:"Norwegische Fjorde", region:"Europe",        where:"Norwegen · Geirangerfjord",       when:"Juni 2024 · 12 Tage", month:"JUNI 2024", who:"Solo",              file:"trip-fjords.jpg",
+  { slug:"geiranger",        title:"Geiranger",        kicker:"Norwegische Fjorde", region:"Europe",        where:"Norwegen · Geirangerfjord",       when:"Juni 2024 · 12 Tage", month:"JUNI 2024", who:"Solo",              startDate:"2024-06-08", endDate:"2024-06-20", file:"trip-fjords.jpg",
     excerpt:"Zwölf Tage Stille zwischen Granit und Nebel. Manchmal hört man eine Möwe, manchmal nur sich selbst.",
     body:["Es gibt einen Moment in Geiranger, in dem die Wolken den Fjord küssen. Wenn du dann nicht stehenbleibst, hast du es nicht verstanden.","Ich habe in einer alten Berghütte über Eidsdal gewohnt. Kein WLAN, kein Empfang, ein Holzofen.","Praktisch: Miete dir kein Auto am Flughafen Ålesund — nimm den Bus bis Geiranger und das Schiff ab dort."]},
-  { slug:"val-dorcia",       title:"Val D'Orcia",      kicker:"Toskana",            region:"Europe",        where:"Italien · Val d'Orcia, Pienza",   when:"Juli 2024 · 10 Tage", month:"JULI 2024", who:"mit Elena",         file:"trip-tuscany.jpg",
+  { slug:"val-dorcia",       title:"Val D'Orcia",      kicker:"Toskana",            region:"Europe",        where:"Italien · Val d'Orcia, Pienza",   when:"Juli 2024 · 10 Tage", month:"JULI 2024", who:"mit Elena",         startDate:"2024-07-06", endDate:"2024-07-16", file:"trip-tuscany.jpg",
     excerpt:"Sanfte Hügel, Zypressenalleen und ein Licht, das jeden Sonnenuntergang zu einem Gemälde macht.",
     body:["Die Toskana ist genau so kitschig, wie alle sagen — und genau so schön.","In Pienza haben wir den besten Pecorino unseres Lebens gegessen.","Geheimtipp: Steh um 5 auf, fahr nach San Quirico, parke neben der Cappella della Madonna di Vitaleta."]},
-  { slug:"black-sands",      title:"Black Sands",      kicker:"Island",             region:"Europe",        where:"Island · Vík, Reynisfjara",       when:"August 2024 · 14 Tage", month:"AUGUST 2024", who:"Solo",          file:"trip-iceland.jpg",
+  { slug:"black-sands",      title:"Black Sands",      kicker:"Island",             region:"Europe",        where:"Island · Vík, Reynisfjara",       when:"August 2024 · 14 Tage", month:"AUGUST 2024", who:"Solo",          startDate:"2024-08-03", endDate:"2024-08-17", file:"trip-iceland.jpg",
     excerpt:"Schwarzer Sand, basaltschwarze Klippen, weißes Meer. Island spielt nur mit drei Farben — aber laut.",
     body:["Reynisfjara ist ein Strand, an dem du nicht baden willst.","Ich habe vierzehn Tage lang die Ringstraße im Uhrzeigersinn abgefahren.","Was du brauchst: regenfeste Hose, echte Wanderschuhe, eine warme Mütze — auch im August."]},
-  { slug:"concrete-jungle",  title:"Concrete Jungle",  kicker:"New York",           region:"North America", where:"USA · Brooklyn, Manhattan",       when:"September 2024 · 7 Tage", month:"SEPT 2024", who:"mit Marc",     file:"trip-nyc.jpg",
+  { slug:"concrete-jungle",  title:"Concrete Jungle",  kicker:"New York",           region:"North America", where:"USA · Brooklyn, Manhattan",       when:"September 2024 · 7 Tage", month:"SEPT 2024", who:"mit Marc",     startDate:"2024-09-05", endDate:"2024-09-12", file:"trip-nyc.jpg",
     excerpt:"Sieben Tage zwischen Dampf, Yellow Cabs und der Frage, wie viele Pizzen ein Mensch verträgt.",
     body:["New York ist laut. New York ist müde. New York ist absurd schön um sieben Uhr morgens.","Wir haben uns drei Tage lang nur durch Brooklyn gegessen.","Tipp: Nimm die Staten Island Ferry nach Sonnenuntergang."]},
-  { slug:"rocky-mirror",     title:"Rocky Mirror",     kicker:"Banff",              region:"North America", where:"Kanada · Banff, Lake Moraine",    when:"Oktober 2024 · 9 Tage", month:"OKT 2024",  who:"mit Elena & Marc", file:"trip-banff.jpg",
+  { slug:"rocky-mirror",     title:"Rocky Mirror",     kicker:"Banff",              region:"North America", where:"Kanada · Banff, Lake Moraine",    when:"Oktober 2024 · 9 Tage", month:"OKT 2024",  who:"mit Elena & Marc", startDate:"2024-10-04", endDate:"2024-10-13", file:"trip-banff.jpg",
     excerpt:"Türkises Wasser unter grauen Wolken — die kanadischen Rockies haben uns dreimal stehenbleiben lassen.",
     body:["Lake Moraine im Oktober: keine Touristenbusse mehr, dafür Schnee an den Hängen.","Wir haben in einer kleinen Lodge in Canmore gewohnt.","Wichtig: Bär-Spray dabeihaben. Wirklich."]},
-  { slug:"route-66",         title:"Mother Road",      kicker:"Route 66",           region:"North America", where:"USA · Arizona → Kalifornien",     when:"November 2024 · 16 Tage", month:"NOV 2024", who:"mit Marc",     file:"trip-route66.jpg",
+  { slug:"route-66",         title:"Mother Road",      kicker:"Route 66",           region:"North America", where:"USA · Arizona → Kalifornien",     when:"November 2024 · 16 Tage", month:"NOV 2024", who:"mit Marc",     startDate:"2024-11-02", endDate:"2024-11-18", file:"trip-route66.jpg",
     excerpt:"Sechzehn Tage Asphalt, Neon und Motels, in denen die Klimaanlage lauter ist als die Gespräche.",
     body:["Route 66 ist nicht mehr die echte Route 66.","Wir haben in Seligman gehalten, in Oatman, in Amboy.","Praktisch: kein Cabrio. Klingt romantisch, ist es nicht."]},
-  { slug:"yellowstone-steam",title:"Steam & Bison",    kicker:"Yellowstone",        region:"North America", where:"USA · Wyoming, Yellowstone NP",   when:"Dezember 2024 · 6 Tage",  month:"DEZ 2024", who:"Solo",          file:"trip-yellowstone.jpg",
+  { slug:"yellowstone-steam",title:"Steam & Bison",    kicker:"Yellowstone",        region:"North America", where:"USA · Wyoming, Yellowstone NP",   when:"Dezember 2024 · 6 Tage",  month:"DEZ 2024", who:"Solo",          startDate:"2024-12-07", endDate:"2024-12-13", file:"trip-yellowstone.jpg",
     excerpt:"Geysire im Schnee, Bisons im Nebel, –22 °C beim Frühstück.",
     body:["Im Winter ist Yellowstone ein anderer Planet.","Old Faithful im Schneetreiben ist eine Sache, die du gesehen haben musst.","Tipp: Buche die Snow Lodge ein halbes Jahr vorher."]},
 ];
@@ -84,8 +84,8 @@ for (const t of TRIPS) {
   const img = await processImage(src);
 
   const [tripRow] = await sql`
-    INSERT INTO trips (slug, title, kicker, region, where_text, when_text, month_label, who_text, excerpt, body_md, published)
-    VALUES (${t.slug}, ${t.title}, ${t.kicker}, ${t.region}, ${t.where}, ${t.when}, ${t.month}, ${t.who}, ${t.excerpt}, ${t.body.join("\n\n")}, true)
+    INSERT INTO trips (slug, title, kicker, region, where_text, when_text, month_label, who_text, excerpt, body_md, published, trip_start_date, trip_end_date)
+    VALUES (${t.slug}, ${t.title}, ${t.kicker}, ${t.region}, ${t.where}, ${t.when}, ${t.month}, ${t.who}, ${t.excerpt}, ${t.body.join("\n\n")}, true, ${t.startDate ?? null}, ${t.endDate ?? null})
     RETURNING id
   `;
 

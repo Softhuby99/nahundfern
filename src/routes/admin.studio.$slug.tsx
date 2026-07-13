@@ -28,6 +28,8 @@ type StudioTrip = {
   published: boolean;
   coverImageId?: string | null;
   cover_webp_400?: string | null;
+  tripStartDate: string;
+  tripEndDate: string;
 };
 
 type StudioImage = {
@@ -53,6 +55,8 @@ function emptyTrip(): StudioTrip {
     body: "",
     published: false,
     coverImageId: null,
+    tripStartDate: "",
+    tripEndDate: "",
   };
 }
 
@@ -79,7 +83,12 @@ function EditorPage() {
         const data = await res.json();
         const found = data.trip;
         if (!found) throw new Error("Trip not found");
-        setTrip({ ...found, body: found.body_md });
+        setTrip({
+          ...found,
+          body: found.body_md,
+          tripStartDate: found.trip_start_date ? String(found.trip_start_date).slice(0, 10) : "",
+          tripEndDate: found.trip_end_date ? String(found.trip_end_date).slice(0, 10) : "",
+        });
         return found.id;
       })
       .then((id) => {
@@ -98,7 +107,12 @@ function EditorPage() {
     setSaving(true);
     setError("");
     try {
-      const payload = { ...trip, body: trip.body };
+      const payload = {
+        ...trip,
+        body: trip.body,
+        tripStartDate: trip.tripStartDate ? trip.tripStartDate : null,
+        tripEndDate: trip.tripEndDate ? trip.tripEndDate : null,
+      };
       const method = isNew ? "POST" : "PATCH";
       const res = await fetch("/api/studio/trips", {
         method,
@@ -205,7 +219,27 @@ function EditorPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <Input label="Ort" value={trip.where} onChange={(v) => setField("where", v)} />
-              <Input label="Zeitraum" value={trip.when} onChange={(v) => setField("when", v)} />
+              <Input label="Zeitraum (Text)" value={trip.when} onChange={(v) => setField("when", v)} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">Startdatum</label>
+                <input
+                  type="date"
+                  value={trip.tripStartDate}
+                  onChange={(e) => setField("tripStartDate", e.target.value)}
+                  className="w-full bg-card border border-border focus:border-primary p-3 rounded-sm"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">Enddatum</label>
+                <input
+                  type="date"
+                  value={trip.tripEndDate}
+                  onChange={(e) => setField("tripEndDate", e.target.value)}
+                  className="w-full bg-card border border-border focus:border-primary p-3 rounded-sm"
+                />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <Input label="Begleitung" value={trip.who} onChange={(v) => setField("who", v)} />

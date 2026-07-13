@@ -7,7 +7,6 @@ const COOKIE_NAME = "nahundfern_session";
 
 export type Session = {
   userId: string;
-  email: string;
 };
 
 function getSecret() {
@@ -15,6 +14,19 @@ function getSecret() {
     throw new Error("JWT_SECRET is not configured");
   }
   return new TextEncoder().encode(JWT_SECRET);
+}
+
+function isProduction() {
+  return process.env.NODE_ENV === "production";
+}
+
+/** Determine whether the current request is served over HTTPS. */
+export function requestIsSecure(request: Request): boolean {
+  // In production we always mark the cookie Secure to avoid accidentally
+  // downgrading to a plaintext channel when a proxy header is missing.
+  if (isProduction()) return true;
+  if (request.headers.get("x-forwarded-proto") === "https") return true;
+  return new URL(request.url).protocol === "https:";
 }
 
 export async function hashPassword(plain: string): Promise<string> {
@@ -31,9 +43,12 @@ export async function verifyPassword(hash: string, plain: string): Promise<boole
   return argon2.verify(hash, plain);
 }
 
-export async function createSessionToken(userId: string, email: string): Promise<string> {
-  return new SignJWT({ userId, email })
+export async function createSessionToken(userId: string): Promise<string> {
+  // Keep the token as small as possible: only the subject identifier. Any
+  // additional user data (email, name, role) is fetched from the DB on demand.
+  return new SignJWT({})
     .setProtectedHeader({ alg: JWT_ALGORITHM })
+    .setSubject(userId)
     .setIssuedAt()
     .setExpirationTime("7d")
     .setAudience("nahundfern")
@@ -47,10 +62,11 @@ export async function verifySessionToken(token: string): Promise<Session> {
     audience: "nahundfern",
     issuer: "nahundfern",
   });
-  if (!payload.userId || typeof payload.userId !== "string" || !payload.email || typeof payload.email !== "string") {
+  const sub = payload.sub ?? (payload as { userId?: unknown }).userId;
+  if (typeof sub !== "string" || sub.length === 0) {
     throw new Error("Invalid session token payload");
   }
-  return { userId: payload.userId, email: payload.email };
+  return { userId: sub };
 }
 
 export function parseSessionCookie(request: Request): string | undefined {
@@ -73,9 +89,13 @@ export async function requireAuth(request: Request): Promise<Session> {
 }
 
 export function setSessionCookie(token: string, secure: boolean): string {
-  return `${COOKIE_NAME}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 7}${secure ? "; Secure" : ""}`;
+  const flags = ["Path=/", "HttpOnly", "SameSite=Lax", `Max-Age=${60 * 60 * 24 * 7}`];
+  if (secure || isProduction()) flags.push("Secure");
+  return `${COOKIE_NAME}=${encodeURIComponent(token)}; ${flags.join("; ")}`;
 }
 
 export function clearSessionCookie(secure: boolean): string {
-  return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure ? "; Secure" : ""}`;
+  const flags = ["Path=/", "HttpOnly", "SameSite=Lax", "Max-Age=0"];
+  if (secure || isProduction()) flags.push("Secure");
+  return `${COOKIE_NAME}=; ${flags.join("; ")}`;
 }

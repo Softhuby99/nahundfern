@@ -22,21 +22,23 @@ CREATE TABLE IF NOT EXISTS images (
 );
 
 CREATE TABLE IF NOT EXISTS trips (
-  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug           text UNIQUE NOT NULL,
-  title          text NOT NULL,
-  kicker         text,
-  region         text NOT NULL,
-  where_text     text NOT NULL,
-  when_text      text NOT NULL,
-  month_label    text NOT NULL,
-  who_text       text NOT NULL,
-  excerpt        text NOT NULL,
-  body_md        text NOT NULL,
-  cover_image_id uuid REFERENCES images(id) ON DELETE SET NULL,
-  published      boolean NOT NULL DEFAULT false,
-  created_at     timestamptz NOT NULL DEFAULT now(),
-  updated_at     timestamptz NOT NULL DEFAULT now()
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug              text UNIQUE NOT NULL,
+  title             text NOT NULL,
+  kicker            text,
+  region            text NOT NULL,
+  where_text        text NOT NULL,
+  when_text         text NOT NULL,
+  month_label       text NOT NULL,
+  who_text          text NOT NULL,
+  excerpt           text NOT NULL,
+  body_md           text NOT NULL,
+  cover_image_id    uuid REFERENCES images(id) ON DELETE SET NULL,
+  trip_start_date   date,
+  trip_end_date     date,
+  published         boolean NOT NULL DEFAULT false,
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  updated_at        timestamptz NOT NULL DEFAULT now()
 );
 
 ALTER TABLE images
@@ -44,8 +46,9 @@ ALTER TABLE images
   FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE
   DEFERRABLE INITIALLY DEFERRED;
 
-CREATE INDEX IF NOT EXISTS idx_images_trip     ON images(trip_id, sort_order);
-CREATE INDEX IF NOT EXISTS idx_trips_published ON trips(published, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_images_trip           ON images(trip_id, sort_order);
+CREATE INDEX IF NOT EXISTS idx_trips_published       ON trips(published, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_trips_trip_start_date ON trips(trip_start_date DESC NULLS LAST);
 
 CREATE TABLE IF NOT EXISTS users (
   id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
