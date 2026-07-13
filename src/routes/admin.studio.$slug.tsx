@@ -83,7 +83,12 @@ function EditorPage() {
         const data = await res.json();
         const found = data.trip;
         if (!found) throw new Error("Trip not found");
-        setTrip({ ...found, body: found.body_md });
+        setTrip({
+          ...found,
+          body: found.body_md,
+          tripStartDate: found.trip_start_date ? String(found.trip_start_date).slice(0, 10) : "",
+          tripEndDate: found.trip_end_date ? String(found.trip_end_date).slice(0, 10) : "",
+        });
         return found.id;
       })
       .then((id) => {
