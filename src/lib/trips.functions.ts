@@ -15,6 +15,8 @@ export type PublicTrip = {
   body: string[];
   published: boolean;
   createdAt: string;
+  tripStartDate: string | null;
+  tripEndDate: string | null;
   cover: {
     webp: Record<number, string>;
     avif: Record<number, string>;
@@ -26,8 +28,16 @@ function splitBody(bodyMd: string): string[] {
   return bodyMd.split(/\n\s*\n/).filter((p) => p.trim().length > 0);
 }
 
+function toIsoDate(value: unknown): string | null {
+  if (!value) return null;
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  return String(value).slice(0, 10);
+}
+
 export const listPublishedTrips = createServerFn({ method: "GET" })
   .handler(async () => {
+    // Order chronologically by actual travel date (newest first). Fall back to
+    // created_at when trip_start_date is not yet set on legacy rows.
     const rows = await sql`
       SELECT t.*,
              i.webp_400, i.webp_1200, i.webp_2000,
@@ -36,7 +46,8 @@ export const listPublishedTrips = createServerFn({ method: "GET" })
       FROM trips t
       LEFT JOIN images i ON i.id = t.cover_image_id
       WHERE t.published = true
-      ORDER BY t.created_at ASC
+      ORDER BY COALESCE(t.trip_start_date, t.created_at::date) DESC,
+               t.created_at DESC
     `;
     return rows.map((r) => ({
       id: r.id,
@@ -52,6 +63,8 @@ export const listPublishedTrips = createServerFn({ method: "GET" })
       body: splitBody(r.body_md),
       published: r.published,
       createdAt: (r.created_at instanceof Date ? r.created_at.toISOString() : String(r.created_at)),
+      tripStartDate: toIsoDate(r.trip_start_date),
+      tripEndDate: toIsoDate(r.trip_end_date),
       cover: {
         webp: { 400: r.webp_400, 1200: r.webp_1200, 2000: r.webp_2000 },
         avif: { 400: r.avif_400, 1200: r.avif_1200, 2000: r.avif_2000 },
@@ -92,6 +105,8 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
       body: splitBody(row.body_md),
       published: row.published,
       createdAt: (row.created_at instanceof Date ? row.created_at.toISOString() : String(row.created_at)),
+      tripStartDate: toIsoDate(row.trip_start_date),
+      tripEndDate: toIsoDate(row.trip_end_date),
       cover: {
         webp: { 400: row.webp_400, 1200: row.webp_1200, 2000: row.webp_2000 },
         avif: { 400: row.avif_400, 1200: row.avif_1200, 2000: row.avif_2000 },
