@@ -4,6 +4,7 @@ import { sql } from "@/lib/db.server";
 import {
   createSessionToken,
   hashPassword,
+  requestIsSecure,
   setSessionCookie,
   verifyPassword,
 } from "@/lib/auth.server";
@@ -37,7 +38,7 @@ export const Route = createFileRoute("/api/auth/login")({
         }
 
         const token = await createSessionToken(user.id);
-        const isSecure = request.headers.get("x-forwarded-proto") === "https" || new URL(request.url).protocol === "https:";
+        const isSecure = requestIsSecure(request);
         return Response.json({ ok: true }, {
           status: 200,
           headers: {
