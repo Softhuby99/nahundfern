@@ -28,6 +28,8 @@ type StudioTrip = {
   published: boolean;
   coverImageId?: string | null;
   cover_webp_400?: string | null;
+  tripStartDate: string;
+  tripEndDate: string;
 };
 
 type StudioImage = {
@@ -53,6 +55,8 @@ function emptyTrip(): StudioTrip {
     body: "",
     published: false,
     coverImageId: null,
+    tripStartDate: "",
+    tripEndDate: "",
   };
 }
 
