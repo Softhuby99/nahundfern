@@ -84,8 +84,8 @@ for (const t of TRIPS) {
   const img = await processImage(src);
 
   const [tripRow] = await sql`
-    INSERT INTO trips (slug, title, kicker, region, where_text, when_text, month_label, who_text, excerpt, body_md, published)
-    VALUES (${t.slug}, ${t.title}, ${t.kicker}, ${t.region}, ${t.where}, ${t.when}, ${t.month}, ${t.who}, ${t.excerpt}, ${t.body.join("\n\n")}, true)
+    INSERT INTO trips (slug, title, kicker, region, where_text, when_text, month_label, who_text, excerpt, body_md, published, trip_start_date, trip_end_date)
+    VALUES (${t.slug}, ${t.title}, ${t.kicker}, ${t.region}, ${t.where}, ${t.when}, ${t.month}, ${t.who}, ${t.excerpt}, ${t.body.join("\n\n")}, true, ${t.startDate ?? null}, ${t.endDate ?? null})
     RETURNING id
   `;
 

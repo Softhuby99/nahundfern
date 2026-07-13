@@ -4,6 +4,12 @@ import postgres from "postgres";
 import { sql } from "@/lib/db.server";
 import { requireAuth } from "@/lib/auth.server";
 
+const isoDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD")
+  .optional()
+  .nullable();
+
 const TripInput = z.object({
   id: z.string().uuid().optional(),
   slug: z.string().min(1).max(120),
@@ -18,6 +24,8 @@ const TripInput = z.object({
   body: z.string().min(1).max(50000),
   published: z.boolean(),
   coverImageId: z.string().uuid().optional().nullable(),
+  tripStartDate: isoDate,
+  tripEndDate: isoDate,
 });
 
 async function getTripsWithCover() {
