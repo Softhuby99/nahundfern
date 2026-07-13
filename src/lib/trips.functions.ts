@@ -51,6 +51,7 @@ export const listPublishedTrips = createServerFn({ method: "GET" })
       excerpt: r.excerpt,
       body: splitBody(r.body_md),
       published: r.published,
+      createdAt: (r.created_at instanceof Date ? r.created_at.toISOString() : String(r.created_at)),
       cover: {
         webp: { 400: r.webp_400, 1200: r.webp_1200, 2000: r.webp_2000 },
         avif: { 400: r.avif_400, 1200: r.avif_1200, 2000: r.avif_2000 },
