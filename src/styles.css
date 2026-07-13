@@ -4,50 +4,87 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Warm Sand travel-journal theme — light, friendly, airy */
+/* Reisejournal — warm sand / paper travel-journal theme */
 @theme {
-  --color-background: hsl(33 33% 97%);
-  --color-foreground: hsl(30 25% 23%);
-  --color-muted: hsl(35 24% 70%);
-  --color-muted-foreground: hsl(30 18% 42%);
-  --color-primary: hsl(34 26% 44%);
-  --color-primary-foreground: hsl(33 33% 97%);
-  --color-border: hsl(33 20% 85%);
-  --color-card: hsl(33 30% 93%);
-  --color-card-foreground: hsl(30 25% 23%);
-  --color-accent: hsl(35 28% 55%);
-  --color-accent-foreground: hsl(33 33% 97%);
-  --color-secondary: hsl(33 30% 93%);
-  --color-secondary-foreground: hsl(30 25% 23%);
-  --color-popover: hsl(33 33% 97%);
-  --color-popover-foreground: hsl(30 25% 23%);
-  --color-input: hsl(33 33% 97%);
-  --color-ring: hsl(34 26% 44%);
+  --color-background: hsl(38 46% 95%);
+  --color-foreground: hsl(24 24% 15%);
+  --color-muted: hsl(30 18% 78%);
+  --color-muted-foreground: hsl(24 14% 40%);
+  --color-primary: hsl(9 55% 45%);
+  --color-primary-foreground: hsl(38 46% 96%);
+  --color-border: hsl(30 22% 82%);
+  --color-card: hsl(36 40% 92%);
+  --color-card-foreground: hsl(24 24% 15%);
+  --color-accent: hsl(9 55% 45%);
+  --color-accent-foreground: hsl(38 46% 96%);
+  --color-secondary: hsl(36 40% 92%);
+  --color-secondary-foreground: hsl(24 24% 15%);
+  --color-popover: hsl(38 46% 96%);
+  --color-popover-foreground: hsl(24 24% 15%);
+  --color-input: hsl(36 40% 92%);
+  --color-ring: hsl(9 55% 45%);
   --color-destructive: hsl(8 55% 52%);
-  --color-destructive-foreground: hsl(33 33% 97%);
+  --color-destructive-foreground: hsl(38 46% 96%);
 
-  --font-display: "Outfit", system-ui, sans-serif;
-  --font-body: "Figtree", system-ui, sans-serif;
+  --color-ink: hsl(24 24% 15%);
+  --color-paper: hsl(38 46% 95%);
+  --color-note: hsl(40 45% 90%);
+  --color-terracotta: hsl(9 55% 45%);
+  --color-deep-teal: hsl(184 40% 16%);
+
+  --font-display: "Playfair Display", "Outfit", ui-serif, Georgia, serif;
+  --font-body: "Inter", "Figtree", system-ui, sans-serif;
+  --font-script: "Caveat", "Kalam", cursive;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   --ease-cinematic: cubic-bezier(0.32, 0.72, 0, 1);
 
-  --radius: 0.5rem;
+  --radius: 0.75rem;
 }
 
 @keyframes drawLine {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
 }
 @keyframes revealNode {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); }
+  50% { transform: translateY(-6px) rotate(var(--r, 0deg)); }
 }
 
 @utility scrollbar-hide {
   &::-webkit-scrollbar { display: none; }
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+@utility paper-card {
+  background-color: var(--color-note);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px rgba(60, 40, 20, 0.04), 0 8px 24px -12px rgba(60, 40, 20, 0.12);
+}
+
+@utility script {
+  font-family: var(--font-script);
+  font-weight: 500;
+}
+
+@utility tape {
+  position: relative;
+}
+@utility tape-tl {
+  position: absolute;
+  top: -10px;
+  left: 20px;
+  width: 60px;
+  height: 18px;
+  background: rgba(200, 175, 130, 0.35);
+  transform: rotate(-4deg);
+  border-radius: 2px;
 }
 
 @layer base {
