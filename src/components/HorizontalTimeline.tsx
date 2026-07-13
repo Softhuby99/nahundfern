@@ -49,11 +49,13 @@ export function HorizontalTimeline({ trips, defaultActiveSlug: _defaultActiveSlu
   void _defaultActiveSlug;
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
-  const [offset, setOffset] = useState<number | null>(null);
+  // Trips arrive newest-first from the server. Offset 0 = newest window.
+  const [offset, setOffset] = useState<number>(0);
 
   const filtered = useMemo(() => {
     return trips.filter((t) => {
-      const d = t.createdAt?.slice(0, 10) ?? "";
+      // Filter by actual travel date; fall back to createdAt for legacy rows.
+      const d = (t.tripStartDate ?? t.createdAt?.slice(0, 10)) ?? "";
       if (fromDate && d < fromDate) return false;
       if (toDate && d > toDate) return false;
       return true;
@@ -62,12 +64,11 @@ export function HorizontalTimeline({ trips, defaultActiveSlug: _defaultActiveSlu
 
   const total = filtered.length;
   const maxOffset = Math.max(0, total - windowSize);
-  const effectiveOffset = offset === null ? maxOffset : offset;
-  const safeOffset = Math.min(Math.max(0, effectiveOffset), maxOffset);
+  const safeOffset = Math.min(Math.max(0, offset), maxOffset);
   const visible = filtered.slice(safeOffset, safeOffset + windowSize);
 
-  const hasOlder = safeOffset > 0;
-  const hasNewer = safeOffset + windowSize < total;
+  const hasNewer = safeOffset > 0;
+  const hasOlder = safeOffset + windowSize < total;
 
   function resetFilter() {
     setFromDate("");
