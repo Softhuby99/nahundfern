@@ -28,7 +28,7 @@ function splitDate(monthLabel: string) {
 }
 
 function JournalPage() {
-  const { trips } = Route.useLoaderData();
+  const { trips } = Route.useLoaderData() as { trips: PublicTrip[] };
   const entries = trips.slice().reverse();
 
   return (
@@ -49,7 +49,7 @@ function JournalPage() {
 
       <section className="max-w-6xl mx-auto px-6 md:px-8 py-10 grid lg:grid-cols-[1fr_320px] gap-8">
         <ul className="space-y-6">
-          {entries.map((t: PublicTrip, i) => {
+          {entries.map((t: PublicTrip, i: number) => {
             const dt = splitDate(t.monthLabel);
             return (
               <li key={t.slug} className="paper-card p-4 md:p-5 flex flex-col md:flex-row gap-5 relative" style={{ animation: `revealNode 0.5s var(--ease-cinematic) ${i * 50}ms both` }}>

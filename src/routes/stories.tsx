@@ -23,7 +23,7 @@ export const Route = createFileRoute("/stories")({
 });
 
 function StoriesPage() {
-  const { trips } = Route.useLoaderData();
+  const { trips } = Route.useLoaderData() as { trips: PublicTrip[] };
   const featured = trips[trips.length - 1];
   const rest = trips.slice(0, -1).reverse();
 

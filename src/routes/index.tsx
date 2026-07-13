@@ -22,7 +22,7 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
-  const { trips } = Route.useLoaderData();
+  const { trips } = Route.useLoaderData() as { trips: PublicTrip[] };
   const latest = trips.slice(-3).reverse();
   const hero = trips[trips.length - 1];
 

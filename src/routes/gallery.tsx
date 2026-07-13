@@ -23,7 +23,7 @@ export const Route = createFileRoute("/gallery")({
 });
 
 function GalleryPage() {
-  const { trips } = Route.useLoaderData();
+  const { trips } = Route.useLoaderData() as { trips: PublicTrip[] };
   const regions = useMemo(() => {
     const s = new Set<string>();
     trips.forEach((t) => s.add(t.region));
