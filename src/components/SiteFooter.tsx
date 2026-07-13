@@ -1,30 +1,33 @@
-import { Link } from "@tanstack/react-router";
+import { Instagram, Mail, Heart } from "lucide-react";
 
 export function SiteFooter() {
   return (
-    <footer className="px-6 md:px-8 py-16 border-t border-border flex flex-col md:flex-row justify-between items-start md:items-end gap-12">
-      <div>
-        <div className="flex items-center gap-2 mb-8">
-          <div className="size-3 bg-primary rounded-full" />
-          <span className="font-display text-xl tracking-tight font-medium">Vagabond.</span>
+    <footer className="mt-24 bg-[color:var(--color-deep-teal)] text-white/90">
+      <div className="max-w-7xl mx-auto px-6 md:px-8 py-10 flex flex-col md:flex-row items-center justify-between gap-8">
+        <p className="font-script text-2xl md:text-3xl flex items-center gap-2">
+          Danke, dass du hier bist! <Heart className="size-5 fill-white/60 text-white/60" strokeWidth={1.5} />
+        </p>
+        <div className="flex items-center gap-3">
+          <span className="grid size-10 place-items-center rounded-full bg-white/10">
+            <Instagram className="size-5" strokeWidth={1.5} />
+          </span>
+          <div className="text-sm leading-tight">
+            <p className="opacity-80">Folge mir auf Instagram</p>
+            <p className="font-medium">@reisejournal.laura</p>
+          </div>
         </div>
-        <nav className="flex flex-wrap gap-6 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-          <Link to="/timeline" className="hover:text-primary transition-colors">Timeline</Link>
-          <Link to="/stories" className="hover:text-primary transition-colors">Stories</Link>
-          <Link to="/about" className="hover:text-primary transition-colors">About</Link>
-          <Link to="/tips" className="hover:text-primary transition-colors">Tips</Link>
-          <Link to="/contact" className="hover:text-primary transition-colors">Contact</Link>
-        </nav>
+        <div className="flex items-center gap-3">
+          <span className="grid size-10 place-items-center rounded-full bg-white/10">
+            <Mail className="size-5" strokeWidth={1.5} />
+          </span>
+          <div className="text-sm leading-tight">
+            <p className="opacity-80">Lass uns in Kontakt bleiben</p>
+            <p className="font-medium">hallo@reisejournal.de</p>
+          </div>
+        </div>
       </div>
-      <div className="text-left md:text-right">
-        <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-3">Inquiries</p>
-        <a
-          href="mailto:hello@vagabond.studio"
-          className="font-display text-2xl md:text-4xl tracking-tight font-light hover:text-primary transition-colors underline decoration-border decoration-1 underline-offset-8 hover:decoration-primary"
-        >
-          hello@vagabond.studio
-        </a>
-        <p className="mt-6 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">© 2024 Vagabond Journal</p>
+      <div className="border-t border-white/10 py-4 text-center text-xs opacity-60">
+        © {new Date().getFullYear()} Reisejournal — Mein Weg. Meine Welt.
       </div>
     </footer>
   );

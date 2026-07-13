@@ -13,6 +13,8 @@ import { Route as TipsRouteImport } from './routes/tips'
 import { Route as TimelineRouteImport } from './routes/timeline'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as StoriesRouteImport } from './routes/stories'
+import { Route as JournalRouteImport } from './routes/journal'
+import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
@@ -46,6 +48,16 @@ const StudioRoute = StudioRouteImport.update({
 const StoriesRoute = StoriesRouteImport.update({
   id: '/stories',
   path: '/stories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JournalRoute = JournalRouteImport.update({
+  id: '/journal',
+  path: '/journal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GalleryRoute = GalleryRouteImport.update({
+  id: '/gallery',
+  path: '/gallery',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -124,6 +136,8 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/contact': typeof ContactRoute
+  '/gallery': typeof GalleryRoute
+  '/journal': typeof JournalRoute
   '/stories': typeof StoriesRouteWithChildren
   '/studio': typeof StudioRoute
   '/timeline': typeof TimelineRoute
@@ -144,6 +158,8 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/contact': typeof ContactRoute
+  '/gallery': typeof GalleryRoute
+  '/journal': typeof JournalRoute
   '/stories': typeof StoriesRouteWithChildren
   '/studio': typeof StudioRoute
   '/timeline': typeof TimelineRoute
@@ -165,6 +181,8 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/contact': typeof ContactRoute
+  '/gallery': typeof GalleryRoute
+  '/journal': typeof JournalRoute
   '/stories': typeof StoriesRouteWithChildren
   '/studio': typeof StudioRoute
   '/timeline': typeof TimelineRoute
@@ -187,6 +205,8 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/contact'
+    | '/gallery'
+    | '/journal'
     | '/stories'
     | '/studio'
     | '/timeline'
@@ -207,6 +227,8 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/contact'
+    | '/gallery'
+    | '/journal'
     | '/stories'
     | '/studio'
     | '/timeline'
@@ -227,6 +249,8 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/contact'
+    | '/gallery'
+    | '/journal'
     | '/stories'
     | '/studio'
     | '/timeline'
@@ -248,6 +272,8 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRouteWithChildren
   ContactRoute: typeof ContactRoute
+  GalleryRoute: typeof GalleryRoute
+  JournalRoute: typeof JournalRoute
   StoriesRoute: typeof StoriesRouteWithChildren
   StudioRoute: typeof StudioRoute
   TimelineRoute: typeof TimelineRoute
@@ -288,6 +314,20 @@ declare module '@tanstack/react-router' {
       path: '/stories'
       fullPath: '/stories'
       preLoaderRoute: typeof StoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/journal': {
+      id: '/journal'
+      path: '/journal'
+      fullPath: '/journal'
+      preLoaderRoute: typeof JournalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gallery': {
+      id: '/gallery'
+      path: '/gallery'
+      fullPath: '/gallery'
+      preLoaderRoute: typeof GalleryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -421,6 +461,8 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AdminRoute: AdminRouteWithChildren,
   ContactRoute: ContactRoute,
+  GalleryRoute: GalleryRoute,
+  JournalRoute: JournalRoute,
   StoriesRoute: StoriesRouteWithChildren,
   StudioRoute: StudioRoute,
   TimelineRoute: TimelineRoute,
