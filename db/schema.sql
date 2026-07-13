@@ -36,6 +36,12 @@ CREATE TABLE IF NOT EXISTS trips (
   cover_image_id    uuid REFERENCES images(id) ON DELETE SET NULL,
   trip_start_date   date,
   trip_end_date     date,
+  country_code      char(2),
+  city              text,
+  latitude          numeric(9,6),
+  longitude         numeric(9,6),
+  travel_type       text,
+  featured          boolean NOT NULL DEFAULT false,
   published         boolean NOT NULL DEFAULT false,
   created_at        timestamptz NOT NULL DEFAULT now(),
   updated_at        timestamptz NOT NULL DEFAULT now()
@@ -49,6 +55,8 @@ ALTER TABLE images
 CREATE INDEX IF NOT EXISTS idx_images_trip           ON images(trip_id, sort_order);
 CREATE INDEX IF NOT EXISTS idx_trips_published       ON trips(published, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_trips_trip_start_date ON trips(trip_start_date DESC NULLS LAST);
+CREATE INDEX IF NOT EXISTS idx_trips_country_code    ON trips(country_code);
+CREATE INDEX IF NOT EXISTS idx_trips_featured        ON trips(featured) WHERE featured;
 
 CREATE TABLE IF NOT EXISTS users (
   id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),

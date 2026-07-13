@@ -26,6 +26,12 @@ const TripInput = z.object({
   coverImageId: z.string().uuid().optional().nullable(),
   tripStartDate: isoDate,
   tripEndDate: isoDate,
+  countryCode: z.string().length(2).optional().nullable(),
+  city: z.string().max(120).optional().nullable(),
+  latitude: z.number().min(-90).max(90).optional().nullable(),
+  longitude: z.number().min(-180).max(180).optional().nullable(),
+  travelType: z.string().max(50).optional().nullable(),
+  featured: z.boolean().optional(),
 });
 
 async function getTripsWithCover() {
