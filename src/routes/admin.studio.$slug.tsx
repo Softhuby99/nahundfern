@@ -265,6 +265,26 @@ function EditorPage() {
                 />
               </div>
             </div>
+
+            {/* Optional structured metadata for later filters, maps, statistics. */}
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Länder-Code (ISO 3166, z. B. DE, BE)"
+                value={trip.countryCode}
+                onChange={(v) => setField("countryCode", v.toUpperCase().slice(0, 2))}
+                placeholder="DE"
+              />
+              <Input label="Stadt / Region" value={trip.city} onChange={(v) => setField("city", v)} placeholder="Brüssel" />
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <Input label="Breite (Lat)" value={trip.latitude} onChange={(v) => setField("latitude", v)} placeholder="50.8503" />
+              <Input label="Länge (Lng)" value={trip.longitude} onChange={(v) => setField("longitude", v)} placeholder="4.3517" />
+              <Input label="Reisetyp" value={trip.travelType} onChange={(v) => setField("travelType", v)} placeholder="Städtereise" />
+            </div>
+            <div className="flex items-center gap-3">
+              <input id="featured" type="checkbox" checked={trip.featured} onChange={(e) => setField("featured", e.target.checked)} />
+              <label htmlFor="featured" className="font-mono text-[10px] uppercase tracking-widest cursor-pointer">Als Highlight markieren</label>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <Input label="Begleitung" value={trip.who} onChange={(v) => setField("who", v)} />
               <div>
