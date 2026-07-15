@@ -26,6 +26,9 @@ export function requestIsSecure(request: Request): boolean {
   // downgrading to a plaintext channel when a proxy header is missing.
   if (isProduction()) return true;
   if (request.headers.get("x-forwarded-proto") === "https") return true;
+  // Fallback for reverse proxies that forward the original HTTPS port
+  // (e.g. OPNsense / some nginx setups) but omit X-Forwarded-Proto.
+  if (request.headers.get("x-forwarded-port") === "443") return true;
   return new URL(request.url).protocol === "https:";
 }
 
