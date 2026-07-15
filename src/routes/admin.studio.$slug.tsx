@@ -153,7 +153,14 @@ function EditorPage() {
         throw new Error(data.error || "Speichern fehlgeschlagen");
       }
       const data = await res.json();
-      await navigate({ to: "/admin/studio" });
+      if (isNew && data?.trip?.id && data?.trip?.slug) {
+        // Keep the editor open on the freshly-created trip so cover/gallery
+        // uploads can attach to it immediately (they need trip.id).
+        setTrip((t) => ({ ...t, id: data.trip.id, slug: data.trip.slug }));
+        await navigate({ to: "/admin/studio/$slug", params: { slug: data.trip.slug }, replace: true });
+      } else {
+        await navigate({ to: "/admin/studio" });
+      }
     } catch (e: any) {
       setError(e.message);
     } finally {
