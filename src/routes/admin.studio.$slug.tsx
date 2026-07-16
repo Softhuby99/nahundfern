@@ -342,9 +342,11 @@ function EditorPage() {
               <label htmlFor="featured" className="font-mono text-[10px] uppercase tracking-widest cursor-pointer">Als Highlight markieren</label>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <Input label="Begleitung" value={trip.who} onChange={(v) => setField("who", v)} />
+              <Input label="Begleitung" value={trip.who} onChange={(v) => setField("who", v)} required />
               <div>
-                <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">Region</label>
+                <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
+                  Region<span className="text-destructive ml-1">*</span>
+                </label>
                 <select
                   value={trip.region}
                   onChange={(e) => setField("region", e.target.value as StudioTrip["region"])}
@@ -358,22 +360,28 @@ function EditorPage() {
             <Input label="Kicker / Untertitel" value={trip.kicker} onChange={(v) => setField("kicker", v)} />
 
             <div>
-              <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">Teaser</label>
+              <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
+                Teaser<span className="text-destructive ml-1">*</span>
+              </label>
               <textarea
                 value={trip.excerpt}
                 onChange={(e) => setField("excerpt", e.target.value)}
                 rows={3}
-                className="w-full bg-card border border-border focus:border-primary p-3 rounded-sm"
+                aria-required
+                className={`w-full bg-card border ${!trip.excerpt ? "border-destructive/50" : "border-border"} focus:border-primary p-3 rounded-sm`}
               />
             </div>
 
             <div>
-              <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">Reisebericht (Absätze mit Leerzeile trennen)</label>
+              <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
+                Reisebericht<span className="text-destructive ml-1">*</span> <span className="normal-case tracking-normal text-muted-foreground">(Absätze mit Leerzeile trennen)</span>
+              </label>
               <textarea
                 value={trip.body}
                 onChange={(e) => setField("body", e.target.value)}
                 rows={16}
-                className="w-full bg-card border border-border focus:border-primary p-3 font-mono text-sm rounded-sm"
+                aria-required
+                className={`w-full bg-card border ${!trip.body ? "border-destructive/50" : "border-border"} focus:border-primary p-3 font-mono text-sm rounded-sm`}
               />
             </div>
 
