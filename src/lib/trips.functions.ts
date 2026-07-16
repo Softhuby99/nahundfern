@@ -100,12 +100,15 @@ export const listPublishedTrips = createServerFn({ method: "GET" })
     return rows.map(mapRow);
   });
 
+// Returns `null` when the slug is unpublished or unknown, so the route loader
+// can turn that specific case into `notFound()` while unexpected errors (DB
+// down, programming bugs) keep propagating and produce a proper 500.
 export const getPublishedTrip = createServerFn({ method: "GET" })
   .inputValidator((data) => {
     if (typeof data !== "string") throw new Error("Expected slug string");
     return data;
   })
-  .handler(async ({ data: slug }) => {
+  .handler(async ({ data: slug }): Promise<PublicTrip | null> => {
     const [row] = await sql`
       SELECT t.*,
              i.webp_400, i.webp_1200, i.webp_2000,
@@ -115,8 +118,23 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
       LEFT JOIN images i ON i.id = t.cover_image_id
       WHERE t.slug = ${slug} AND t.published = true
     `;
-    if (!row) {
-      throw new Error("Trip not found");
-    }
-    return mapRow(row);
+    return row ? mapRow(row) : null;
+  });
+
+/** Slim slug+title projection used to build newer/older links on story pages. */
+export type TripNavigationEntry = {
+  slug: string;
+  title: string;
+};
+
+export const listTripNavigationEntries = createServerFn({ method: "GET" })
+  .handler(async (): Promise<TripNavigationEntry[]> => {
+    const rows = await sql<{ slug: string; title: string }[]>`
+      SELECT slug, title
+      FROM trips
+      WHERE published = true
+      ORDER BY COALESCE(trip_start_date, created_at::date) DESC,
+               created_at DESC
+    `;
+    return rows.map((r) => ({ slug: r.slug, title: r.title }));
   });

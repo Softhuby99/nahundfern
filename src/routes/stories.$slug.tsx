@@ -5,31 +5,58 @@ import rehypeSanitize from "rehype-sanitize";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ResponsivePicture } from "@/components/HorizontalTimeline";
-import { getPublishedTrip, listPublishedTrips, type PublicTrip } from "@/lib/trips.functions";
+import {
+  getPublishedTrip,
+  listTripNavigationEntries,
+} from "@/lib/trips.functions";
+import { getPublicBaseUrl } from "@/lib/public-base-url";
 
 export const Route = createFileRoute("/stories/$slug")({
   loader: async ({ params }) => {
-    try {
-      const trip = await getPublishedTrip({ data: params.slug });
-      const all = await listPublishedTrips();
-      return { trip, all };
-    } catch {
-      throw notFound();
-    }
+    // Load story and navigation entries in parallel. A missing story is a real
+    // 404; every other failure (DB down, bug, config) is rethrown so the error
+    // boundary / SSR middleware can surface a proper 500 instead of silently
+    // pretending the story doesn't exist.
+    const [trip, navigationEntries] = await Promise.all([
+      getPublishedTrip({ data: params.slug }),
+      listTripNavigationEntries(),
+    ]);
+    if (!trip) throw notFound();
+    return { trip, navigationEntries };
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
+    const baseUrl = getPublicBaseUrl();
+    const storyUrl = new URL(
+      `/stories/${encodeURIComponent(params.slug)}`,
+      baseUrl,
+    ).toString();
+
     const t = loaderData?.trip;
-    if (!t) return { meta: [{ title: "Story — Vagabond" }] };
-    const cover = t.cover.webp[1200];
+    if (!t) {
+      return {
+        meta: [
+          { title: "Story — Reisejournal" },
+          { name: "robots", content: "noindex" },
+        ],
+      };
+    }
+
+    const title = `${t.title} — Reisejournal`;
+    const coverUrl = new URL(t.cover.webp[1200], baseUrl).toString();
+
     return {
       meta: [
-        { title: `${t.title} — Vagabond` },
+        { title },
         { name: "description", content: t.excerpt },
-        { property: "og:title", content: `${t.title} — Vagabond` },
+        { property: "og:title", content: title },
         { property: "og:description", content: t.excerpt },
-        { property: "og:image", content: cover },
-        { name: "twitter:image", content: cover },
+        { property: "og:type", content: "article" },
+        { property: "og:url", content: storyUrl },
+        { property: "og:image", content: coverUrl },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:image", content: coverUrl },
       ],
+      links: [{ rel: "canonical", href: storyUrl }],
     };
   },
   notFoundComponent: () => (
@@ -48,9 +75,15 @@ export const Route = createFileRoute("/stories/$slug")({
 });
 
 function StoryPage() {
-  const { trip, all } = Route.useLoaderData();
-  const idx = all.findIndex((t: PublicTrip) => t.slug === trip.slug);
-  const next = all[(idx + 1) % all.length];
+  const { trip, navigationEntries } = Route.useLoaderData();
+
+  // List is sorted newest → oldest, so index-1 is the more recent trip and
+  // index+1 is the older one. Defensive: if the current slug is missing from
+  // the nav list (data inconsistency), disable both directions rather than
+  // linking to the newest entry by accident.
+  const index = navigationEntries.findIndex((e: { slug: string }) => e.slug === trip.slug);
+  const newer = index > 0 ? navigationEntries[index - 1] : null;
+  const older = index >= 0 ? (navigationEntries[index + 1] ?? null) : null;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -99,15 +132,51 @@ function StoryPage() {
           </div>
         </div>
 
-        {/* Next */}
-        <div className="px-6 md:px-8 max-w-5xl mx-auto py-16 border-t border-border flex items-center justify-between gap-8">
-          <Link to="/stories" className="font-mono text-[10px] uppercase tracking-widest hover:text-primary">
-            ← All stories
-          </Link>
-          <Link to="/stories/$slug" params={{ slug: next.slug }} className="group text-right">
-            <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Next station</p>
-            <p className="font-display text-2xl md:text-3xl tracking-tight font-medium group-hover:text-primary transition-colors">{next.title} →</p>
-          </Link>
+        {/* Navigation: symmetrical 3-column footer — newer / all / older.
+            Placeholders keep the layout stable when a direction is missing. */}
+        <div className="px-6 md:px-8 max-w-5xl mx-auto py-16 border-t border-border grid grid-cols-3 items-center gap-8">
+          <div className="text-left">
+            {newer ? (
+              <Link
+                to="/stories/$slug"
+                params={{ slug: newer.slug }}
+                className="group inline-block"
+              >
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">← Neuere Reise</p>
+                <p className="font-display text-xl md:text-2xl tracking-tight font-medium group-hover:text-primary transition-colors">
+                  {newer.title}
+                </p>
+              </Link>
+            ) : (
+              <span aria-hidden="true" />
+            )}
+          </div>
+
+          <div className="text-center">
+            <Link
+              to="/stories"
+              className="font-mono text-[10px] uppercase tracking-widest border-b border-border pb-1 hover:text-primary"
+            >
+              Alle Reisen
+            </Link>
+          </div>
+
+          <div className="text-right">
+            {older ? (
+              <Link
+                to="/stories/$slug"
+                params={{ slug: older.slug }}
+                className="group inline-block"
+              >
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Ältere Reise →</p>
+                <p className="font-display text-xl md:text-2xl tracking-tight font-medium group-hover:text-primary transition-colors">
+                  {older.title}
+                </p>
+              </Link>
+            ) : (
+              <span aria-hidden="true" />
+            )}
+          </div>
         </div>
       </article>
 
