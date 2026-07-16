@@ -6,6 +6,7 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import packageJson from "./package.json" with { type: "json" };
+const APP_VERSION = (packageJson as { version: string }).version;
 
 export default defineConfig({
   tanstackStart: {
@@ -24,7 +25,7 @@ export default defineConfig({
   // constant (see src/vite-env.d.ts).
   vite: {
     define: {
-      __APP_VERSION__: JSON.stringify(packageJson.version),
+      __APP_VERSION__: JSON.stringify(APP_VERSION),
     },
   },
 });
