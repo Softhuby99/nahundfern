@@ -32,7 +32,7 @@ const TripInput = z.object({
   longitude: z.number().min(-180).max(180).optional().nullable(),
   travelType: z.string().max(50).optional().nullable(),
   featured: z.boolean().optional(),
-}).passthrough();
+});
 
 async function getTripsWithCover() {
   return sql`
