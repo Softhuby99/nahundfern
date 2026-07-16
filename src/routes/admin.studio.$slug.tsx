@@ -413,12 +413,15 @@ function EditorPage() {
               <input
                 type="file"
                 accept="image/*"
+                disabled={coverProgress !== null}
                 onChange={(e) => {
                   const f = e.target.files?.[0];
                   if (f) uploadCover(f);
+                  e.target.value = "";
                 }}
-                className="block w-full text-xs file:mr-3 file:py-2 file:px-3 file:border-0 file:bg-primary file:text-primary-foreground file:font-mono file:text-[10px] file:uppercase file:tracking-widest hover:file:bg-primary/90"
+                className="block w-full text-xs file:mr-3 file:py-2 file:px-3 file:border-0 file:bg-primary file:text-primary-foreground file:font-mono file:text-[10px] file:uppercase file:tracking-widest hover:file:bg-primary/90 disabled:opacity-50"
               />
+              {coverProgress !== null && <ProgressBar percent={coverProgress} label={`Cover · ${coverProgress}%`} />}
             </div>
 
             <div>
@@ -428,12 +431,20 @@ function EditorPage() {
                 type="file"
                 accept="image/*"
                 multiple
+                disabled={galleryProgress !== null}
                 onChange={(e) => {
-                  Array.from(e.target.files ?? []).forEach(uploadGallery);
+                  const files = Array.from(e.target.files ?? []);
+                  if (files.length) uploadGalleryBatch(files);
                   if (fileInputRef.current) fileInputRef.current.value = "";
                 }}
-                className="block w-full text-xs file:mr-3 file:py-2 file:px-3 file:border-0 file:bg-primary file:text-primary-foreground file:font-mono file:text-[10px] file:uppercase file:tracking-widest hover:file:bg-primary/90"
+                className="block w-full text-xs file:mr-3 file:py-2 file:px-3 file:border-0 file:bg-primary file:text-primary-foreground file:font-mono file:text-[10px] file:uppercase file:tracking-widest hover:file:bg-primary/90 disabled:opacity-50"
               />
+              {galleryProgress && (
+                <ProgressBar
+                  percent={galleryProgress.percent}
+                  label={`Bild ${galleryProgress.done + 1} von ${galleryProgress.total} · ${galleryProgress.percent}%`}
+                />
+              )}
               {images.length > 0 && (
                 <div className="grid grid-cols-3 gap-2 mt-3">
                   {images.map((img) => (
