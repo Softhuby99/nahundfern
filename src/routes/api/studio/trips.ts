@@ -12,9 +12,9 @@ const isoDate = z
 
 const TripInput = z.object({
   id: z.string().uuid().optional(),
-  slug: z.string().min(1).max(120),
+  slug: z.string().min(1).max(120).regex(/^[a-z0-9-]+$/, "Slug darf nur a-z, 0-9 und - enthalten"),
   title: z.string().min(1).max(200),
-  kicker: z.string().max(200).optional(),
+  kicker: z.string().max(200).optional().nullable(),
   region: z.enum(["Europe", "North America"]),
   where: z.string().min(1).max(300),
   when: z.string().min(1).max(200),
@@ -32,7 +32,7 @@ const TripInput = z.object({
   longitude: z.number().min(-180).max(180).optional().nullable(),
   travelType: z.string().max(50).optional().nullable(),
   featured: z.boolean().optional(),
-});
+}).passthrough();
 
 async function getTripsWithCover() {
   return sql`
