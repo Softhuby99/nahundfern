@@ -81,7 +81,30 @@ function EditorPage() {
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [coverProgress, setCoverProgress] = useState<number | null>(null);
+  const [galleryProgress, setGalleryProgress] = useState<{ done: number; total: number; percent: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // XHR upload with progress events (fetch has no upload-progress API).
+  const uploadWithProgress = (file: File, tripId: string, onProgress: (pct: number) => void) =>
+    new Promise<any>((resolve, reject) => {
+      const form = new FormData();
+      form.append("tripId", tripId);
+      form.append("file", file);
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/studio/images");
+      xhr.withCredentials = true;
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+      };
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try { resolve(JSON.parse(xhr.responseText)); } catch { resolve(null); }
+        } else reject(new Error(`Upload fehlgeschlagen (${xhr.status})`));
+      };
+      xhr.onerror = () => reject(new Error("Netzwerkfehler beim Upload"));
+      xhr.send(form);
+    });
 
   useEffect(() => {
     if (isNew) return;
