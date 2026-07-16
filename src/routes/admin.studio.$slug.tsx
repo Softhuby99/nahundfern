@@ -125,12 +125,14 @@ function EditorPage() {
     setSaving(true);
     setError("");
     try {
+      const cc = trip.countryCode ? trip.countryCode.toUpperCase().replace(/[^A-Z]/g, "") : "";
       const payload = {
         ...trip,
+        kicker: trip.kicker || null,
         body: trip.body,
         tripStartDate: trip.tripStartDate ? trip.tripStartDate : null,
         tripEndDate: trip.tripEndDate ? trip.tripEndDate : null,
-        countryCode: trip.countryCode ? trip.countryCode.toUpperCase().slice(0, 2) : null,
+        countryCode: cc.length === 2 ? cc : null,
         city: trip.city || null,
         latitude: trip.latitude === "" ? null : Number(trip.latitude),
         longitude: trip.longitude === "" ? null : Number(trip.longitude),
@@ -150,7 +152,18 @@ function EditorPage() {
       }
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Speichern fehlgeschlagen");
+        // Surface Zod field errors so the user knows which field is invalid.
+        let msg = data.error || "Speichern fehlgeschlagen";
+        if (data.details && typeof data.details === "object") {
+          const fields: string[] = [];
+          for (const [key, val] of Object.entries(data.details)) {
+            if (key === "_errors") continue;
+            const errs = (val as { _errors?: string[] })?._errors;
+            if (errs && errs.length > 0) fields.push(`${key}: ${errs.join(", ")}`);
+          }
+          if (fields.length > 0) msg += ` — ${fields.join(" | ")}`;
+        }
+        throw new Error(msg);
       }
       const data = await res.json();
       if (isNew && data?.trip?.id && data?.trip?.slug) {
