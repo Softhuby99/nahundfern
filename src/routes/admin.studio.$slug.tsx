@@ -485,3 +485,18 @@ function Input({ label, value, onChange, placeholder, required }: { label: strin
     </div>
   );
 }
+
+function ProgressBar({ percent, label }: { percent: number; label: string }) {
+  const pct = Math.max(0, Math.min(100, percent));
+  return (
+    <div className="mt-3" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
+      <div className="h-2 w-full bg-card border border-border rounded-sm overflow-hidden">
+        <div
+          className="h-full bg-primary transition-[width] duration-150 ease-out"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <p className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{label}</p>
+    </div>
+  );
+}
