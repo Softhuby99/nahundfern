@@ -81,7 +81,7 @@ function StoryPage() {
   // index+1 is the older one. Defensive: if the current slug is missing from
   // the nav list (data inconsistency), disable both directions rather than
   // linking to the newest entry by accident.
-  const index = navigationEntries.findIndex((e) => e.slug === trip.slug);
+  const index = navigationEntries.findIndex((e: { slug: string }) => e.slug === trip.slug);
   const newer = index > 0 ? navigationEntries[index - 1] : null;
   const older = index >= 0 ? (navigationEntries[index + 1] ?? null) : null;
 
