@@ -292,14 +292,14 @@ function EditorPage() {
 
         <div className="grid lg:grid-cols-[1fr_320px] gap-8">
           <div className="space-y-6">
-            <Input label="Titel" value={trip.title} onChange={(v) => setField("title", v)} />
+            <Input label="Titel" value={trip.title} onChange={(v) => setField("title", v)} required />
             <div className="grid grid-cols-2 gap-4">
-              <Input label="Slug (URL)" value={trip.slug} onChange={(v) => setField("slug", v.replace(/[^a-z0-9-]/gi, "-").toLowerCase())} />
-              <Input label="Monats-Label" value={trip.monthLabel} onChange={(v) => setField("monthLabel", v.toUpperCase())} placeholder="MAI 2024" />
+              <Input label="Slug (URL)" value={trip.slug} onChange={(v) => setField("slug", v.replace(/[^a-z0-9-]/gi, "-").toLowerCase())} required />
+              <Input label="Monats-Label" value={trip.monthLabel} onChange={(v) => setField("monthLabel", v.toUpperCase())} placeholder="MAI 2024" required />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <Input label="Ort" value={trip.where} onChange={(v) => setField("where", v)} />
-              <Input label="Zeitraum (Text)" value={trip.when} onChange={(v) => setField("when", v)} />
+              <Input label="Ort" value={trip.where} onChange={(v) => setField("where", v)} required />
+              <Input label="Zeitraum (Text)" value={trip.when} onChange={(v) => setField("when", v)} required />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
