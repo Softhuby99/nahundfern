@@ -209,33 +209,37 @@ function EditorPage() {
       setError("Speichere die Reise zuerst, bevor du Bilder hochlädst.");
       return;
     }
-    const form = new FormData();
-    form.append("tripId", trip.id);
-    form.append("file", file);
-    const res = await fetch("/api/studio/images", { method: "POST", body: form, credentials: "same-origin" });
-    if (!res.ok) {
-      setError("Cover-Upload fehlgeschlagen");
-      return;
+    setError("");
+    setCoverProgress(0);
+    try {
+      const data = await uploadWithProgress(file, trip.id, setCoverProgress);
+      setTrip((t) => ({ ...t, coverImageId: data.image.id, cover_webp_400: data.image.webp_400 }));
+    } catch (e: any) {
+      setError(e.message || "Cover-Upload fehlgeschlagen");
+    } finally {
+      setCoverProgress(null);
     }
-    const data = await res.json();
-    setTrip((t) => ({ ...t, coverImageId: data.image.id, cover_webp_400: data.image.webp_400 }));
   };
 
-  const uploadGallery = async (file: File) => {
+  const uploadGalleryBatch = async (files: File[]) => {
     if (!trip.id) {
       setError("Speichere die Reise zuerst, bevor du Bilder hochlädst.");
       return;
     }
-    const form = new FormData();
-    form.append("tripId", trip.id);
-    form.append("file", file);
-    const res = await fetch("/api/studio/images", { method: "POST", body: form, credentials: "same-origin" });
-    if (!res.ok) {
-      setError("Upload fehlgeschlagen");
-      return;
+    setError("");
+    const total = files.length;
+    for (let i = 0; i < total; i++) {
+      setGalleryProgress({ done: i, total, percent: 0 });
+      try {
+        const data = await uploadWithProgress(files[i], trip.id, (pct) =>
+          setGalleryProgress({ done: i, total, percent: pct }),
+        );
+        setImages((list) => [...list, data.image]);
+      } catch (e: any) {
+        setError(e.message || "Upload fehlgeschlagen");
+      }
     }
-    const data = await res.json();
-    setImages((list) => [...list, data.image]);
+    setGalleryProgress(null);
   };
 
   const deleteImage = async (id: string) => {
