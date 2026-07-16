@@ -81,7 +81,30 @@ function EditorPage() {
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [coverProgress, setCoverProgress] = useState<number | null>(null);
+  const [galleryProgress, setGalleryProgress] = useState<{ done: number; total: number; percent: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // XHR upload with progress events (fetch has no upload-progress API).
+  const uploadWithProgress = (file: File, tripId: string, onProgress: (pct: number) => void) =>
+    new Promise<any>((resolve, reject) => {
+      const form = new FormData();
+      form.append("tripId", tripId);
+      form.append("file", file);
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/studio/images");
+      xhr.withCredentials = true;
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+      };
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try { resolve(JSON.parse(xhr.responseText)); } catch { resolve(null); }
+        } else reject(new Error(`Upload fehlgeschlagen (${xhr.status})`));
+      };
+      xhr.onerror = () => reject(new Error("Netzwerkfehler beim Upload"));
+      xhr.send(form);
+    });
 
   useEffect(() => {
     if (isNew) return;
@@ -186,33 +209,37 @@ function EditorPage() {
       setError("Speichere die Reise zuerst, bevor du Bilder hochlädst.");
       return;
     }
-    const form = new FormData();
-    form.append("tripId", trip.id);
-    form.append("file", file);
-    const res = await fetch("/api/studio/images", { method: "POST", body: form, credentials: "same-origin" });
-    if (!res.ok) {
-      setError("Cover-Upload fehlgeschlagen");
-      return;
+    setError("");
+    setCoverProgress(0);
+    try {
+      const data = await uploadWithProgress(file, trip.id, setCoverProgress);
+      setTrip((t) => ({ ...t, coverImageId: data.image.id, cover_webp_400: data.image.webp_400 }));
+    } catch (e: any) {
+      setError(e.message || "Cover-Upload fehlgeschlagen");
+    } finally {
+      setCoverProgress(null);
     }
-    const data = await res.json();
-    setTrip((t) => ({ ...t, coverImageId: data.image.id, cover_webp_400: data.image.webp_400 }));
   };
 
-  const uploadGallery = async (file: File) => {
+  const uploadGalleryBatch = async (files: File[]) => {
     if (!trip.id) {
       setError("Speichere die Reise zuerst, bevor du Bilder hochlädst.");
       return;
     }
-    const form = new FormData();
-    form.append("tripId", trip.id);
-    form.append("file", file);
-    const res = await fetch("/api/studio/images", { method: "POST", body: form, credentials: "same-origin" });
-    if (!res.ok) {
-      setError("Upload fehlgeschlagen");
-      return;
+    setError("");
+    const total = files.length;
+    for (let i = 0; i < total; i++) {
+      setGalleryProgress({ done: i, total, percent: 0 });
+      try {
+        const data = await uploadWithProgress(files[i], trip.id, (pct) =>
+          setGalleryProgress({ done: i, total, percent: pct }),
+        );
+        setImages((list) => [...list, data.image]);
+      } catch (e: any) {
+        setError(e.message || "Upload fehlgeschlagen");
+      }
     }
-    const data = await res.json();
-    setImages((list) => [...list, data.image]);
+    setGalleryProgress(null);
   };
 
   const deleteImage = async (id: string) => {
@@ -247,23 +274,32 @@ function EditorPage() {
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <SiteHeader />
       <main className="flex-1 px-6 md:px-8 py-12 max-w-6xl mx-auto w-full">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">
           <p className="font-mono text-primary text-xs uppercase tracking-[0.3em]">Studio · {isNew ? "Neue Reise" : "Bearbeiten"}</p>
-          <Link to="/admin/studio" className="font-mono text-[10px] uppercase tracking-widest hover:text-primary">← Zurück</Link>
+          <div className="flex items-center gap-3">
+            <button onClick={save} disabled={saving} className="px-5 py-2 bg-primary text-primary-foreground font-mono text-[10px] tracking-widest uppercase hover:bg-primary/90 disabled:opacity-50 rounded-sm">
+              {saving ? "Speichere …" : "Speichern"}
+            </button>
+            <Link to="/admin/studio" className="font-mono text-[10px] uppercase tracking-widest hover:text-primary">← Zurück</Link>
+          </div>
         </div>
+
+        <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-4">
+          Felder mit <span className="text-destructive">*</span> sind Pflichtfelder
+        </p>
 
         {error && <p className="text-destructive font-mono mb-6">{error}</p>}
 
         <div className="grid lg:grid-cols-[1fr_320px] gap-8">
           <div className="space-y-6">
-            <Input label="Titel" value={trip.title} onChange={(v) => setField("title", v)} />
+            <Input label="Titel" value={trip.title} onChange={(v) => setField("title", v)} required />
             <div className="grid grid-cols-2 gap-4">
-              <Input label="Slug (URL)" value={trip.slug} onChange={(v) => setField("slug", v.replace(/[^a-z0-9-]/gi, "-").toLowerCase())} />
-              <Input label="Monats-Label" value={trip.monthLabel} onChange={(v) => setField("monthLabel", v.toUpperCase())} placeholder="MAI 2024" />
+              <Input label="Slug (URL)" value={trip.slug} onChange={(v) => setField("slug", v.replace(/[^a-z0-9-]/gi, "-").toLowerCase())} required />
+              <Input label="Monats-Label" value={trip.monthLabel} onChange={(v) => setField("monthLabel", v.toUpperCase())} placeholder="MAI 2024" required />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <Input label="Ort" value={trip.where} onChange={(v) => setField("where", v)} />
-              <Input label="Zeitraum (Text)" value={trip.when} onChange={(v) => setField("when", v)} />
+              <Input label="Ort" value={trip.where} onChange={(v) => setField("where", v)} required />
+              <Input label="Zeitraum (Text)" value={trip.when} onChange={(v) => setField("when", v)} required />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -306,9 +342,11 @@ function EditorPage() {
               <label htmlFor="featured" className="font-mono text-[10px] uppercase tracking-widest cursor-pointer">Als Highlight markieren</label>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <Input label="Begleitung" value={trip.who} onChange={(v) => setField("who", v)} />
+              <Input label="Begleitung" value={trip.who} onChange={(v) => setField("who", v)} required />
               <div>
-                <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">Region</label>
+                <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
+                  Region<span className="text-destructive ml-1">*</span>
+                </label>
                 <select
                   value={trip.region}
                   onChange={(e) => setField("region", e.target.value as StudioTrip["region"])}
@@ -322,22 +360,28 @@ function EditorPage() {
             <Input label="Kicker / Untertitel" value={trip.kicker} onChange={(v) => setField("kicker", v)} />
 
             <div>
-              <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">Teaser</label>
+              <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
+                Teaser<span className="text-destructive ml-1">*</span>
+              </label>
               <textarea
                 value={trip.excerpt}
                 onChange={(e) => setField("excerpt", e.target.value)}
                 rows={3}
-                className="w-full bg-card border border-border focus:border-primary p-3 rounded-sm"
+                aria-required
+                className={`w-full bg-card border ${!trip.excerpt ? "border-destructive/50" : "border-border"} focus:border-primary p-3 rounded-sm`}
               />
             </div>
 
             <div>
-              <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">Reisebericht (Absätze mit Leerzeile trennen)</label>
+              <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
+                Reisebericht<span className="text-destructive ml-1">*</span> <span className="normal-case tracking-normal text-muted-foreground">(Absätze mit Leerzeile trennen)</span>
+              </label>
               <textarea
                 value={trip.body}
                 onChange={(e) => setField("body", e.target.value)}
                 rows={16}
-                className="w-full bg-card border border-border focus:border-primary p-3 font-mono text-sm rounded-sm"
+                aria-required
+                className={`w-full bg-card border ${!trip.body ? "border-destructive/50" : "border-border"} focus:border-primary p-3 font-mono text-sm rounded-sm`}
               />
             </div>
 
@@ -369,12 +413,15 @@ function EditorPage() {
               <input
                 type="file"
                 accept="image/*"
+                disabled={coverProgress !== null}
                 onChange={(e) => {
                   const f = e.target.files?.[0];
                   if (f) uploadCover(f);
+                  e.target.value = "";
                 }}
-                className="block w-full text-xs file:mr-3 file:py-2 file:px-3 file:border-0 file:bg-primary file:text-primary-foreground file:font-mono file:text-[10px] file:uppercase file:tracking-widest hover:file:bg-primary/90"
+                className="block w-full text-xs file:mr-3 file:py-2 file:px-3 file:border-0 file:bg-primary file:text-primary-foreground file:font-mono file:text-[10px] file:uppercase file:tracking-widest hover:file:bg-primary/90 disabled:opacity-50"
               />
+              {coverProgress !== null && <ProgressBar percent={coverProgress} label={`Cover · ${coverProgress}%`} />}
             </div>
 
             <div>
@@ -384,12 +431,20 @@ function EditorPage() {
                 type="file"
                 accept="image/*"
                 multiple
+                disabled={galleryProgress !== null}
                 onChange={(e) => {
-                  Array.from(e.target.files ?? []).forEach(uploadGallery);
+                  const files = Array.from(e.target.files ?? []);
+                  if (files.length) uploadGalleryBatch(files);
                   if (fileInputRef.current) fileInputRef.current.value = "";
                 }}
-                className="block w-full text-xs file:mr-3 file:py-2 file:px-3 file:border-0 file:bg-primary file:text-primary-foreground file:font-mono file:text-[10px] file:uppercase file:tracking-widest hover:file:bg-primary/90"
+                className="block w-full text-xs file:mr-3 file:py-2 file:px-3 file:border-0 file:bg-primary file:text-primary-foreground file:font-mono file:text-[10px] file:uppercase file:tracking-widest hover:file:bg-primary/90 disabled:opacity-50"
               />
+              {galleryProgress && (
+                <ProgressBar
+                  percent={galleryProgress.percent}
+                  label={`Bild ${galleryProgress.done + 1} von ${galleryProgress.total} · ${galleryProgress.percent}%`}
+                />
+              )}
               {images.length > 0 && (
                 <div className="grid grid-cols-3 gap-2 mt-3">
                   {images.map((img) => (
@@ -412,17 +467,36 @@ function EditorPage() {
   );
 }
 
-function Input({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
+function Input({ label, value, onChange, placeholder, required }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; required?: boolean }) {
   return (
     <div>
-      <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">{label}</label>
+      <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
+        {label}
+        {required && <span className="text-destructive ml-1">*</span>}
+      </label>
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full bg-card border border-border focus:border-primary focus:outline-none p-3 rounded-sm"
+        aria-required={required || undefined}
+        className={`w-full bg-card border ${required && !value ? "border-destructive/50" : "border-border"} focus:border-primary focus:outline-none p-3 rounded-sm`}
       />
+    </div>
+  );
+}
+
+function ProgressBar({ percent, label }: { percent: number; label: string }) {
+  const pct = Math.max(0, Math.min(100, percent));
+  return (
+    <div className="mt-3" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
+      <div className="h-2 w-full bg-card border border-border rounded-sm overflow-hidden">
+        <div
+          className="h-full bg-primary transition-[width] duration-150 ease-out"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <p className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{label}</p>
     </div>
   );
 }
