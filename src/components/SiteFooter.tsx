@@ -27,7 +27,7 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-white/10 py-4 text-center text-xs opacity-60">
-        © {new Date().getFullYear()} Reisejournal — Mein Weg. Meine Welt.
+        © {new Date().getFullYear()} Reisejournal — Mein Weg. Meine Welt. · v0.4.0
       </div>
     </footer>
   );
