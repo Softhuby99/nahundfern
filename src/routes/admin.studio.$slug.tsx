@@ -274,10 +274,19 @@ function EditorPage() {
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <SiteHeader />
       <main className="flex-1 px-6 md:px-8 py-12 max-w-6xl mx-auto w-full">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">
           <p className="font-mono text-primary text-xs uppercase tracking-[0.3em]">Studio · {isNew ? "Neue Reise" : "Bearbeiten"}</p>
-          <Link to="/admin/studio" className="font-mono text-[10px] uppercase tracking-widest hover:text-primary">← Zurück</Link>
+          <div className="flex items-center gap-3">
+            <button onClick={save} disabled={saving} className="px-5 py-2 bg-primary text-primary-foreground font-mono text-[10px] tracking-widest uppercase hover:bg-primary/90 disabled:opacity-50 rounded-sm">
+              {saving ? "Speichere …" : "Speichern"}
+            </button>
+            <Link to="/admin/studio" className="font-mono text-[10px] uppercase tracking-widest hover:text-primary">← Zurück</Link>
+          </div>
         </div>
+
+        <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-4">
+          Felder mit <span className="text-destructive">*</span> sind Pflichtfelder
+        </p>
 
         {error && <p className="text-destructive font-mono mb-6">{error}</p>}
 
