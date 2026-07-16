@@ -448,16 +448,20 @@ function EditorPage() {
   );
 }
 
-function Input({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
+function Input({ label, value, onChange, placeholder, required }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; required?: boolean }) {
   return (
     <div>
-      <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">{label}</label>
+      <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
+        {label}
+        {required && <span className="text-destructive ml-1">*</span>}
+      </label>
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full bg-card border border-border focus:border-primary focus:outline-none p-3 rounded-sm"
+        aria-required={required || undefined}
+        className={`w-full bg-card border ${required && !value ? "border-destructive/50" : "border-border"} focus:border-primary focus:outline-none p-3 rounded-sm`}
       />
     </div>
   );
