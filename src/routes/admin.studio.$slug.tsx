@@ -147,7 +147,7 @@ function EditorPage() {
           .then((res) => res.json())
           .then((data) => setImages(data.images));
       })
-      .catch((e) => setError(e.message))
+      .catch((e) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setLoading(false));
   }, [slug, isNew, navigate]);
 
@@ -211,8 +211,8 @@ function EditorPage() {
       } else {
         await navigate({ to: "/admin/studio" });
       }
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setSaving(false);
     }
@@ -228,8 +228,8 @@ function EditorPage() {
     try {
       const data = await uploadWithProgress(file, trip.id, setCoverProgress);
       setTrip((t) => ({ ...t, coverImageId: data.image.id, cover_webp_400: data.image.webp_400 }));
-    } catch (e: any) {
-      setError(e.message || "Cover-Upload fehlgeschlagen");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Cover-Upload fehlgeschlagen");
     } finally {
       setCoverProgress(null);
     }
@@ -249,8 +249,8 @@ function EditorPage() {
           setGalleryProgress({ done: i, total, percent: pct }),
         );
         setImages((list) => [...list, data.image]);
-      } catch (e: any) {
-        setError(e.message || "Upload fehlgeschlagen");
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : "Upload fehlgeschlagen");
       }
     }
     setGalleryProgress(null);
