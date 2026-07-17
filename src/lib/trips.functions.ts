@@ -31,6 +31,16 @@ export type PublicTrip = {
     avif: Record<number, string>;
     alt: string | null;
   };
+  gallery: GalleryImage[];
+};
+
+export type GalleryImage = {
+  id: string;
+  webp: Record<number, string>;
+  avif: Record<number, string>;
+  width: number;
+  height: number;
+  alt: string | null;
 };
 
 function splitBody(bodyMd: string): string[] {
