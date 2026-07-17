@@ -110,6 +110,7 @@ export const listPublishedTrips = createServerFn({ method: "GET" }).handler(asyn
   // created_at when trip_start_date is not yet set on legacy rows.
   const rows = await sql`
       SELECT t.*,
+             t.id AS id,
              i.webp_400, i.webp_1200, i.webp_2000,
              i.avif_400, i.avif_1200, i.avif_2000,
              i.alt as cover_alt
@@ -133,6 +134,7 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
   .handler(async ({ data: slug }): Promise<PublicTrip | null> => {
     const [row] = await sql`
       SELECT t.*,
+             t.id AS id,
              i.webp_400, i.webp_1200, i.webp_2000,
              i.avif_400, i.avif_1200, i.avif_2000,
              i.alt as cover_alt
