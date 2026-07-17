@@ -140,8 +140,20 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
       LEFT JOIN images i ON i.id = t.cover_image_id
       WHERE t.slug = ${slug} AND t.published = true
     `;
-    return row ? mapRow(row) : null;
+    if (!row) return null;
+    // Gallery = all trip images minus the cover, ordered by sort_order.
+    const galleryRows = await sql`
+      SELECT id, webp_400, webp_1200, webp_2000,
+             avif_400, avif_1200, avif_2000,
+             width, height, alt
+      FROM images
+      WHERE trip_id = ${row.id}
+        AND (${row.cover_image_id}::uuid IS NULL OR id <> ${row.cover_image_id})
+      ORDER BY sort_order, created_at
+    `;
+    return mapRow(row, galleryRows.map(mapGalleryRow));
   });
+
 
 /** Slim slug+title projection used to build newer/older links on story pages. */
 export type TripNavigationEntry = {
