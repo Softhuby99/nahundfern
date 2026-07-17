@@ -123,9 +123,24 @@ function EditorPage() {
         const data = await res.json();
         const found = data.trip;
         if (!found) throw new Error("Trip not found");
+        // Explicit snake_case → camelCase mapping. Spreading `found` alone
+        // would leave monthLabel/where/when/who undefined because the API
+        // returns raw DB columns (month_label, where_text, …).
         setTrip({
-          ...found,
-          body: found.body_md,
+          id: found.id,
+          slug: found.slug ?? "",
+          title: found.title ?? "",
+          kicker: found.kicker ?? "",
+          region: found.region ?? "Europe",
+          excerpt: found.excerpt ?? "",
+          published: Boolean(found.published),
+          coverImageId: found.cover_image_id ?? null,
+          cover_webp_400: found.cover_webp_400 ?? null,
+          monthLabel: found.month_label ?? "",
+          where: found.where_text ?? "",
+          when: found.when_text ?? "",
+          who: found.who_text ?? "",
+          body: found.body_md ?? "",
           tripStartDate: found.trip_start_date ? String(found.trip_start_date).slice(0, 10) : "",
           tripEndDate: found.trip_end_date ? String(found.trip_end_date).slice(0, 10) : "",
           countryCode: found.country_code ?? "",
