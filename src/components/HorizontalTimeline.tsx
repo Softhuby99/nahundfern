@@ -84,13 +84,27 @@ export function HorizontalTimeline({
             }}
             onReset={resetFilter}
           />
-          <TimelinePagination
-            hasNewer={hasNewer}
-            hasOlder={hasOlder}
-            onNewer={() => setOffset(Math.max(0, safeOffset - windowSize))}
-            onOlder={() => setOffset(safeOffset + windowSize)}
-            rangeLabel={rangeLabel}
-          />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+                setOffset(0);
+              }}
+              className="px-4 py-2 rounded-full border border-border bg-card text-sm hover:border-primary hover:text-primary transition-colors"
+              aria-label="Sortierreihenfolge umschalten"
+              title="Sortierung umschalten"
+            >
+              {sortDir === "desc" ? "Neueste zuerst ↓" : "Älteste zuerst ↑"}
+            </button>
+            <TimelinePagination
+              hasNewer={hasNewer}
+              hasOlder={hasOlder}
+              onNewer={() => setOffset(Math.max(0, safeOffset - windowSize))}
+              onOlder={() => setOffset(safeOffset + windowSize)}
+              rangeLabel={rangeLabel}
+            />
+          </div>
         </div>
         {/* Assistive status message when filters change the result count. */}
         <p role="status" aria-live="polite" className="sr-only">
