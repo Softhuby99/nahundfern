@@ -1,22 +1,40 @@
 import postgres from "postgres";
 
-const DATABASE_URL = process.env.DATABASE_URL;
+type Sql = ReturnType<typeof postgres>;
 
-if (!DATABASE_URL) {
-  throw new Error("DATABASE_URL is not configured");
+let _sql: Sql | null = null;
+
+function getSql(): Sql {
+  if (_sql) return _sql;
+  const DATABASE_URL = process.env.DATABASE_URL;
+  if (!DATABASE_URL) {
+    throw new Error("DATABASE_URL is not configured");
+  }
+  _sql = postgres(DATABASE_URL, {
+    max: 10,
+    idle_timeout: 30,
+    connect_timeout: 10,
+    prepare: false,
+  });
+  return _sql;
 }
 
-// `postgres` returns a tagged template function that manages a connection pool.
-// We keep a single instance for the Node process.
-export const sql = postgres(DATABASE_URL, {
-  max: 10,
-  idle_timeout: 30,
-  connect_timeout: 10,
-  prepare: false,
-});
+// Proxy so existing `sql\`...\`` and `sql.begin(...)` call sites keep working
+// while deferring connection creation until first use.
+export const sql: Sql = new Proxy(function () {} as unknown as Sql, {
+  apply(_t, _thisArg, args: unknown[]) {
+    // @ts-expect-error - forward tagged-template call
+    return getSql()(...args);
+  },
+  get(_t, prop, receiver) {
+    const s = getSql() as unknown as Record<string | symbol, unknown>;
+    const v = s[prop as string];
+    return typeof v === "function" ? (v as (...a: unknown[]) => unknown).bind(s) : v;
+  },
+}) as Sql;
 
 export async function closeDb() {
-  await sql.end();
+  if (_sql) await _sql.end();
 }
 
 export type TripRow = {
