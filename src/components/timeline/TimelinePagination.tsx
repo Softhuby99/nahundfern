@@ -18,9 +18,7 @@ export function TimelinePagination({ hasNewer, hasOlder, onNewer, onOlder, range
       >
         ← Neuere
       </button>
-      <span className="text-xs text-muted-foreground min-w-[80px] text-center">
-        {rangeLabel}
-      </span>
+      <span className="text-xs text-muted-foreground min-w-[80px] text-center">{rangeLabel}</span>
       <button
         type="button"
         onClick={onOlder}

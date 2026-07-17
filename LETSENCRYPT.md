@@ -11,15 +11,16 @@ Sie gilt für den Live-Modus (`./scripts/run.sh test4`) auf dem Server
 
 Bevor Let's Encrypt ein Zertifikat ausstellen kann, muss folgendes stimmen:
 
-| Punkt | Prüfung | Wo einstellen |
-|---|---|---|
-| **DNS A-Record** | `nahundfern.servuswir.de` zeigt auf die öffentliche IP des Servers `WebSrv-1` | beim DNS-Anbieter der Domain `servuswir.de` |
-| **Port 80 offen** | eingehend TCP/80 aus dem Internet erreichbar (Let's Encrypt HTTP-01 Challenge) | Firewall / Hoster |
-| **Port 443 offen** | eingehend TCP/443 erreichbar | Firewall / Hoster |
-| **Kein anderer Dienst auf 80/443** | `sudo ss -tlnp \| grep -E ':80\|:443'` zeigt nichts außer Docker | Server |
-| **`.env` vorhanden** | `/opt/nahundfern/.env` mit `PUBLIC_BASE_URL=https://nahundfern.servuswir.de` | Server |
+| Punkt                              | Prüfung                                                                        | Wo einstellen                               |
+| ---------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------- |
+| **DNS A-Record**                   | `nahundfern.servuswir.de` zeigt auf die öffentliche IP des Servers `WebSrv-1`  | beim DNS-Anbieter der Domain `servuswir.de` |
+| **Port 80 offen**                  | eingehend TCP/80 aus dem Internet erreichbar (Let's Encrypt HTTP-01 Challenge) | Firewall / Hoster                           |
+| **Port 443 offen**                 | eingehend TCP/443 erreichbar                                                   | Firewall / Hoster                           |
+| **Kein anderer Dienst auf 80/443** | `sudo ss -tlnp \| grep -E ':80\|:443'` zeigt nichts außer Docker               | Server                                      |
+| **`.env` vorhanden**               | `/opt/nahundfern/.env` mit `PUBLIC_BASE_URL=https://nahundfern.servuswir.de`   | Server                                      |
 
 DNS-Check vom Server:
+
 ```bash
 dig +short nahundfern.servuswir.de
 # muss die IP des Servers ausgeben
@@ -66,6 +67,7 @@ docker run --rm \
 > `docker volume ls | grep letsencrypt`.
 
 Bei Erfolg meldet Certbot:
+
 ```
 Successfully received certificate.
 Certificate is saved at: /etc/letsencrypt/live/nahundfern.servuswir.de/fullchain.pem
@@ -80,6 +82,7 @@ Key is saved at:         /etc/letsencrypt/live/nahundfern.servuswir.de/privkey.p
 ```
 
 Prüfen:
+
 ```bash
 curl -I https://nahundfern.servuswir.de
 # HTTP/2 200 (oder 302)
@@ -93,16 +96,17 @@ Die Dateien werden **nicht** im Repo abgelegt, sondern in einem
 Docker Named Volume – dadurch überleben sie Container-Neustarts und
 Image-Updates, und sie tauchen nicht in Git auf.
 
-| Ort | Bedeutung |
-|---|---|
-| Docker-Volume `nahundfern_letsencrypt` | persistenter Speicher (bleibt auf dem Host) |
-| Mount im nginx-Container | `/etc/letsencrypt` (read-only) |
-| Mount im certbot-Container | `/etc/letsencrypt` (read-write, für Renewals) |
-| Zertifikat-Datei | `/etc/letsencrypt/live/nahundfern.servuswir.de/fullchain.pem` |
-| Private Key | `/etc/letsencrypt/live/nahundfern.servuswir.de/privkey.pem` |
-| Host-Pfad (real) | `/var/lib/docker/volumes/nahundfern_letsencrypt/_data/...` |
+| Ort                                    | Bedeutung                                                     |
+| -------------------------------------- | ------------------------------------------------------------- |
+| Docker-Volume `nahundfern_letsencrypt` | persistenter Speicher (bleibt auf dem Host)                   |
+| Mount im nginx-Container               | `/etc/letsencrypt` (read-only)                                |
+| Mount im certbot-Container             | `/etc/letsencrypt` (read-write, für Renewals)                 |
+| Zertifikat-Datei                       | `/etc/letsencrypt/live/nahundfern.servuswir.de/fullchain.pem` |
+| Private Key                            | `/etc/letsencrypt/live/nahundfern.servuswir.de/privkey.pem`   |
+| Host-Pfad (real)                       | `/var/lib/docker/volumes/nahundfern_letsencrypt/_data/...`    |
 
 Verwendet werden sie durch `nginx/conf.d/site.conf`:
+
 ```
 ssl_certificate     /etc/letsencrypt/live/nahundfern.servuswir.de/fullchain.pem;
 ssl_certificate_key /etc/letsencrypt/live/nahundfern.servuswir.de/privkey.pem;
@@ -132,11 +136,13 @@ docker exec nahundfern-nginx nginx -s reload
 ```
 
 Optional als täglicher Cron auf dem Host (`crontab -e`):
+
 ```
 15 3 * * * docker exec nahundfern-nginx nginx -s reload >/dev/null 2>&1
 ```
 
 Manueller Renewal-Test (dry-run, verbraucht kein Rate-Limit):
+
 ```bash
 docker exec nahundfern-certbot certbot renew --dry-run
 ```
@@ -146,6 +152,7 @@ docker exec nahundfern-certbot certbot renew --dry-run
 ## 5. Backup / Restore
 
 **Backup** (z. B. nach der Ersterstellung und dann monatlich):
+
 ```bash
 docker run --rm \
   -v nahundfern_letsencrypt:/data \
@@ -154,6 +161,7 @@ docker run --rm \
 ```
 
 **Restore** auf neuem Server:
+
 ```bash
 docker volume create nahundfern_letsencrypt
 docker run --rm \
@@ -166,13 +174,13 @@ docker run --rm \
 
 ## 6. Troubleshooting
 
-| Symptom | Ursache | Lösung |
-|---|---|---|
-| `nginx: [emerg] cannot load certificate ...fullchain.pem` | Zertifikat noch nicht erstellt | Schritte 2.1–2.3 durchlaufen (nicht direkt `test4` starten) |
-| Certbot: `Timeout during connect` | Port 80 nicht erreichbar | Firewall / DNS prüfen |
-| Certbot: `DNS problem: NXDOMAIN` | A-Record fehlt/falsch | DNS beim Anbieter setzen, propagation abwarten |
-| `too many certificates already issued` | Let's Encrypt Rate-Limit (5/Woche) | `--dry-run` verwenden bzw. eine Woche warten |
-| Zertifikat abgelaufen trotz certbot-Service | nginx wurde nach Renewal nicht neu geladen | `docker exec nahundfern-nginx nginx -s reload` (bzw. Cron aus §4) |
+| Symptom                                                   | Ursache                                    | Lösung                                                            |
+| --------------------------------------------------------- | ------------------------------------------ | ----------------------------------------------------------------- |
+| `nginx: [emerg] cannot load certificate ...fullchain.pem` | Zertifikat noch nicht erstellt             | Schritte 2.1–2.3 durchlaufen (nicht direkt `test4` starten)       |
+| Certbot: `Timeout during connect`                         | Port 80 nicht erreichbar                   | Firewall / DNS prüfen                                             |
+| Certbot: `DNS problem: NXDOMAIN`                          | A-Record fehlt/falsch                      | DNS beim Anbieter setzen, propagation abwarten                    |
+| `too many certificates already issued`                    | Let's Encrypt Rate-Limit (5/Woche)         | `--dry-run` verwenden bzw. eine Woche warten                      |
+| Zertifikat abgelaufen trotz certbot-Service               | nginx wurde nach Renewal nicht neu geladen | `docker exec nahundfern-nginx nginx -s reload` (bzw. Cron aus §4) |
 
 ---
 

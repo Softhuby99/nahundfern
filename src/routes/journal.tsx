@@ -15,7 +15,10 @@ export const Route = createFileRoute("/journal")({
       { title: "Mein Reisetagebuch — Reisejournal" },
       { name: "description", content: "Gedanken, Momente und kleine Geschichten von unterwegs." },
       { property: "og:title", content: "Mein Reisetagebuch — Reisejournal" },
-      { property: "og:description", content: "Gedanken, Momente und kleine Geschichten von unterwegs." },
+      {
+        property: "og:description",
+        content: "Gedanken, Momente und kleine Geschichten von unterwegs.",
+      },
     ],
   }),
   component: JournalPage,
@@ -37,7 +40,8 @@ function JournalPage() {
 
       <section className="max-w-7xl mx-auto px-6 md:px-8 pt-12 text-center">
         <p className="font-script text-2xl text-primary flex items-center justify-center gap-2">
-          Meine Erinnerungen. Mein Weg. <Heart className="size-4 fill-primary/40 text-primary" strokeWidth={1.5} />
+          Meine Erinnerungen. Mein Weg.{" "}
+          <Heart className="size-4 fill-primary/40 text-primary" strokeWidth={1.5} />
         </p>
         <h1 className="font-display text-5xl md:text-7xl font-semibold tracking-tight mt-2">
           Mein Reisetagebuch
@@ -52,8 +56,15 @@ function JournalPage() {
           {entries.map((t: PublicTrip, i: number) => {
             const dt = splitDate(t.monthLabel);
             return (
-              <li key={t.slug} className="paper-card p-4 md:p-5 flex flex-col md:flex-row gap-5 relative" style={{ animation: `revealNode 0.5s var(--ease-cinematic) ${i * 50}ms both` }}>
-                <span className="absolute -top-2 left-8 h-4 w-16 bg-primary/15 rotate-[-3deg] rounded-sm" aria-hidden />
+              <li
+                key={t.slug}
+                className="paper-card p-4 md:p-5 flex flex-col md:flex-row gap-5 relative"
+                style={{ animation: `revealNode 0.5s var(--ease-cinematic) ${i * 50}ms both` }}
+              >
+                <span
+                  className="absolute -top-2 left-8 h-4 w-16 bg-primary/15 rotate-[-3deg] rounded-sm"
+                  aria-hidden
+                />
                 <div className="flex-none grid place-items-center rounded-lg bg-primary text-primary-foreground w-20 h-20 md:w-24 md:h-24 text-center">
                   <div>
                     <div className="text-2xl font-semibold leading-none">{dt.d}</div>
@@ -98,7 +109,10 @@ function JournalPage() {
 
         <aside className="space-y-6">
           <div className="paper-card p-5 relative">
-            <span className="absolute -top-2 left-1/2 -translate-x-1/2 size-3 rounded-full bg-primary/70" aria-hidden />
+            <span
+              className="absolute -top-2 left-1/2 -translate-x-1/2 size-3 rounded-full bg-primary/70"
+              aria-hidden
+            />
             <h3 className="font-script text-2xl text-foreground">Unterwegs notiert</h3>
             <ul className="mt-3 space-y-2 text-sm">
               <li>☕ Sonnenuntergänge sammeln</li>
@@ -126,7 +140,9 @@ function JournalPage() {
                 />
               )}
             </div>
-            <p className="font-script text-xl text-primary mt-3 text-center">Mein Lieblingsmoment</p>
+            <p className="font-script text-xl text-primary mt-3 text-center">
+              Mein Lieblingsmoment
+            </p>
           </div>
         </aside>
       </section>

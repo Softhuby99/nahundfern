@@ -21,7 +21,9 @@ export function SiteHeader() {
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 md:px-8 py-4">
           <Link to="/" className="group" onClick={() => setOpen(false)}>
             <div className="flex items-baseline gap-2 leading-none">
-              <span className="font-display text-3xl md:text-4xl font-semibold tracking-tight">Reisejournal</span>
+              <span className="font-display text-3xl md:text-4xl font-semibold tracking-tight">
+                Reisejournal
+              </span>
               <Heart className="size-4 text-primary fill-primary/40" strokeWidth={1.5} />
             </div>
             <p className="font-script text-lg text-primary/80 mt-0.5">Mein Weg. Meine Welt.</p>
@@ -33,7 +35,9 @@ export function SiteHeader() {
                 key={n.to}
                 to={n.to}
                 className="text-sm text-foreground/80 hover:text-primary transition-colors"
-                activeProps={{ className: "text-primary font-medium border-b-2 border-primary pb-1" }}
+                activeProps={{
+                  className: "text-primary font-medium border-b-2 border-primary pb-1",
+                }}
                 activeOptions={{ exact: n.to === "/" }}
               >
                 {n.label}
@@ -42,7 +46,10 @@ export function SiteHeader() {
           </nav>
 
           <div className="flex items-center gap-3">
-            <button aria-label="Suche" className="hidden md:inline-flex p-2 text-foreground/70 hover:text-primary transition-colors">
+            <button
+              aria-label="Suche"
+              className="hidden md:inline-flex p-2 text-foreground/70 hover:text-primary transition-colors"
+            >
               <Search className="size-5" strokeWidth={1.5} />
             </button>
             <button

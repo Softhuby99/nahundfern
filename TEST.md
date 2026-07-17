@@ -2,12 +2,12 @@
 
 Der Stack unterstützt vier Startmodi über `./scripts/run.sh <modus>`:
 
-| Modus   | Umgebung | TLS                  | Anwendungsfall                                     |
-|---------|----------|----------------------|----------------------------------------------------|
-| `test1` | Test     | ohne                 | Erster Funktionstest, beliebige IP/Hostname, Port 80 |
-| `test2` | Test     | self-signed HTTPS    | Lokale HTTPS-Tests (Zertifikat wird automatisch erzeugt) |
-| `test3` | Live     | ohne                 | Produktive Domain hinter externem TLS-Proxy         |
-| `test4` | Live     | Let's Encrypt HTTPS  | Produktivbetrieb — siehe `DEPLOYMENT.md`           |
+| Modus   | Umgebung | TLS                 | Anwendungsfall                                           |
+| ------- | -------- | ------------------- | -------------------------------------------------------- |
+| `test1` | Test     | ohne                | Erster Funktionstest, beliebige IP/Hostname, Port 80     |
+| `test2` | Test     | self-signed HTTPS   | Lokale HTTPS-Tests (Zertifikat wird automatisch erzeugt) |
+| `test3` | Live     | ohne                | Produktive Domain hinter externem TLS-Proxy              |
+| `test4` | Live     | Let's Encrypt HTTPS | Produktivbetrieb — siehe `DEPLOYMENT.md`                 |
 
 Starten / Stoppen:
 
@@ -122,11 +122,11 @@ Wenn ein HTTP- oder Selfsigned-Test erfolgreich war:
 
 ## Troubleshooting
 
-| Symptom                              | Prüfen / Lösung                                                          |
-|--------------------------------------|--------------------------------------------------------------------------|
-| Port 80 bereits belegt               | `ss -tlnp \| grep :80` — anderen Dienst stoppen (System-nginx? `systemctl stop nginx`) |
-| `permission denied` bei Docker       | `groups` muss `docker` enthalten; neu einloggen oder `newgrp docker`     |
-| nginx crash-loopt / kein Port 80     | Modus falsch — `./scripts/run.sh test1` statt `docker compose up` nutzen |
-| `502 Bad Gateway`                    | `docker compose logs app` — meist DB-Verbindung oder Build-Fehler        |
-| Bilder werden nicht angezeigt        | `docker compose logs nginx`; `docker volume inspect nahundfern_uploads`  |
-| Login zeigt „Unauthorized"           | Admin-User mit `scripts/create-user.js` neu anlegen                      |
+| Symptom                          | Prüfen / Lösung                                                                        |
+| -------------------------------- | -------------------------------------------------------------------------------------- |
+| Port 80 bereits belegt           | `ss -tlnp \| grep :80` — anderen Dienst stoppen (System-nginx? `systemctl stop nginx`) |
+| `permission denied` bei Docker   | `groups` muss `docker` enthalten; neu einloggen oder `newgrp docker`                   |
+| nginx crash-loopt / kein Port 80 | Modus falsch — `./scripts/run.sh test1` statt `docker compose up` nutzen               |
+| `502 Bad Gateway`                | `docker compose logs app` — meist DB-Verbindung oder Build-Fehler                      |
+| Bilder werden nicht angezeigt    | `docker compose logs nginx`; `docker volume inspect nahundfern_uploads`                |
+| Login zeigt „Unauthorized"       | Admin-User mit `scripts/create-user.js` neu anlegen                                    |

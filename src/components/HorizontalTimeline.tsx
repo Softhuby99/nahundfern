@@ -19,7 +19,11 @@ type Props = {
  * The heavy lifting lives in ./timeline/*: filters, pagination, card and the
  * responsive picture element. This file only wires state and layout.
  */
-export function HorizontalTimeline({ trips, defaultActiveSlug: _defaultActiveSlug, windowSize = 10 }: Props) {
+export function HorizontalTimeline({
+  trips,
+  defaultActiveSlug: _defaultActiveSlug,
+  windowSize = 10,
+}: Props) {
   void _defaultActiveSlug;
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
@@ -29,7 +33,7 @@ export function HorizontalTimeline({ trips, defaultActiveSlug: _defaultActiveSlu
   const filtered = useMemo(() => {
     return trips.filter((t) => {
       // Filter by actual travel date; fall back to createdAt for legacy rows.
-      const d = (t.tripStartDate ?? t.createdAt?.slice(0, 10)) ?? "";
+      const d = t.tripStartDate ?? t.createdAt?.slice(0, 10) ?? "";
       if (fromDate && d < fromDate) return false;
       if (toDate && d > toDate) return false;
       return true;
@@ -44,9 +48,8 @@ export function HorizontalTimeline({ trips, defaultActiveSlug: _defaultActiveSlu
   const hasNewer = safeOffset > 0;
   const hasOlder = safeOffset + windowSize < total;
 
-  const rangeLabel = total === 0
-    ? "—"
-    : `${safeOffset + 1}–${Math.min(safeOffset + windowSize, total)} / ${total}`;
+  const rangeLabel =
+    total === 0 ? "—" : `${safeOffset + 1}–${Math.min(safeOffset + windowSize, total)} / ${total}`;
 
   function resetFilter() {
     setFromDate("");
@@ -61,8 +64,14 @@ export function HorizontalTimeline({ trips, defaultActiveSlug: _defaultActiveSlu
           <TimelineFilters
             fromDate={fromDate}
             toDate={toDate}
-            onFromChange={(v) => { setFromDate(v); setOffset(0); }}
-            onToChange={(v) => { setToDate(v); setOffset(0); }}
+            onFromChange={(v) => {
+              setFromDate(v);
+              setOffset(0);
+            }}
+            onToChange={(v) => {
+              setToDate(v);
+              setOffset(0);
+            }}
             onReset={resetFilter}
           />
           <TimelinePagination
@@ -99,7 +108,9 @@ export function HorizontalTimeline({ trips, defaultActiveSlug: _defaultActiveSlu
         </ul>
 
         {total === 0 && (
-          <p className="text-center text-muted-foreground py-16">Keine Reisen im gewählten Zeitraum.</p>
+          <p className="text-center text-muted-foreground py-16">
+            Keine Reisen im gewählten Zeitraum.
+          </p>
         )}
       </div>
     </section>

@@ -5,7 +5,8 @@ export function SiteFooter() {
     <footer className="mt-24 bg-[color:var(--color-deep-teal)] text-white/90">
       <div className="max-w-7xl mx-auto px-6 md:px-8 py-10 flex flex-col md:flex-row items-center justify-between gap-8">
         <p className="font-script text-2xl md:text-3xl flex items-center gap-2">
-          Danke, dass du hier bist! <Heart className="size-5 fill-white/60 text-white/60" strokeWidth={1.5} />
+          Danke, dass du hier bist!{" "}
+          <Heart className="size-5 fill-white/60 text-white/60" strokeWidth={1.5} />
         </p>
         <div className="flex items-center gap-3">
           <span className="grid size-10 place-items-center rounded-full bg-white/10">

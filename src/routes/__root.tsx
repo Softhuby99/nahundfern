@@ -78,10 +78,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Reisejournal — Mein Weg. Meine Welt." },
-      { name: "description", content: "Persönliches Reisejournal mit Reiseberichten, Reisetagebuch, Fotogalerie und einer horizontalen Timeline." },
+      {
+        name: "description",
+        content:
+          "Persönliches Reisejournal mit Reiseberichten, Reisetagebuch, Fotogalerie und einer horizontalen Timeline.",
+      },
       { name: "author", content: "Reisejournal" },
       { property: "og:title", content: "Reisejournal — Mein Weg. Meine Welt." },
-      { property: "og:description", content: "Persönliches Reisejournal mit Reiseberichten, Reisetagebuch, Fotogalerie und Timeline." },
+      {
+        property: "og:description",
+        content:
+          "Persönliches Reisejournal mit Reiseberichten, Reisetagebuch, Fotogalerie und Timeline.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

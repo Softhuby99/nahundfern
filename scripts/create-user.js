@@ -40,7 +40,10 @@ function prompt(q, { silent = false } = {}) {
       };
       stdin.on("data", onData);
     } else {
-      rl.question(q, (v) => { rl.close(); resolve(v); });
+      rl.question(q, (v) => {
+        rl.close();
+        resolve(v);
+      });
     }
   });
 }

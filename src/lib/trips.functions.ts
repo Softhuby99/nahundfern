@@ -82,11 +82,10 @@ function mapRow(r: any): PublicTrip {
   };
 }
 
-export const listPublishedTrips = createServerFn({ method: "GET" })
-  .handler(async () => {
-    // Order chronologically by actual travel date (newest first). Fall back to
-    // created_at when trip_start_date is not yet set on legacy rows.
-    const rows = await sql`
+export const listPublishedTrips = createServerFn({ method: "GET" }).handler(async () => {
+  // Order chronologically by actual travel date (newest first). Fall back to
+  // created_at when trip_start_date is not yet set on legacy rows.
+  const rows = await sql`
       SELECT t.*,
              i.webp_400, i.webp_1200, i.webp_2000,
              i.avif_400, i.avif_1200, i.avif_2000,
@@ -97,8 +96,8 @@ export const listPublishedTrips = createServerFn({ method: "GET" })
       ORDER BY COALESCE(t.trip_start_date, t.created_at::date) DESC,
                t.created_at DESC
     `;
-    return rows.map(mapRow);
-  });
+  return rows.map(mapRow);
+});
 
 // Returns `null` when the slug is unpublished or unknown, so the route loader
 // can turn that specific case into `notFound()` while unexpected errors (DB
@@ -127,8 +126,8 @@ export type TripNavigationEntry = {
   title: string;
 };
 
-export const listTripNavigationEntries = createServerFn({ method: "GET" })
-  .handler(async (): Promise<TripNavigationEntry[]> => {
+export const listTripNavigationEntries = createServerFn({ method: "GET" }).handler(
+  async (): Promise<TripNavigationEntry[]> => {
     const rows = await sql<{ slug: string; title: string }[]>`
       SELECT slug, title
       FROM trips
@@ -137,4 +136,5 @@ export const listTripNavigationEntries = createServerFn({ method: "GET" })
                created_at DESC
     `;
     return rows.map((r) => ({ slug: r.slug, title: r.title }));
-  });
+  },
+);
