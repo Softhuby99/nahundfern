@@ -141,17 +141,20 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
       WHERE t.slug = ${slug} AND t.published = true
     `;
     if (!row) return null;
-    // Gallery = all trip images minus the cover, ordered by sort_order.
+    // Gallery = all trip images, cover filtered out in JS to avoid fragile
+    // SQL-level uuid casts (studio uses the same simple query and works).
     const galleryRows = await sql`
       SELECT id, webp_400, webp_1200, webp_2000,
              avif_400, avif_1200, avif_2000,
              width, height, alt
       FROM images
       WHERE trip_id = ${row.id}
-        AND (${row.cover_image_id}::uuid IS NULL OR id <> ${row.cover_image_id})
       ORDER BY sort_order, created_at
     `;
-    return mapRow(row, galleryRows.map(mapGalleryRow));
+    const filtered = row.cover_image_id
+      ? galleryRows.filter((g) => g.id !== row.cover_image_id)
+      : galleryRows;
+    return mapRow(row, filtered.map(mapGalleryRow));
   });
 
 
