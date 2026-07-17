@@ -119,7 +119,7 @@ export const listPublishedTrips = createServerFn({ method: "GET" }).handler(asyn
       ORDER BY COALESCE(t.trip_start_date, t.created_at::date) DESC,
                t.created_at DESC
     `;
-  return rows.map(mapRow);
+  return rows.map((r) => mapRow(r));
 });
 
 // Returns `null` when the slug is unpublished or unknown, so the route loader
