@@ -33,20 +33,32 @@ export const Route = createFileRoute("/stories/$slug")({
     }
 
     const title = `${t.title} — Reisejournal`;
-    const coverUrl = new URL(t.cover.webp[1200], baseUrl).toString();
+    // Cover is a LEFT JOIN — guard against missing/invalid variants so we
+    // never emit og:image=".../null" or a relative path.
+    const coverPath = t.cover.webp[1200];
+    const coverUrl =
+      typeof coverPath === "string" && coverPath.length > 0
+        ? new URL(coverPath, baseUrl).toString()
+        : null;
+
+    const meta: Array<{ title?: string; name?: string; property?: string; content?: string }> = [
+      { title },
+      { name: "description", content: t.excerpt },
+      { property: "og:title", content: title },
+      { property: "og:description", content: t.excerpt },
+      { property: "og:type", content: "article" },
+      { property: "og:url", content: storyUrl },
+      { name: "twitter:card", content: "summary_large_image" },
+    ];
+    if (coverUrl) {
+      meta.push(
+        { property: "og:image", content: coverUrl },
+        { name: "twitter:image", content: coverUrl },
+      );
+    }
 
     return {
-      meta: [
-        { title },
-        { name: "description", content: t.excerpt },
-        { property: "og:title", content: title },
-        { property: "og:description", content: t.excerpt },
-        { property: "og:type", content: "article" },
-        { property: "og:url", content: storyUrl },
-        { property: "og:image", content: coverUrl },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:image", content: coverUrl },
-      ],
+      meta,
       links: [{ rel: "canonical", href: storyUrl }],
     };
   },
