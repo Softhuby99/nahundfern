@@ -103,7 +103,7 @@ function EditorPage() {
           try {
             resolve(JSON.parse(xhr.responseText));
           } catch {
-            resolve(null);
+            reject(new Error("Ungültige Server-Antwort"));
           }
         } else reject(new Error(`Upload fehlgeschlagen (${xhr.status})`));
       };
