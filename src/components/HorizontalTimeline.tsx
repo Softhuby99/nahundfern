@@ -27,18 +27,28 @@ export function HorizontalTimeline({
   void _defaultActiveSlug;
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
-  // Trips arrive newest-first from the server. Offset 0 = newest window.
+  const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
+  // Trips arrive newest-first from the server. Offset 0 = first window.
   const [offset, setOffset] = useState<number>(0);
 
   const filtered = useMemo(() => {
-    return trips.filter((t) => {
-      // Filter by actual travel date; fall back to createdAt for legacy rows.
-      const d = t.tripStartDate ?? t.createdAt?.slice(0, 10) ?? "";
+    const dateKey = (t: PublicTrip) => t.tripStartDate ?? t.createdAt?.slice(0, 10) ?? "";
+    const list = trips.filter((t) => {
+      const d = dateKey(t);
       if (fromDate && d < fromDate) return false;
       if (toDate && d > toDate) return false;
       return true;
     });
-  }, [trips, fromDate, toDate]);
+    // Robust client-side sort: don't trust server ordering (legacy rows with
+    // missing trip_start_date can bleed in between correctly-dated ones).
+    const sorted = [...list].sort((a, b) => {
+      const da = dateKey(a);
+      const db = dateKey(b);
+      if (da === db) return 0;
+      return sortDir === "desc" ? (da < db ? 1 : -1) : da < db ? -1 : 1;
+    });
+    return sorted;
+  }, [trips, fromDate, toDate, sortDir]);
 
   const total = filtered.length;
   const maxOffset = Math.max(0, total - windowSize);
