@@ -88,7 +88,7 @@ function EditorPage() {
 
   // XHR upload with progress events (fetch has no upload-progress API).
   const uploadWithProgress = (file: File, tripId: string, onProgress: (pct: number) => void) =>
-    new Promise<any>((resolve, reject) => {
+    new Promise<{ image: { id: string; webp_400: string } }>((resolve, reject) => {
       const form = new FormData();
       form.append("tripId", tripId);
       form.append("file", file);
