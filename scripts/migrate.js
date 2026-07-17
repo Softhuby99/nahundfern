@@ -24,9 +24,7 @@ try {
   const dir = path.resolve("db/migrations");
   let files = [];
   try {
-    files = (await fs.readdir(dir))
-      .filter((f) => f.endsWith(".sql"))
-      .sort();
+    files = (await fs.readdir(dir)).filter((f) => f.endsWith(".sql")).sort();
   } catch {
     console.warn(`migrate: ${dir} not found, nothing to apply`);
     await sql.end();

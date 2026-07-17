@@ -125,12 +125,12 @@ nginx und db laufen dabei durch — kein Downtime.
 
 ## 8. Troubleshooting
 
-| Symptom                             | Prüfen                                                      |
-|-------------------------------------|-------------------------------------------------------------|
-| 502 Bad Gateway                     | `docker compose logs app` — meist DB-Verbindung             |
-| Login: „Unauthorized"               | Passwort per `scripts/create-user.js` neu setzen            |
-| Bilder werden nicht angezeigt       | `docker volume inspect nahundfern_uploads`, nginx-Alias     |
-| Zertifikat läuft ab                 | `docker compose logs certbot`                               |
+| Symptom                       | Prüfen                                                  |
+| ----------------------------- | ------------------------------------------------------- |
+| 502 Bad Gateway               | `docker compose logs app` — meist DB-Verbindung         |
+| Login: „Unauthorized"         | Passwort per `scripts/create-user.js` neu setzen        |
+| Bilder werden nicht angezeigt | `docker volume inspect nahundfern_uploads`, nginx-Alias |
+| Zertifikat läuft ab           | `docker compose logs certbot`                           |
 
 ## Architektur
 
