@@ -133,6 +133,7 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
   .handler(async ({ data: slug }): Promise<PublicTrip | null> => {
     const [row] = await sql`
       SELECT t.*,
+             t.id AS id,
              i.webp_400, i.webp_1200, i.webp_2000,
              i.avif_400, i.avif_1200, i.avif_2000,
              i.alt as cover_alt
