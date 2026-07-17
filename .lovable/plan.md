@@ -1,54 +1,55 @@
-## Problem
+## Ziel
 
-Im Studio werden Galeriebilder korrekt geladen (`GET /api/studio/images?tripId=...` → `SELECT * FROM images WHERE trip_id = ...`), aber auf der öffentlichen Story-Seite bleibt `trip.gallery` leer, sodass die `{trip.gallery.length > 0 && ...}`-Sektion nichts rendert.
+`/gallery` soll **alle** Bilder aus allen veröffentlichten Reisen zeigen (Cover + Galerie), nicht nur die Cover.
 
-## Ursache
+## Umsetzung
 
-In `src/lib/trips.functions.ts` (Zeilen 145–153) filtert der Gallery-Query das Cover direkt in SQL:
+### 1. Neue Server-Function `listPublishedGalleryImages` in `src/lib/trips.functions.ts`
+
+Liefert eine flache Liste aller Bilder veröffentlichter Reisen mit den nötigen Meta-Feldern zum Filtern und Verlinken:
 
 ```sql
-WHERE trip_id = ${row.id}
-  AND (${row.cover_image_id}::uuid IS NULL OR id <> ${row.cover_image_id})
+SELECT
+  i.id, i.webp_400, i.webp_1200, i.webp_2000,
+  i.avif_400, i.avif_1200, i.avif_2000,
+  i.width, i.height, i.alt, i.sort_order, i.created_at,
+  t.slug   AS trip_slug,
+  t.title  AS trip_title,
+  t.region AS trip_region,
+  t.month_label AS trip_month_label
+FROM images i
+JOIN trips t ON t.id = i.trip_id
+WHERE t.published = true
+ORDER BY
+  COALESCE(t.trip_start_date, t.created_at::date) DESC,
+  i.sort_order ASC,
+  i.created_at ASC
 ```
 
-Diese Konstruktion ist gegenüber der Studio-Abfrage überflüssig komplex und in mehreren Punkten fragil:
+Rückgabetyp `PublicGalleryImage` mit `{ id, webp, avif, width, height, alt, trip: { slug, title, region, monthLabel } }`.
 
-- `${row.cover_image_id}` wird zweimal als getrennter Parameter gebunden (postgres.js legt zwei Platzhalter an), Typinferenz und Cast greifen nur beim ersten.
-- Bei einem uuid-Parameter, der als Text gebunden wird, kann `id <> $2` je nach Postgres-Version einen Operator-Missmatch auslösen — statt eines Fehlers greift dann evtl. eine leere Ergebnismenge, wenn der Aufruf in einem Batch/Prepared-Kontext schweigend fehlschlägt.
-- Der Studio-Endpoint verwendet die einfache Abfrage ohne diese Zusatzklausel und funktioniert — das ist der eindeutige Unterschied.
+Kein Filter auf Cover — der User will explizit alle Bilder sehen.
 
-## Fix
+### 2. `src/routes/gallery.tsx` umstellen
 
-Gleiche Abfragestrategie wie im Studio verwenden und das Cover in JavaScript herausfiltern. Änderung nur in `src/lib/trips.functions.ts` in `getPublishedTrip`:
+- Loader ruft `listPublishedGalleryImages()` statt `listPublishedTrips()`.
+- Regionen-Filter aus `image.trip.region` ableiten.
+- `feature` = erstes Bild, `bento` = nächste 4, `strip` = erste 6 — gleiche Bento-Struktur, aber pro Bild statt pro Reise.
+- `<PhotoTile>` bekommt `image` statt `trip`; Titel-Overlay zeigt `trip.title, trip.region` und `trip.monthLabel`.
+- Kacheln sind `<Link to="/stories/$slug" params={{ slug: image.trip.slug }}>`, damit ein Klick zur Story führt.
 
-```ts
-const galleryRows = await sql`
-  SELECT id, webp_400, webp_1200, webp_2000,
-         avif_400, avif_1200, avif_2000,
-         width, height, alt
-  FROM images
-  WHERE trip_id = ${row.id}
-  ORDER BY sort_order, created_at
-`;
-const filtered = row.cover_image_id
-  ? galleryRows.filter((g) => g.id !== row.cover_image_id)
-  : galleryRows;
-return mapRow(row, filtered.map(mapGalleryRow));
-```
+### 3. Versionierung
 
-Verhalten:
-- Kein Cover gesetzt → alle Trip-Bilder in Galerie.
-- Cover gesetzt → alle Trip-Bilder außer dem Cover.
-- Identisch zur Studio-Ansicht, aber ohne das Cover doppelt zu zeigen.
+`package.json` → `0.5.1`.
 
-## Verifikation
+### 4. Verifikation
 
-1. `bun run build:dev` läuft durch.
-2. Nach Redeploy (`git pull` + `docker compose … build app` + `run.sh test2`) eine Story mit mehreren Bildern öffnen: Galerie-Sektion mit den Nicht-Cover-Bildern erscheint.
-3. Studio-Bearbeitung derselben Reise zeigt weiterhin dieselben Bilder (kein Regressionsrisiko, da diese Route nicht angefasst wird).
+- Preview `/gallery` zeigt deutlich mehr Kacheln als bisher, sobald Reisen Zusatzbilder haben.
+- Filter „Alle Fotos" und einzelne Regionen funktionieren.
+- Klick auf Kachel öffnet die zugehörige Story.
+- Startseite `/` und Story-Seiten sind nicht betroffen.
 
-## Nicht Teil des Fixes
+## Nicht Teil
 
-- Kein Refactor am Studio-Endpoint.
-- Keine Änderung an Upload/Insert-Logik.
-- Kein neues Feld oder DB-Migration nötig.
+- Story-Seite: bleibt unverändert (rendert bereits `trip.gallery`).
+- Kein Umbau von `listPublishedTrips` — die Timeline braucht weiterhin Reisen als Aggregat.

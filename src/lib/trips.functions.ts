@@ -176,3 +176,55 @@ export const listTripNavigationEntries = createServerFn({ method: "GET" }).handl
     return rows.map((r) => ({ slug: r.slug, title: r.title }));
   },
 );
+
+/** Flat image entry for the public /gallery page: every image of every
+ *  published trip (cover + gallery), each linked back to its trip. */
+export type PublicGalleryImage = {
+  id: string;
+  webp: Record<number, string>;
+  avif: Record<number, string>;
+  width: number;
+  height: number;
+  alt: string | null;
+  trip: {
+    slug: string;
+    title: string;
+    region: string;
+    monthLabel: string;
+  };
+};
+
+export const listPublishedGalleryImages = createServerFn({ method: "GET" }).handler(
+  async (): Promise<PublicGalleryImage[]> => {
+    const rows = await sql`
+      SELECT i.id,
+             i.webp_400, i.webp_1200, i.webp_2000,
+             i.avif_400, i.avif_1200, i.avif_2000,
+             i.width, i.height, i.alt,
+             t.slug         AS trip_slug,
+             t.title        AS trip_title,
+             t.region       AS trip_region,
+             t.month_label  AS trip_month_label
+      FROM images i
+      JOIN trips t ON t.id = i.trip_id
+      WHERE t.published = true
+      ORDER BY COALESCE(t.trip_start_date, t.created_at::date) DESC,
+               i.sort_order ASC,
+               i.created_at ASC
+    `;
+    return rows.map((r) => ({
+      id: r.id,
+      webp: { 400: r.webp_400, 1200: r.webp_1200, 2000: r.webp_2000 },
+      avif: { 400: r.avif_400, 1200: r.avif_1200, 2000: r.avif_2000 },
+      width: Number(r.width),
+      height: Number(r.height),
+      alt: r.alt ?? null,
+      trip: {
+        slug: r.trip_slug,
+        title: r.trip_title,
+        region: r.trip_region,
+        monthLabel: r.trip_month_label,
+      },
+    }));
+  },
+);

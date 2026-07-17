@@ -1,15 +1,18 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ResponsivePicture } from "@/components/HorizontalTimeline";
-import { listPublishedTrips, type PublicTrip } from "@/lib/trips.functions";
+import {
+  listPublishedGalleryImages,
+  type PublicGalleryImage,
+} from "@/lib/trips.functions";
 import { Heart, MapPin, Calendar, Grid3x3 } from "lucide-react";
 
 export const Route = createFileRoute("/gallery")({
   loader: async () => {
-    const trips = await listPublishedTrips();
-    return { trips };
+    const images = await listPublishedGalleryImages();
+    return { images };
   },
   head: () => ({
     meta: [
@@ -29,15 +32,16 @@ export const Route = createFileRoute("/gallery")({
 });
 
 function GalleryPage() {
-  const { trips } = Route.useLoaderData() as { trips: PublicTrip[] };
+  const { images } = Route.useLoaderData() as { images: PublicGalleryImage[] };
   const regions = useMemo(() => {
     const s = new Set<string>();
-    trips.forEach((t) => s.add(t.region));
+    images.forEach((img) => s.add(img.trip.region));
     return ["Alle Fotos", ...Array.from(s)];
-  }, [trips]);
+  }, [images]);
   const [active, setActive] = useState("Alle Fotos");
 
-  const filtered = active === "Alle Fotos" ? trips : trips.filter((t) => t.region === active);
+  const filtered =
+    active === "Alle Fotos" ? images : images.filter((img) => img.trip.region === active);
   const feature = filtered[0];
   const bento = filtered.slice(1, 5);
   const strip = filtered.slice(0, 6);
@@ -80,9 +84,11 @@ function GalleryPage() {
 
       <section className="max-w-7xl mx-auto px-6 md:px-8 mt-10">
         <div className="grid md:grid-cols-3 gap-4 md:auto-rows-[280px]">
-          {feature && <PhotoTile trip={feature} className="md:col-span-2 md:row-span-2" />}
-          {bento.map((t) => (
-            <PhotoTile key={t.slug} trip={t} />
+          {feature && (
+            <PhotoTile image={feature} className="md:col-span-2 md:row-span-2" />
+          )}
+          {bento.map((img) => (
+            <PhotoTile key={img.id} image={img} />
           ))}
         </div>
       </section>
@@ -92,15 +98,17 @@ function GalleryPage() {
           Lieblingsshots <Heart className="size-5 fill-primary/40 text-primary" strokeWidth={1.5} />
         </h2>
         <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          {strip.map((t) => (
-            <div
-              key={"strip-" + t.slug}
-              className="paper-card overflow-hidden aspect-[4/5] relative group"
+          {strip.map((img) => (
+            <Link
+              key={"strip-" + img.id}
+              to="/stories/$slug"
+              params={{ slug: img.trip.slug }}
+              className="paper-card overflow-hidden aspect-[4/5] relative group block"
             >
               <ResponsivePicture
-                webp={t.cover.webp}
-                avif={t.cover.avif}
-                alt={t.cover.alt ?? t.title}
+                webp={img.webp}
+                avif={img.avif}
+                alt={img.alt ?? img.trip.title}
                 width={400}
                 height={500}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
@@ -108,14 +116,14 @@ function GalleryPage() {
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-white text-xs">
                 <p className="flex items-center gap-1">
                   <MapPin className="size-3" strokeWidth={1.5} />
-                  {t.title}, {t.region}
+                  {img.trip.title}, {img.trip.region}
                 </p>
                 <p className="flex items-center gap-1 opacity-80 mt-0.5">
                   <Calendar className="size-3" strokeWidth={1.5} />
-                  {t.monthLabel}
+                  {img.trip.monthLabel}
                 </p>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>
@@ -125,13 +133,23 @@ function GalleryPage() {
   );
 }
 
-function PhotoTile({ trip, className = "" }: { trip: PublicTrip; className?: string }) {
+function PhotoTile({
+  image,
+  className = "",
+}: {
+  image: PublicGalleryImage;
+  className?: string;
+}) {
   return (
-    <div className={`paper-card overflow-hidden relative group ${className}`}>
+    <Link
+      to="/stories/$slug"
+      params={{ slug: image.trip.slug }}
+      className={`paper-card overflow-hidden relative group block ${className}`}
+    >
       <ResponsivePicture
-        webp={trip.cover.webp}
-        avif={trip.cover.avif}
-        alt={trip.cover.alt ?? trip.title}
+        webp={image.webp}
+        avif={image.avif}
+        alt={image.alt ?? image.trip.title}
         width={1200}
         height={800}
         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
@@ -139,13 +157,13 @@ function PhotoTile({ trip, className = "" }: { trip: PublicTrip; className?: str
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
         <p className="flex items-center gap-1.5 text-sm">
           <MapPin className="size-4" strokeWidth={1.5} />
-          {trip.title}, {trip.region}
+          {image.trip.title}, {image.trip.region}
         </p>
         <p className="flex items-center gap-1.5 text-xs opacity-80 mt-0.5">
           <Calendar className="size-3.5" strokeWidth={1.5} />
-          {trip.monthLabel}
+          {image.trip.monthLabel}
         </p>
       </div>
-    </div>
+    </Link>
   );
 }
