@@ -151,7 +151,7 @@ function StoryPage() {
               Galerie
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {trip.gallery.map((img) => (
+              {trip.gallery.map((img: import("@/lib/trips.functions").GalleryImage) => (
                 <a
                   key={img.id}
                   href={img.webp[2000] ?? img.webp[1200]}
