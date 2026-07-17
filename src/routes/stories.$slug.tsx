@@ -144,6 +144,36 @@ function StoryPage() {
           </div>
         </div>
 
+        {/* Gallery */}
+        {trip.gallery.length > 0 && (
+          <div className="px-6 md:px-8 max-w-5xl mx-auto pb-16">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-6">
+              Galerie
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {trip.gallery.map((img: import("@/lib/trips.functions").GalleryImage) => (
+                <a
+                  key={img.id}
+                  href={img.webp[2000] ?? img.webp[1200]}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block overflow-hidden rounded-sm bg-card"
+                >
+                  <ResponsivePicture
+                    webp={img.webp}
+                    avif={img.avif}
+                    alt={img.alt ?? trip.title}
+                    width={img.width}
+                    height={img.height}
+                    className="w-full h-full object-cover aspect-[4/3] hover:opacity-90 transition-opacity"
+                  />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+
         {/* Navigation: symmetrical 3-column footer — newer / all / older.
             Placeholders keep the layout stable when a direction is missing. */}
         <div className="px-6 md:px-8 max-w-5xl mx-auto py-16 border-t border-border grid grid-cols-3 items-center gap-8">

@@ -31,6 +31,16 @@ export type PublicTrip = {
     avif: Record<number, string>;
     alt: string | null;
   };
+  gallery: GalleryImage[];
+};
+
+export type GalleryImage = {
+  id: string;
+  webp: Record<number, string>;
+  avif: Record<number, string>;
+  width: number;
+  height: number;
+  alt: string | null;
 };
 
 function splitBody(bodyMd: string): string[] {
@@ -50,7 +60,7 @@ function toNumber(value: unknown): number | null {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapRow(r: any): PublicTrip {
+function mapRow(r: any, gallery: GalleryImage[] = []): PublicTrip {
   return {
     id: r.id,
     slug: r.slug,
@@ -79,6 +89,19 @@ function mapRow(r: any): PublicTrip {
       avif: { 400: r.avif_400, 1200: r.avif_1200, 2000: r.avif_2000 },
       alt: r.cover_alt,
     },
+    gallery,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapGalleryRow(r: any): GalleryImage {
+  return {
+    id: r.id,
+    webp: { 400: r.webp_400, 1200: r.webp_1200, 2000: r.webp_2000 },
+    avif: { 400: r.avif_400, 1200: r.avif_1200, 2000: r.avif_2000 },
+    width: Number(r.width),
+    height: Number(r.height),
+    alt: r.alt ?? null,
   };
 }
 
@@ -96,7 +119,7 @@ export const listPublishedTrips = createServerFn({ method: "GET" }).handler(asyn
       ORDER BY COALESCE(t.trip_start_date, t.created_at::date) DESC,
                t.created_at DESC
     `;
-  return rows.map(mapRow);
+  return rows.map((r) => mapRow(r));
 });
 
 // Returns `null` when the slug is unpublished or unknown, so the route loader
@@ -117,8 +140,20 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
       LEFT JOIN images i ON i.id = t.cover_image_id
       WHERE t.slug = ${slug} AND t.published = true
     `;
-    return row ? mapRow(row) : null;
+    if (!row) return null;
+    // Gallery = all trip images minus the cover, ordered by sort_order.
+    const galleryRows = await sql`
+      SELECT id, webp_400, webp_1200, webp_2000,
+             avif_400, avif_1200, avif_2000,
+             width, height, alt
+      FROM images
+      WHERE trip_id = ${row.id}
+        AND (${row.cover_image_id}::uuid IS NULL OR id <> ${row.cover_image_id})
+      ORDER BY sort_order, created_at
+    `;
+    return mapRow(row, galleryRows.map(mapGalleryRow));
   });
+
 
 /** Slim slug+title projection used to build newer/older links on story pages. */
 export type TripNavigationEntry = {
