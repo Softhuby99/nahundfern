@@ -39,12 +39,15 @@ export const Route = createFileRoute("/api/auth/login")({
 
         const token = await createSessionToken(user.id);
         const isSecure = requestIsSecure(request);
-        return Response.json({ ok: true }, {
-          status: 200,
-          headers: {
-            "Set-Cookie": setSessionCookie(token, isSecure),
+        return Response.json(
+          { ok: true },
+          {
+            status: 200,
+            headers: {
+              "Set-Cookie": setSessionCookie(token, isSecure),
+            },
           },
-        });
+        );
       },
     },
   },

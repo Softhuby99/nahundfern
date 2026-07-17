@@ -5,10 +5,7 @@ import rehypeSanitize from "rehype-sanitize";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ResponsivePicture } from "@/components/HorizontalTimeline";
-import {
-  getPublishedTrip,
-  listTripNavigationEntries,
-} from "@/lib/trips.functions";
+import { getPublishedTrip, listTripNavigationEntries } from "@/lib/trips.functions";
 import { getPublicBaseUrl } from "@/lib/public-base-url";
 
 export const Route = createFileRoute("/stories/$slug")({
@@ -26,18 +23,12 @@ export const Route = createFileRoute("/stories/$slug")({
   },
   head: ({ loaderData, params }) => {
     const baseUrl = getPublicBaseUrl();
-    const storyUrl = new URL(
-      `/stories/${encodeURIComponent(params.slug)}`,
-      baseUrl,
-    ).toString();
+    const storyUrl = new URL(`/stories/${encodeURIComponent(params.slug)}`, baseUrl).toString();
 
     const t = loaderData?.trip;
     if (!t) {
       return {
-        meta: [
-          { title: "Story — Reisejournal" },
-          { name: "robots", content: "noindex" },
-        ],
+        meta: [{ title: "Story — Reisejournal" }, { name: "robots", content: "noindex" }],
       };
     }
 
@@ -65,7 +56,10 @@ export const Route = createFileRoute("/stories/$slug")({
       <div className="max-w-3xl mx-auto px-6 py-32 text-center">
         <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-4">404</p>
         <h1 className="font-display text-5xl tracking-tight font-light mb-6">Story not found</h1>
-        <Link to="/stories" className="font-mono text-[10px] uppercase tracking-widest border-b border-border pb-1 hover:text-primary">
+        <Link
+          to="/stories"
+          className="font-mono text-[10px] uppercase tracking-widest border-b border-border pb-1 hover:text-primary"
+        >
           ← All stories
         </Link>
       </div>
@@ -102,8 +96,12 @@ function StoryPage() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 px-6 md:px-8 pb-12 max-w-5xl mx-auto">
-            <p className="font-mono text-primary text-xs uppercase tracking-[0.3em] mb-4">{trip.monthLabel} · {trip.region}</p>
-            <h1 className="font-display text-5xl md:text-7xl tracking-tight font-light leading-[1.05]">{trip.title}</h1>
+            <p className="font-mono text-primary text-xs uppercase tracking-[0.3em] mb-4">
+              {trip.monthLabel} · {trip.region}
+            </p>
+            <h1 className="font-display text-5xl md:text-7xl tracking-tight font-light leading-[1.05]">
+              {trip.title}
+            </h1>
           </div>
         </div>
 
@@ -119,13 +117,15 @@ function StoryPage() {
           <p className="font-display text-2xl md:text-3xl leading-snug mb-12 tracking-tight font-light text-primary">
             {trip.excerpt}
           </p>
-          <div className="prose-story text-lg leading-relaxed text-foreground/90 space-y-6
+          <div
+            className="prose-story text-lg leading-relaxed text-foreground/90 space-y-6
                           [&_h2]:font-display [&_h2]:text-3xl [&_h2]:mt-10 [&_h2]:mb-4
                           [&_h3]:font-display [&_h3]:text-2xl [&_h3]:mt-8 [&_h3]:mb-3
                           [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4
                           [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6
                           [&_blockquote]:border-l-4 [&_blockquote]:border-primary/50 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-foreground/70
-                          [&_code]:font-mono [&_code]:text-sm [&_code]:bg-card [&_code]:px-1 [&_code]:rounded">
+                          [&_code]:font-mono [&_code]:text-sm [&_code]:bg-card [&_code]:px-1 [&_code]:rounded"
+          >
             <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSanitize]}>
               {trip.bodyMd}
             </ReactMarkdown>
@@ -142,7 +142,9 @@ function StoryPage() {
                 params={{ slug: newer.slug }}
                 className="group inline-block"
               >
-                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">← Neuere Reise</p>
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                  ← Neuere Reise
+                </p>
                 <p className="font-display text-xl md:text-2xl tracking-tight font-medium group-hover:text-primary transition-colors">
                   {newer.title}
                 </p>
@@ -168,7 +170,9 @@ function StoryPage() {
                 params={{ slug: older.slug }}
                 className="group inline-block"
               >
-                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Ältere Reise →</p>
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                  Ältere Reise →
+                </p>
                 <p className="font-display text-xl md:text-2xl tracking-tight font-medium group-hover:text-primary transition-colors">
                   {older.title}
                 </p>

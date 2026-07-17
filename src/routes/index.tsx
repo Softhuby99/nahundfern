@@ -13,9 +13,16 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Reisejournal — Meine Reisen. Meine Geschichten." },
-      { name: "description", content: "Persönliches Reisejournal: Berichte, Tagebuch, Fotogalerie und Timeline aus meinen schönsten Momenten unterwegs." },
+      {
+        name: "description",
+        content:
+          "Persönliches Reisejournal: Berichte, Tagebuch, Fotogalerie und Timeline aus meinen schönsten Momenten unterwegs.",
+      },
       { property: "og:title", content: "Reisejournal — Mein Weg. Meine Welt." },
-      { property: "og:description", content: "Meine Reisen. Meine Geschichten. Meine schönsten Momente unterwegs." },
+      {
+        property: "og:description",
+        content: "Meine Reisen. Meine Geschichten. Meine schönsten Momente unterwegs.",
+      },
     ],
   }),
   component: HomePage,
@@ -39,15 +46,19 @@ function HomePage() {
             </p>
             <h1 className="font-display text-6xl md:text-8xl font-semibold tracking-tight leading-none flex items-start gap-3">
               Reisejournal
-              <Heart className="size-8 md:size-10 mt-4 fill-primary/40 text-primary" strokeWidth={1.5} />
+              <Heart
+                className="size-8 md:size-10 mt-4 fill-primary/40 text-primary"
+                strokeWidth={1.5}
+              />
             </h1>
             <p className="font-display text-2xl md:text-3xl text-primary italic mt-6 leading-snug">
-              Meine Reisen. Meine Geschichten.<br />
+              Meine Reisen. Meine Geschichten.
+              <br />
               Meine schönsten Momente unterwegs.
             </p>
             <p className="mt-6 text-foreground/70 leading-relaxed max-w-xl">
-              Ich nehme dich mit an Orte, die mich berührt haben. Mit ehrlichen Geschichten, persönlichen Eindrücken,
-              Lieblingsplätzen und ganz vielen Fotos.
+              Ich nehme dich mit an Orte, die mich berührt haben. Mit ehrlichen Geschichten,
+              persönlichen Eindrücken, Lieblingsplätzen und ganz vielen Fotos.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -94,10 +105,15 @@ function HomePage() {
       <section className="max-w-7xl mx-auto px-6 md:px-8 pb-16">
         <div className="flex items-end justify-between mb-6 flex-wrap gap-3">
           <div>
-            <h2 className="font-display text-3xl md:text-4xl font-semibold">Meine letzten Reisen</h2>
+            <h2 className="font-display text-3xl md:text-4xl font-semibold">
+              Meine letzten Reisen
+            </h2>
             <p className="font-script text-xl text-primary mt-1">Die Erinnerungen, die bleiben.</p>
           </div>
-          <Link to="/stories" className="text-primary text-sm font-medium hover:underline underline-offset-4">
+          <Link
+            to="/stories"
+            className="text-primary text-sm font-medium hover:underline underline-offset-4"
+          >
             Alle Berichte →
           </Link>
         </div>
@@ -121,9 +137,15 @@ function HomePage() {
                 />
               </div>
               <div className="p-5 flex-1 flex flex-col">
-                <p className="font-mono uppercase text-[10px] tracking-[0.2em] text-primary">{t.region}</p>
-                <h3 className="font-display text-xl font-semibold mt-1 group-hover:text-primary transition-colors">{t.title}</h3>
-                <p className="text-sm text-muted-foreground mt-2 leading-relaxed line-clamp-2">{t.excerpt}</p>
+                <p className="font-mono uppercase text-[10px] tracking-[0.2em] text-primary">
+                  {t.region}
+                </p>
+                <h3 className="font-display text-xl font-semibold mt-1 group-hover:text-primary transition-colors">
+                  {t.title}
+                </h3>
+                <p className="text-sm text-muted-foreground mt-2 leading-relaxed line-clamp-2">
+                  {t.excerpt}
+                </p>
                 <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">📅 {t.monthLabel}</span>
                   <span className="text-primary font-medium">Mehr lesen →</span>
@@ -138,23 +160,32 @@ function HomePage() {
       <section className="max-w-7xl mx-auto px-6 md:px-8 pb-24 grid md:grid-cols-3 gap-6">
         <div className="paper-card p-6">
           <h3 className="font-display text-xl font-semibold">Wo ich schon war</h3>
-          <p className="text-sm text-muted-foreground mt-1">Meine Reisekarte voller Erinnerungen.</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Meine Reisekarte voller Erinnerungen.
+          </p>
           <div className="my-5 aspect-[16/10] rounded-lg bg-[radial-gradient(circle_at_30%_40%,hsl(30_30%_82%),hsl(38_46%_92%))] flex items-center justify-center">
             <MapPin className="size-8 text-primary" strokeWidth={1.5} />
           </div>
-          <Link to="/timeline" className="text-primary text-sm font-medium hover:underline underline-offset-4">
+          <Link
+            to="/timeline"
+            className="text-primary text-sm font-medium hover:underline underline-offset-4"
+          >
             Zur Karte →
           </Link>
         </div>
 
         <div className="paper-card p-6">
           <h3 className="font-display text-xl font-semibold">Lieblingsorte</h3>
-          <p className="text-sm text-muted-foreground mt-1">Orte, zu denen ich immer wieder zurückkehren möchte.</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Orte, zu denen ich immer wieder zurückkehren möchte.
+          </p>
           <ul className="mt-4 space-y-2 text-sm">
             {trips.slice(0, 4).map((t) => (
               <li key={t.slug} className="flex items-center gap-2">
                 <MapPin className="size-4 text-primary" strokeWidth={1.5} />
-                <span>{t.title}, <span className="text-muted-foreground">{t.region}</span></span>
+                <span>
+                  {t.title}, <span className="text-muted-foreground">{t.region}</span>
+                </span>
               </li>
             ))}
           </ul>
@@ -164,10 +195,13 @@ function HomePage() {
           <h3 className="font-display text-xl font-semibold">Über mich</h3>
           <p className="font-script text-2xl text-primary mt-1">Hallo, ich bin Laura!</p>
           <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
-            Reiseverliebt, neugierig und immer auf der Suche nach echten Momenten.
-            Hier teile ich meine Reisen, Begegnungen und Eindrücke — so, wie ich sie erlebe.
+            Reiseverliebt, neugierig und immer auf der Suche nach echten Momenten. Hier teile ich
+            meine Reisen, Begegnungen und Eindrücke — so, wie ich sie erlebe.
           </p>
-          <Link to="/about" className="mt-4 inline-block text-primary text-sm font-medium hover:underline underline-offset-4">
+          <Link
+            to="/about"
+            className="mt-4 inline-block text-primary text-sm font-medium hover:underline underline-offset-4"
+          >
             Mehr über mich →
           </Link>
         </div>

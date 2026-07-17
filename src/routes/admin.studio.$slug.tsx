@@ -5,10 +5,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 
 export const Route = createFileRoute("/admin/studio/$slug")({
   head: () => ({
-    meta: [
-      { title: "Reise-Editor — Vagabond" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Reise-Editor — Vagabond" }, { name: "robots", content: "noindex" }],
   }),
   component: EditorPage,
 });
@@ -82,7 +79,11 @@ function EditorPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [coverProgress, setCoverProgress] = useState<number | null>(null);
-  const [galleryProgress, setGalleryProgress] = useState<{ done: number; total: number; percent: number } | null>(null);
+  const [galleryProgress, setGalleryProgress] = useState<{
+    done: number;
+    total: number;
+    percent: number;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // XHR upload with progress events (fetch has no upload-progress API).
@@ -99,7 +100,11 @@ function EditorPage() {
       };
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
-          try { resolve(JSON.parse(xhr.responseText)); } catch { resolve(null); }
+          try {
+            resolve(JSON.parse(xhr.responseText));
+          } catch {
+            resolve(null);
+          }
         } else reject(new Error(`Upload fehlgeschlagen (${xhr.status})`));
       };
       xhr.onerror = () => reject(new Error("Netzwerkfehler beim Upload"));
@@ -125,8 +130,12 @@ function EditorPage() {
           tripEndDate: found.trip_end_date ? String(found.trip_end_date).slice(0, 10) : "",
           countryCode: found.country_code ?? "",
           city: found.city ?? "",
-          latitude: found.latitude !== null && found.latitude !== undefined ? String(found.latitude) : "",
-          longitude: found.longitude !== null && found.longitude !== undefined ? String(found.longitude) : "",
+          latitude:
+            found.latitude !== null && found.latitude !== undefined ? String(found.latitude) : "",
+          longitude:
+            found.longitude !== null && found.longitude !== undefined
+              ? String(found.longitude)
+              : "",
           travelType: found.travel_type ?? "",
           featured: Boolean(found.featured),
         });
@@ -142,7 +151,8 @@ function EditorPage() {
       .finally(() => setLoading(false));
   }, [slug, isNew, navigate]);
 
-  const setField = <K extends keyof StudioTrip>(k: K, v: StudioTrip[K]) => setTrip((t) => ({ ...t, [k]: v }));
+  const setField = <K extends keyof StudioTrip>(k: K, v: StudioTrip[K]) =>
+    setTrip((t) => ({ ...t, [k]: v }));
 
   const save = async () => {
     setSaving(true);
@@ -193,7 +203,11 @@ function EditorPage() {
         // Keep the editor open on the freshly-created trip so cover/gallery
         // uploads can attach to it immediately (they need trip.id).
         setTrip((t) => ({ ...t, id: data.trip.id, slug: data.trip.slug }));
-        await navigate({ to: "/admin/studio/$slug", params: { slug: data.trip.slug }, replace: true });
+        await navigate({
+          to: "/admin/studio/$slug",
+          params: { slug: data.trip.slug },
+          replace: true,
+        });
       } else {
         await navigate({ to: "/admin/studio" });
       }
@@ -243,7 +257,10 @@ function EditorPage() {
   };
 
   const deleteImage = async (id: string) => {
-    const res = await fetch(`/api/studio/images?id=${id}`, { method: "DELETE", credentials: "same-origin" });
+    const res = await fetch(`/api/studio/images?id=${id}`, {
+      method: "DELETE",
+      credentials: "same-origin",
+    });
     if (!res.ok) {
       setError("Löschen fehlgeschlagen");
       return;
@@ -275,12 +292,23 @@ function EditorPage() {
       <SiteHeader />
       <main className="flex-1 px-6 md:px-8 py-12 max-w-6xl mx-auto w-full">
         <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">
-          <p className="font-mono text-primary text-xs uppercase tracking-[0.3em]">Studio · {isNew ? "Neue Reise" : "Bearbeiten"}</p>
+          <p className="font-mono text-primary text-xs uppercase tracking-[0.3em]">
+            Studio · {isNew ? "Neue Reise" : "Bearbeiten"}
+          </p>
           <div className="flex items-center gap-3">
-            <button onClick={save} disabled={saving} className="px-5 py-2 bg-primary text-primary-foreground font-mono text-[10px] tracking-widest uppercase hover:bg-primary/90 disabled:opacity-50 rounded-sm">
+            <button
+              onClick={save}
+              disabled={saving}
+              className="px-5 py-2 bg-primary text-primary-foreground font-mono text-[10px] tracking-widest uppercase hover:bg-primary/90 disabled:opacity-50 rounded-sm"
+            >
               {saving ? "Speichere …" : "Speichern"}
             </button>
-            <Link to="/admin/studio" className="font-mono text-[10px] uppercase tracking-widest hover:text-primary">← Zurück</Link>
+            <Link
+              to="/admin/studio"
+              className="font-mono text-[10px] uppercase tracking-widest hover:text-primary"
+            >
+              ← Zurück
+            </Link>
           </div>
         </div>
 
@@ -292,18 +320,46 @@ function EditorPage() {
 
         <div className="grid lg:grid-cols-[1fr_320px] gap-8">
           <div className="space-y-6">
-            <Input label="Titel" value={trip.title} onChange={(v) => setField("title", v)} required />
+            <Input
+              label="Titel"
+              value={trip.title}
+              onChange={(v) => setField("title", v)}
+              required
+            />
             <div className="grid grid-cols-2 gap-4">
-              <Input label="Slug (URL)" value={trip.slug} onChange={(v) => setField("slug", v.replace(/[^a-z0-9-]/gi, "-").toLowerCase())} required />
-              <Input label="Monats-Label" value={trip.monthLabel} onChange={(v) => setField("monthLabel", v.toUpperCase())} placeholder="MAI 2024" required />
+              <Input
+                label="Slug (URL)"
+                value={trip.slug}
+                onChange={(v) => setField("slug", v.replace(/[^a-z0-9-]/gi, "-").toLowerCase())}
+                required
+              />
+              <Input
+                label="Monats-Label"
+                value={trip.monthLabel}
+                onChange={(v) => setField("monthLabel", v.toUpperCase())}
+                placeholder="MAI 2024"
+                required
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <Input label="Ort" value={trip.where} onChange={(v) => setField("where", v)} required />
-              <Input label="Zeitraum (Text)" value={trip.when} onChange={(v) => setField("when", v)} required />
+              <Input
+                label="Ort"
+                value={trip.where}
+                onChange={(v) => setField("where", v)}
+                required
+              />
+              <Input
+                label="Zeitraum (Text)"
+                value={trip.when}
+                onChange={(v) => setField("when", v)}
+                required
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">Startdatum</label>
+                <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
+                  Startdatum
+                </label>
                 <input
                   type="date"
                   value={trip.tripStartDate}
@@ -312,7 +368,9 @@ function EditorPage() {
                 />
               </div>
               <div>
-                <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">Enddatum</label>
+                <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
+                  Enddatum
+                </label>
                 <input
                   type="date"
                   value={trip.tripEndDate}
@@ -330,19 +388,54 @@ function EditorPage() {
                 onChange={(v) => setField("countryCode", v.toUpperCase().slice(0, 2))}
                 placeholder="DE"
               />
-              <Input label="Stadt / Region" value={trip.city} onChange={(v) => setField("city", v)} placeholder="Brüssel" />
+              <Input
+                label="Stadt / Region"
+                value={trip.city}
+                onChange={(v) => setField("city", v)}
+                placeholder="Brüssel"
+              />
             </div>
             <div className="grid grid-cols-3 gap-4">
-              <Input label="Breite (Lat)" value={trip.latitude} onChange={(v) => setField("latitude", v)} placeholder="50.8503" />
-              <Input label="Länge (Lng)" value={trip.longitude} onChange={(v) => setField("longitude", v)} placeholder="4.3517" />
-              <Input label="Reisetyp" value={trip.travelType} onChange={(v) => setField("travelType", v)} placeholder="Städtereise" />
+              <Input
+                label="Breite (Lat)"
+                value={trip.latitude}
+                onChange={(v) => setField("latitude", v)}
+                placeholder="50.8503"
+              />
+              <Input
+                label="Länge (Lng)"
+                value={trip.longitude}
+                onChange={(v) => setField("longitude", v)}
+                placeholder="4.3517"
+              />
+              <Input
+                label="Reisetyp"
+                value={trip.travelType}
+                onChange={(v) => setField("travelType", v)}
+                placeholder="Städtereise"
+              />
             </div>
             <div className="flex items-center gap-3">
-              <input id="featured" type="checkbox" checked={trip.featured} onChange={(e) => setField("featured", e.target.checked)} />
-              <label htmlFor="featured" className="font-mono text-[10px] uppercase tracking-widest cursor-pointer">Als Highlight markieren</label>
+              <input
+                id="featured"
+                type="checkbox"
+                checked={trip.featured}
+                onChange={(e) => setField("featured", e.target.checked)}
+              />
+              <label
+                htmlFor="featured"
+                className="font-mono text-[10px] uppercase tracking-widest cursor-pointer"
+              >
+                Als Highlight markieren
+              </label>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <Input label="Begleitung" value={trip.who} onChange={(v) => setField("who", v)} required />
+              <Input
+                label="Begleitung"
+                value={trip.who}
+                onChange={(v) => setField("who", v)}
+                required
+              />
               <div>
                 <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
                   Region<span className="text-destructive ml-1">*</span>
@@ -357,7 +450,11 @@ function EditorPage() {
                 </select>
               </div>
             </div>
-            <Input label="Kicker / Untertitel" value={trip.kicker} onChange={(v) => setField("kicker", v)} />
+            <Input
+              label="Kicker / Untertitel"
+              value={trip.kicker}
+              onChange={(v) => setField("kicker", v)}
+            />
 
             <div>
               <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
@@ -374,7 +471,10 @@ function EditorPage() {
 
             <div>
               <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
-                Reisebericht<span className="text-destructive ml-1">*</span> <span className="normal-case tracking-normal text-muted-foreground">(Absätze mit Leerzeile trennen)</span>
+                Reisebericht<span className="text-destructive ml-1">*</span>{" "}
+                <span className="normal-case tracking-normal text-muted-foreground">
+                  (Absätze mit Leerzeile trennen)
+                </span>
               </label>
               <textarea
                 value={trip.body}
@@ -386,15 +486,32 @@ function EditorPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <input id="published" type="checkbox" checked={trip.published} onChange={(e) => setField("published", e.target.checked)} />
-              <label htmlFor="published" className="font-mono text-[10px] uppercase tracking-widest cursor-pointer">Online stellen</label>
+              <input
+                id="published"
+                type="checkbox"
+                checked={trip.published}
+                onChange={(e) => setField("published", e.target.checked)}
+              />
+              <label
+                htmlFor="published"
+                className="font-mono text-[10px] uppercase tracking-widest cursor-pointer"
+              >
+                Online stellen
+              </label>
             </div>
 
             <div className="flex gap-3 pt-2">
-              <button onClick={save} disabled={saving} className="px-6 py-3 bg-primary text-primary-foreground font-mono text-[10px] tracking-widest uppercase hover:bg-primary/90 disabled:opacity-50 rounded-sm">
+              <button
+                onClick={save}
+                disabled={saving}
+                className="px-6 py-3 bg-primary text-primary-foreground font-mono text-[10px] tracking-widest uppercase hover:bg-primary/90 disabled:opacity-50 rounded-sm"
+              >
                 {saving ? "…" : "Speichern"}
               </button>
-              <Link to="/admin/studio" className="px-6 py-3 border border-border font-mono text-[10px] tracking-widest uppercase hover:border-primary hover:text-primary rounded-sm">
+              <Link
+                to="/admin/studio"
+                className="px-6 py-3 border border-border font-mono text-[10px] tracking-widest uppercase hover:border-primary hover:text-primary rounded-sm"
+              >
                 Abbrechen
               </Link>
             </div>
@@ -402,12 +519,16 @@ function EditorPage() {
 
           <aside className="space-y-6">
             <div>
-              <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">Coverbild</label>
+              <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
+                Coverbild
+              </label>
               <div className="aspect-[4/5] bg-card border border-border overflow-hidden mb-3">
                 {trip.cover_webp_400 ? (
                   <img src={trip.cover_webp_400} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full grid place-items-center text-muted-foreground text-xs">Kein Bild</div>
+                  <div className="w-full h-full grid place-items-center text-muted-foreground text-xs">
+                    Kein Bild
+                  </div>
                 )}
               </div>
               <input
@@ -421,11 +542,15 @@ function EditorPage() {
                 }}
                 className="block w-full text-xs file:mr-3 file:py-2 file:px-3 file:border-0 file:bg-primary file:text-primary-foreground file:font-mono file:text-[10px] file:uppercase file:tracking-widest hover:file:bg-primary/90 disabled:opacity-50"
               />
-              {coverProgress !== null && <ProgressBar percent={coverProgress} label={`Cover · ${coverProgress}%`} />}
+              {coverProgress !== null && (
+                <ProgressBar percent={coverProgress} label={`Cover · ${coverProgress}%`} />
+              )}
             </div>
 
             <div>
-              <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">Galerie</label>
+              <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
+                Galerie
+              </label>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -448,11 +573,28 @@ function EditorPage() {
               {images.length > 0 && (
                 <div className="grid grid-cols-3 gap-2 mt-3">
                   {images.map((img) => (
-                    <div key={img.id} className={`relative group aspect-square border ${trip.coverImageId === img.id ? "border-primary" : "border-border"}`}>
-                      <img src={img.webp_400} alt={img.alt ?? ""} className="w-full h-full object-cover" />
+                    <div
+                      key={img.id}
+                      className={`relative group aspect-square border ${trip.coverImageId === img.id ? "border-primary" : "border-border"}`}
+                    >
+                      <img
+                        src={img.webp_400}
+                        alt={img.alt ?? ""}
+                        className="w-full h-full object-cover"
+                      />
                       <div className="absolute inset-0 bg-card/90 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1 items-center justify-center">
-                        <button onClick={() => setCover(img.id)} className="text-[10px] font-mono uppercase hover:text-primary">Cover</button>
-                        <button onClick={() => deleteImage(img.id)} className="text-[10px] font-mono uppercase text-destructive">Löschen</button>
+                        <button
+                          onClick={() => setCover(img.id)}
+                          className="text-[10px] font-mono uppercase hover:text-primary"
+                        >
+                          Cover
+                        </button>
+                        <button
+                          onClick={() => deleteImage(img.id)}
+                          className="text-[10px] font-mono uppercase text-destructive"
+                        >
+                          Löschen
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -467,7 +609,19 @@ function EditorPage() {
   );
 }
 
-function Input({ label, value, onChange, placeholder, required }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; required?: boolean }) {
+function Input({
+  label,
+  value,
+  onChange,
+  placeholder,
+  required,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  required?: boolean;
+}) {
   return (
     <div>
       <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
@@ -489,14 +643,23 @@ function Input({ label, value, onChange, placeholder, required }: { label: strin
 function ProgressBar({ percent, label }: { percent: number; label: string }) {
   const pct = Math.max(0, Math.min(100, percent));
   return (
-    <div className="mt-3" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
+    <div
+      className="mt-3"
+      role="progressbar"
+      aria-valuenow={pct}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label={label}
+    >
       <div className="h-2 w-full bg-card border border-border rounded-sm overflow-hidden">
         <div
           className="h-full bg-primary transition-[width] duration-150 ease-out"
           style={{ width: `${pct}%` }}
         />
       </div>
-      <p className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{label}</p>
+      <p className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+        {label}
+      </p>
     </div>
   );
 }

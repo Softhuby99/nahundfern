@@ -5,10 +5,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 
 export const Route = createFileRoute("/admin/login")({
   head: () => ({
-    meta: [
-      { title: "Admin Login — Vagabond" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Admin Login — Vagabond" }, { name: "robots", content: "noindex" }],
   }),
   component: LoginPage,
 });
@@ -48,7 +45,9 @@ function LoginPage() {
         <h1 className="font-display text-5xl tracking-tight font-light mb-8">Login</h1>
         <form onSubmit={submit} className="space-y-4">
           <div>
-            <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">Email</label>
+            <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
+              Email
+            </label>
             <input
               type="email"
               value={email}
@@ -58,7 +57,9 @@ function LoginPage() {
             />
           </div>
           <div>
-            <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">Passwort</label>
+            <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
+              Passwort
+            </label>
             <input
               type="password"
               value={password}
@@ -77,7 +78,9 @@ function LoginPage() {
           </button>
         </form>
         <p className="mt-6 text-xs text-muted-foreground">
-          <Link to="/" className="hover:text-primary">← Zurück zur Startseite</Link>
+          <Link to="/" className="hover:text-primary">
+            ← Zurück zur Startseite
+          </Link>
         </p>
       </main>
       <SiteFooter />

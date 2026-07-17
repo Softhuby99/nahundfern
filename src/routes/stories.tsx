@@ -14,9 +14,16 @@ export const Route = createFileRoute("/stories")({
   head: () => ({
     meta: [
       { title: "Meine Reiseberichte — Reisejournal" },
-      { name: "description", content: "Alle Reiseberichte: echte Erlebnisse, ehrliche Geschichten und Momente, die mich berührt haben." },
+      {
+        name: "description",
+        content:
+          "Alle Reiseberichte: echte Erlebnisse, ehrliche Geschichten und Momente, die mich berührt haben.",
+      },
       { property: "og:title", content: "Meine Reiseberichte — Reisejournal" },
-      { property: "og:description", content: "Echte Erlebnisse, ehrliche Geschichten und Momente, die mich berührt haben." },
+      {
+        property: "og:description",
+        content: "Echte Erlebnisse, ehrliche Geschichten und Momente, die mich berührt haben.",
+      },
     ],
   }),
   component: StoriesPage,
@@ -42,7 +49,8 @@ function StoriesPage() {
 
       <section className="max-w-7xl mx-auto px-6 md:px-8 pt-12 text-center">
         <p className="font-script text-2xl text-primary flex items-center justify-center gap-2">
-          Meine Erinnerungen. Mein Weg. <Heart className="size-4 fill-primary/40 text-primary" strokeWidth={1.5} />
+          Meine Erinnerungen. Mein Weg.{" "}
+          <Heart className="size-4 fill-primary/40 text-primary" strokeWidth={1.5} />
         </p>
         <h1 className="font-display text-5xl md:text-7xl font-semibold tracking-tight mt-2">
           Meine Reiseberichte
@@ -83,9 +91,18 @@ function StoriesPage() {
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-border flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1.5"><MapPin className="size-4" strokeWidth={1.5} />{featured.where}</span>
-                <span className="flex items-center gap-1.5"><Clock className="size-4" strokeWidth={1.5} />{featured.when}</span>
-                <span className="flex items-center gap-1.5"><Calendar className="size-4" strokeWidth={1.5} />{featured.monthLabel}</span>
+                <span className="flex items-center gap-1.5">
+                  <MapPin className="size-4" strokeWidth={1.5} />
+                  {featured.where}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Clock className="size-4" strokeWidth={1.5} />
+                  {featured.when}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="size-4" strokeWidth={1.5} />
+                  {featured.monthLabel}
+                </span>
               </div>
             </div>
           </Link>
@@ -133,12 +150,20 @@ function StoriesPage() {
                 <h3 className="font-display text-xl font-semibold leading-tight group-hover:text-primary transition-colors">
                   {t.title}
                 </h3>
-                <span className="text-xs text-muted-foreground whitespace-nowrap flex items-center gap-1"><Calendar className="size-3.5" strokeWidth={1.5} />{t.monthLabel}</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap flex items-center gap-1">
+                  <Calendar className="size-3.5" strokeWidth={1.5} />
+                  {t.monthLabel}
+                </span>
               </div>
               <p className="text-sm text-primary mt-1">{t.region}</p>
-              <p className="font-script text-base text-foreground/80 mt-2 line-clamp-3 leading-snug">{t.excerpt}</p>
+              <p className="font-script text-base text-foreground/80 mt-2 line-clamp-3 leading-snug">
+                {t.excerpt}
+              </p>
               <div className="mt-auto pt-4 flex items-center justify-between text-xs text-muted-foreground">
-                <span className="flex items-center gap-1.5"><Clock className="size-3.5" strokeWidth={1.5} />{t.when}</span>
+                <span className="flex items-center gap-1.5">
+                  <Clock className="size-3.5" strokeWidth={1.5} />
+                  {t.when}
+                </span>
                 <span className="text-primary font-medium">Mehr lesen →</span>
               </div>
             </div>

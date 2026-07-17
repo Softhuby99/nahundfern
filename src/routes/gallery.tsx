@@ -14,9 +14,15 @@ export const Route = createFileRoute("/gallery")({
   head: () => ({
     meta: [
       { title: "Meine Fotogalerie — Reisejournal" },
-      { name: "description", content: "Bilder, die Geschichten erzählen und Momente für immer bewahren." },
+      {
+        name: "description",
+        content: "Bilder, die Geschichten erzählen und Momente für immer bewahren.",
+      },
       { property: "og:title", content: "Meine Fotogalerie — Reisejournal" },
-      { property: "og:description", content: "Bilder, die Geschichten erzählen und Momente für immer bewahren." },
+      {
+        property: "og:description",
+        content: "Bilder, die Geschichten erzählen und Momente für immer bewahren.",
+      },
     ],
   }),
   component: GalleryPage,
@@ -42,7 +48,8 @@ function GalleryPage() {
 
       <section className="max-w-7xl mx-auto px-6 md:px-8 pt-12 text-center">
         <p className="font-script text-2xl text-primary flex items-center justify-center gap-2">
-          Meine Erinnerungen. Mein Weg. <Heart className="size-4 fill-primary/40 text-primary" strokeWidth={1.5} />
+          Meine Erinnerungen. Mein Weg.{" "}
+          <Heart className="size-4 fill-primary/40 text-primary" strokeWidth={1.5} />
         </p>
         <h1 className="font-display text-5xl md:text-7xl font-semibold tracking-tight mt-2">
           Meine Fotogalerie
@@ -73,9 +80,7 @@ function GalleryPage() {
 
       <section className="max-w-7xl mx-auto px-6 md:px-8 mt-10">
         <div className="grid md:grid-cols-3 gap-4 md:auto-rows-[280px]">
-          {feature && (
-            <PhotoTile trip={feature} className="md:col-span-2 md:row-span-2" />
-          )}
+          {feature && <PhotoTile trip={feature} className="md:col-span-2 md:row-span-2" />}
           {bento.map((t) => (
             <PhotoTile key={t.slug} trip={t} />
           ))}
@@ -88,7 +93,10 @@ function GalleryPage() {
         </h2>
         <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {strip.map((t) => (
-            <div key={"strip-" + t.slug} className="paper-card overflow-hidden aspect-[4/5] relative group">
+            <div
+              key={"strip-" + t.slug}
+              className="paper-card overflow-hidden aspect-[4/5] relative group"
+            >
               <ResponsivePicture
                 webp={t.cover.webp}
                 avif={t.cover.avif}
@@ -98,8 +106,14 @@ function GalleryPage() {
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-white text-xs">
-                <p className="flex items-center gap-1"><MapPin className="size-3" strokeWidth={1.5} />{t.title}, {t.region}</p>
-                <p className="flex items-center gap-1 opacity-80 mt-0.5"><Calendar className="size-3" strokeWidth={1.5} />{t.monthLabel}</p>
+                <p className="flex items-center gap-1">
+                  <MapPin className="size-3" strokeWidth={1.5} />
+                  {t.title}, {t.region}
+                </p>
+                <p className="flex items-center gap-1 opacity-80 mt-0.5">
+                  <Calendar className="size-3" strokeWidth={1.5} />
+                  {t.monthLabel}
+                </p>
               </div>
             </div>
           ))}
@@ -123,8 +137,14 @@ function PhotoTile({ trip, className = "" }: { trip: PublicTrip; className?: str
         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
       />
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
-        <p className="flex items-center gap-1.5 text-sm"><MapPin className="size-4" strokeWidth={1.5} />{trip.title}, {trip.region}</p>
-        <p className="flex items-center gap-1.5 text-xs opacity-80 mt-0.5"><Calendar className="size-3.5" strokeWidth={1.5} />{trip.monthLabel}</p>
+        <p className="flex items-center gap-1.5 text-sm">
+          <MapPin className="size-4" strokeWidth={1.5} />
+          {trip.title}, {trip.region}
+        </p>
+        <p className="flex items-center gap-1.5 text-xs opacity-80 mt-0.5">
+          <Calendar className="size-3.5" strokeWidth={1.5} />
+          {trip.monthLabel}
+        </p>
       </div>
     </div>
   );

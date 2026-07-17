@@ -12,7 +12,11 @@ const isoDate = z
 
 const TripInput = z.object({
   id: z.string().uuid().optional(),
-  slug: z.string().min(1).max(120).regex(/^[a-z0-9-]+$/, "Slug darf nur a-z, 0-9 und - enthalten"),
+  slug: z
+    .string()
+    .min(1)
+    .max(120)
+    .regex(/^[a-z0-9-]+$/, "Slug darf nur a-z, 0-9 und - enthalten"),
   title: z.string().min(1).max(200),
   kicker: z.string().max(200).optional().nullable(),
   region: z.enum(["Europe", "North America"]),
@@ -73,7 +77,10 @@ export const Route = createFileRoute("/api/studio/trips")({
         const body = await request.json();
         const parsed = TripInput.safeParse(body);
         if (!parsed.success) {
-          return Response.json({ error: "Invalid input", details: parsed.error.format() }, { status: 400 });
+          return Response.json(
+            { error: "Invalid input", details: parsed.error.format() },
+            { status: 400 },
+          );
         }
         const data = parsed.data;
         const coverId = data.coverImageId ?? null;
