@@ -1,5 +1,7 @@
 import argon2 from "argon2";
 import { SignJWT, jwtVerify } from "jose";
+import { getServerPublicOrigin } from "./public-origin.server";
+
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_ALGORITHM = "HS256";
@@ -45,6 +47,47 @@ export async function hashPassword(plain: string): Promise<string> {
 export async function verifyPassword(hash: string, plain: string): Promise<boolean> {
   return argon2.verify(hash, plain);
 }
+
+// Pre-computed Argon2id hash of a fixed string. Used to burn ~equal CPU when
+// verifying a login for a non-existent email so response times don't leak
+// which addresses have accounts. Regenerate with the same argon2 params if
+// you tighten `hashPassword` — otherwise the timing gap re-opens.
+export const DUMMY_ARGON2_HASH =
+  "$argon2id$v=19$m=65536,t=3,p=4$D6yihvzVMlbQMkPI/YdmYw$FzlZM4qrNhu9H93009O+C0UdZXtboD4B/12zvy626BM";
+
+/**
+ * Reject cross-origin write requests. For POST/PATCH/PUT/DELETE we require
+ * that either the Origin/Referer matches our public origin OR that
+ * Sec-Fetch-Site is `same-origin` / `same-site`. Safe methods pass through.
+ *
+ * Throws a Response(403) for the route handler to propagate.
+ */
+export function requireSameOrigin(request: Request): void {
+  const method = request.method.toUpperCase();
+  if (method === "GET" || method === "HEAD" || method === "OPTIONS") return;
+
+  const publicOrigin = getServerPublicOrigin();
+  const origin = request.headers.get("origin");
+  const referer = request.headers.get("referer");
+  const secFetchSite = request.headers.get("sec-fetch-site");
+
+  // Modern browsers set Sec-Fetch-Site — trust it when present.
+  if (secFetchSite === "same-origin" || secFetchSite === "same-site") return;
+
+  const check = (value: string | null): boolean => {
+    if (!value) return false;
+    try {
+      return new URL(value).origin === publicOrigin;
+    } catch {
+      return false;
+    }
+  };
+
+  if (check(origin) || check(referer)) return;
+
+  throw new Response("Forbidden: cross-origin request rejected", { status: 403 });
+}
+
 
 export async function createSessionToken(userId: string): Promise<string> {
   // Keep the token as small as possible: only the subject identifier. Any

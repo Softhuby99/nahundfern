@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { sql } from "@/lib/db.server";
-import { requireAuth } from "@/lib/auth.server";
+import { requireAuth, requireSameOrigin } from "@/lib/auth.server";
 import { storeImage, deleteImageFiles } from "@/lib/uploads.server";
+import { auditLog } from "@/lib/audit.server";
+
 
 const PatchInput = z.object({
   id: z.string().uuid(),
@@ -27,10 +29,18 @@ export const Route = createFileRoute("/api/studio/images")({
       },
 
       POST: async ({ request }) => {
-        await requireAuth(request);
+        try {
+          requireSameOrigin(request);
+        } catch (r) {
+          return r as Response;
+        }
+        const session = await requireAuth(request);
         const form = await request.formData();
         const rawTripId = form.get("tripId");
         const file = form.get("file");
+
+
+
 
         // tripId muss eine gültige UUID sein — sonst gar nicht erst dekodieren.
         const parsedTripId = z.string().uuid().safeParse(rawTripId);
@@ -69,6 +79,13 @@ export const Route = createFileRoute("/api/studio/images")({
             )
             RETURNING *
           `;
+          await auditLog({
+            request,
+            userId: session.userId,
+            action: "image.upload",
+            targetId: image.id,
+            meta: { tripId, size: buffer.length, mime: stored.mime },
+          });
           return Response.json({ image }, { status: 201 });
         } catch (err) {
           // Insert scheiterte (z.B. Race Condition beim Trip-Delete) — Dateien
@@ -83,7 +100,13 @@ export const Route = createFileRoute("/api/studio/images")({
       },
 
       PATCH: async ({ request }) => {
-        await requireAuth(request);
+        try {
+          requireSameOrigin(request);
+        } catch (r) {
+          return r as Response;
+        }
+        const session = await requireAuth(request);
+
         const body = await request.json();
         const parsed = PatchInput.safeParse(body);
         if (!parsed.success) {
@@ -100,28 +123,46 @@ export const Route = createFileRoute("/api/studio/images")({
         if (!image) {
           return Response.json({ error: "Image not found" }, { status: 404 });
         }
+        await auditLog({
+          request,
+          userId: session.userId,
+          action: "image.update",
+          targetId: image.id,
+        });
         return Response.json({ image });
       },
 
       DELETE: async ({ request }) => {
-        await requireAuth(request);
+        try {
+          requireSameOrigin(request);
+        } catch (r) {
+          return r as Response;
+        }
+        const session = await requireAuth(request);
         const { searchParams } = new URL(request.url);
         const id = searchParams.get("id");
-        if (!id) {
-          return Response.json({ error: "Missing id" }, { status: 400 });
+        const idParsed = z.string().uuid().safeParse(id);
+        if (!idParsed.success) {
+          return Response.json({ error: "Missing or invalid id" }, { status: 400 });
         }
         const [row] = await sql`
           SELECT original_path, webp_400, webp_1200, webp_2000, avif_400, avif_1200, avif_2000
-          FROM images WHERE id = ${id}
+          FROM images WHERE id = ${idParsed.data}
         `;
         if (!row) {
           return Response.json({ error: "Image not found" }, { status: 404 });
         }
-        await sql`DELETE FROM images WHERE id = ${id}`;
+        await sql`DELETE FROM images WHERE id = ${idParsed.data}`;
         await deleteImageFiles({
           originalPath: row.original_path,
           webp: { 400: row.webp_400, 1200: row.webp_1200, 2000: row.webp_2000 },
           avif: { 400: row.avif_400, 1200: row.avif_1200, 2000: row.avif_2000 },
+        });
+        await auditLog({
+          request,
+          userId: session.userId,
+          action: "image.delete",
+          targetId: idParsed.data,
         });
         return Response.json({ ok: true });
       },

@@ -2,41 +2,57 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import postgres from "postgres";
 import { sql } from "@/lib/db.server";
-import { requireAuth } from "@/lib/auth.server";
+import { requireAuth, requireSameOrigin } from "@/lib/auth.server";
+import { auditLog } from "@/lib/audit.server";
 
+// YYYY-MM-DD. Nullable/optional at the field level because most metadata is
+// still hand-entered and older trips predate the structured date columns.
 const isoDate = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD")
   .optional()
   .nullable();
 
-const TripInput = z.object({
-  id: z.string().uuid().optional(),
-  slug: z
-    .string()
-    .min(1)
-    .max(120)
-    .regex(/^[a-z0-9-]+$/, "Slug darf nur a-z, 0-9 und - enthalten"),
-  title: z.string().min(1).max(200),
-  kicker: z.string().max(200).optional().nullable(),
-  region: z.enum(["Europe", "North America"]),
-  where: z.string().min(1).max(300),
-  when: z.string().min(1).max(200),
-  monthLabel: z.string().min(1).max(50),
-  who: z.string().min(1).max(200),
-  excerpt: z.string().min(1).max(2000),
-  body: z.string().min(1).max(50000),
-  published: z.boolean(),
-  coverImageId: z.string().uuid().optional().nullable(),
-  tripStartDate: isoDate,
-  tripEndDate: isoDate,
-  countryCode: z.string().length(2).optional().nullable(),
-  city: z.string().max(120).optional().nullable(),
-  latitude: z.number().min(-90).max(90).optional().nullable(),
-  longitude: z.number().min(-180).max(180).optional().nullable(),
-  travelType: z.string().max(50).optional().nullable(),
-  featured: z.boolean().optional(),
-});
+// Strict slug: lowercase letters, digits, dashes; no leading/trailing/double
+// dashes. Enforced server-side so the URL space stays predictable regardless
+// of what the client sends.
+const slugSchema = z
+  .string()
+  .min(1)
+  .max(120)
+  .regex(
+    /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+    "Slug: nur a-z, 0-9 und einfache Bindestriche (kein führendes/abschließendes/doppeltes -)",
+  );
+
+const TripInput = z
+  .object({
+    id: z.string().uuid().optional(),
+    slug: slugSchema,
+    title: z.string().min(1).max(200),
+    kicker: z.string().max(200).optional().nullable(),
+    region: z.enum(["Europe", "North America"]),
+    where: z.string().min(1).max(300),
+    when: z.string().min(1).max(200),
+    monthLabel: z.string().min(1).max(50),
+    who: z.string().min(1).max(200),
+    excerpt: z.string().min(1).max(2000),
+    body: z.string().min(1).max(50000),
+    published: z.boolean(),
+    coverImageId: z.string().uuid().optional().nullable(),
+    tripStartDate: isoDate,
+    tripEndDate: isoDate,
+    countryCode: z.string().length(2).optional().nullable(),
+    city: z.string().max(120).optional().nullable(),
+    latitude: z.number().min(-90).max(90).optional().nullable(),
+    longitude: z.number().min(-180).max(180).optional().nullable(),
+    travelType: z.string().max(50).optional().nullable(),
+    featured: z.boolean().optional(),
+  })
+  .refine(
+    (d) => !(d.tripStartDate && d.tripEndDate) || d.tripEndDate >= d.tripStartDate,
+    { message: "tripEndDate darf nicht vor tripStartDate liegen", path: ["tripEndDate"] },
+  );
 
 async function getTripsWithCover() {
   return sql`
@@ -47,6 +63,36 @@ async function getTripsWithCover() {
     LEFT JOIN images i ON i.id = t.cover_image_id
     ORDER BY t.created_at DESC
   `;
+}
+
+// Cover-Guard: a cover image must already belong to *this* trip. Prevents an
+// attacker (or a client bug) from pointing cover_image_id at an image owned
+// by a different trip.
+async function assertCoverBelongsToTrip(
+  coverId: string | null,
+  tripId: string | null,
+): Promise<{ ok: true } | { ok: false; response: Response }> {
+  if (!coverId) return { ok: true };
+  if (!tripId) {
+    return {
+      ok: false,
+      response: Response.json(
+        { error: "coverImageId darf erst nach dem Erstellen der Reise gesetzt werden" },
+        { status: 400 },
+      ),
+    };
+  }
+  const [img] = await sql`SELECT trip_id FROM images WHERE id = ${coverId}`;
+  if (!img || img.trip_id !== tripId) {
+    return {
+      ok: false,
+      response: Response.json(
+        { error: "coverImageId gehört nicht zu dieser Reise" },
+        { status: 400 },
+      ),
+    };
+  }
+  return { ok: true };
 }
 
 export const Route = createFileRoute("/api/studio/trips")({
@@ -73,7 +119,12 @@ export const Route = createFileRoute("/api/studio/trips")({
       },
 
       POST: async ({ request }) => {
-        await requireAuth(request);
+        try {
+          requireSameOrigin(request);
+        } catch (r) {
+          return r as Response;
+        }
+        const session = await requireAuth(request);
         const body = await request.json();
         const parsed = TripInput.safeParse(body);
         if (!parsed.success) {
@@ -83,7 +134,10 @@ export const Route = createFileRoute("/api/studio/trips")({
           );
         }
         const data = parsed.data;
-        const coverId = data.coverImageId ?? null;
+
+        // On CREATE, cover assignment is deferred to a follow-up PATCH — the
+        // image belongs to no trip yet at this point, so ignore any incoming
+        // coverImageId to avoid accepting one that fails the guard.
         const kicker = data.kicker ?? null;
         const startDate = data.tripStartDate ?? null;
         const endDate = data.tripEndDate ?? null;
@@ -104,12 +158,19 @@ export const Route = createFileRoute("/api/studio/trips")({
             )
             VALUES (
               ${data.slug}, ${data.title}, ${kicker}, ${data.region}, ${data.where}, ${data.when},
-              ${data.monthLabel}, ${data.who}, ${data.excerpt}, ${data.body}, ${data.published}, ${coverId},
+              ${data.monthLabel}, ${data.who}, ${data.excerpt}, ${data.body}, ${data.published}, ${null},
               ${startDate}, ${endDate},
               ${countryCode}, ${city}, ${latitude}, ${longitude}, ${travelType}, ${featured}
             )
             RETURNING *
           `;
+          await auditLog({
+            request,
+            userId: session.userId,
+            action: "trip.create",
+            targetId: trip.id,
+            meta: { slug: trip.slug },
+          });
           return Response.json({ trip }, { status: 201 });
         } catch (error) {
           if (error instanceof postgres.PostgresError && error.code === "23505") {
@@ -120,15 +181,28 @@ export const Route = createFileRoute("/api/studio/trips")({
       },
 
       PATCH: async ({ request }) => {
-        await requireAuth(request);
+        try {
+          requireSameOrigin(request);
+        } catch (r) {
+          return r as Response;
+        }
+        const session = await requireAuth(request);
         const body = await request.json();
         const parsed = TripInput.safeParse(body);
         if (!parsed.success || !parsed.data.id) {
-          return Response.json({ error: "Invalid input" }, { status: 400 });
+          return Response.json(
+            { error: "Invalid input", details: parsed.success ? undefined : parsed.error.format() },
+            { status: 400 },
+          );
         }
         const data = parsed.data;
         const tripId = data.id!;
         const coverId = data.coverImageId ?? null;
+
+        // Enforce cover ownership before touching the row.
+        const guard = await assertCoverBelongsToTrip(coverId, tripId);
+        if (!guard.ok) return guard.response;
+
         const kicker = data.kicker ?? null;
         const startDate = data.tripStartDate ?? null;
         const endDate = data.tripEndDate ?? null;
@@ -169,6 +243,13 @@ export const Route = createFileRoute("/api/studio/trips")({
           if (!trip) {
             return Response.json({ error: "Trip not found" }, { status: 404 });
           }
+          await auditLog({
+            request,
+            userId: session.userId,
+            action: "trip.update",
+            targetId: trip.id,
+            meta: { slug: trip.slug, published: trip.published },
+          });
           return Response.json({ trip });
         } catch (error) {
           if (error instanceof postgres.PostgresError && error.code === "23505") {
@@ -179,13 +260,25 @@ export const Route = createFileRoute("/api/studio/trips")({
       },
 
       DELETE: async ({ request }) => {
-        await requireAuth(request);
+        try {
+          requireSameOrigin(request);
+        } catch (r) {
+          return r as Response;
+        }
+        const session = await requireAuth(request);
         const { searchParams } = new URL(request.url);
         const id = searchParams.get("id");
-        if (!id) {
-          return Response.json({ error: "Missing id" }, { status: 400 });
+        const idParsed = z.string().uuid().safeParse(id);
+        if (!idParsed.success) {
+          return Response.json({ error: "Missing or invalid id" }, { status: 400 });
         }
-        await sql`DELETE FROM trips WHERE id = ${id}`;
+        await sql`DELETE FROM trips WHERE id = ${idParsed.data}`;
+        await auditLog({
+          request,
+          userId: session.userId,
+          action: "trip.delete",
+          targetId: idParsed.data,
+        });
         return Response.json({ ok: true });
       },
     },
