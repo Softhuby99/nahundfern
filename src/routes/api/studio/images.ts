@@ -29,34 +29,57 @@ export const Route = createFileRoute("/api/studio/images")({
       POST: async ({ request }) => {
         await requireAuth(request);
         const form = await request.formData();
-        const tripId = form.get("tripId");
+        const rawTripId = form.get("tripId");
         const file = form.get("file");
 
-        if (!tripId || typeof tripId !== "string") {
-          return Response.json({ error: "Missing tripId" }, { status: 400 });
+        // tripId muss eine gültige UUID sein — sonst gar nicht erst dekodieren.
+        const parsedTripId = z.string().uuid().safeParse(rawTripId);
+        if (!parsedTripId.success) {
+          return Response.json({ error: "Invalid tripId" }, { status: 400 });
         }
+        const tripId = parsedTripId.data;
+
         if (!file || !(file instanceof File)) {
           return Response.json({ error: "Missing file" }, { status: 400 });
         }
+        // Grober Vorfilter — die echte Prüfung passiert in storeImage() via Sharp.
         if (!file.type.startsWith("image/")) {
           return Response.json({ error: "File must be an image" }, { status: 400 });
+        }
+
+        // Existenz der Reise VOR der teuren Bildverarbeitung prüfen,
+        // damit ein FK-Miss keine Dateien auf der Platte hinterlässt.
+        const [trip] = await sql`SELECT id FROM trips WHERE id = ${tripId}`;
+        if (!trip) {
+          return Response.json({ error: "Trip not found" }, { status: 404 });
         }
 
         const buffer = Buffer.from(await file.arrayBuffer());
         const stored = await storeImage(buffer, file.name);
 
-        const [image] = await sql`
-          INSERT INTO images (
-            trip_id, original_path, webp_400, webp_1200, webp_2000,
-            avif_400, avif_1200, avif_2000, width, height, mime, alt, sort_order
-          ) VALUES (
-            ${tripId}, ${stored.originalPath}, ${stored.webp[400]}, ${stored.webp[1200]}, ${stored.webp[2000]},
-            ${stored.avif[400]}, ${stored.avif[1200]}, ${stored.avif[2000]},
-            ${stored.width}, ${stored.height}, ${stored.mime}, ${file.name}, 0
-          )
-          RETURNING *
-        `;
-        return Response.json({ image }, { status: 201 });
+        try {
+          const [image] = await sql`
+            INSERT INTO images (
+              trip_id, original_path, webp_400, webp_1200, webp_2000,
+              avif_400, avif_1200, avif_2000, width, height, mime, alt, sort_order
+            ) VALUES (
+              ${tripId}, ${stored.originalPath}, ${stored.webp[400]}, ${stored.webp[1200]}, ${stored.webp[2000]},
+              ${stored.avif[400]}, ${stored.avif[1200]}, ${stored.avif[2000]},
+              ${stored.width}, ${stored.height}, ${stored.mime}, ${file.name}, 0
+            )
+            RETURNING *
+          `;
+          return Response.json({ image }, { status: 201 });
+        } catch (err) {
+          // Insert scheiterte (z.B. Race Condition beim Trip-Delete) — Dateien
+          // wieder löschen, damit keine Waisen auf der Platte bleiben.
+          await deleteImageFiles({
+            originalPath: stored.originalPath,
+            webp: stored.webp,
+            avif: stored.avif,
+          }).catch(() => {});
+          throw err;
+        }
       },
 
       PATCH: async ({ request }) => {

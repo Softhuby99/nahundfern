@@ -44,7 +44,10 @@ function GalleryPage() {
     active === "Alle Fotos" ? images : images.filter((img) => img.trip.region === active);
   const feature = filtered[0];
   const bento = filtered.slice(1, 5);
-  const strip = filtered.slice(0, 6);
+  // Strip startet hinter dem Bento (Feature + 4 Bento = 5), damit Bilder
+  // nicht doppelt erscheinen. Bei zu wenig Bildern bleibt der Streifen leer
+  // und wird unten ausgeblendet.
+  const strip = filtered.slice(5, 11);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -93,40 +96,43 @@ function GalleryPage() {
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-6 md:px-8 mt-14">
-        <h2 className="font-script text-3xl text-foreground flex items-center gap-2">
-          Lieblingsshots <Heart className="size-5 fill-primary/40 text-primary" strokeWidth={1.5} />
-        </h2>
-        <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          {strip.map((img) => (
-            <Link
-              key={"strip-" + img.id}
-              to="/stories/$slug"
-              params={{ slug: img.trip.slug }}
-              className="paper-card overflow-hidden aspect-[4/5] relative group block"
-            >
-              <ResponsivePicture
-                webp={img.webp}
-                avif={img.avif}
-                alt={img.alt ?? img.trip.title}
-                width={400}
-                height={500}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-white text-xs">
-                <p className="flex items-center gap-1">
-                  <MapPin className="size-3" strokeWidth={1.5} />
-                  {img.trip.title}, {img.trip.region}
-                </p>
-                <p className="flex items-center gap-1 opacity-80 mt-0.5">
-                  <Calendar className="size-3" strokeWidth={1.5} />
-                  {img.trip.monthLabel}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+      {strip.length > 0 && (
+        <section className="max-w-7xl mx-auto px-6 md:px-8 mt-14">
+          <h2 className="font-script text-3xl text-foreground flex items-center gap-2">
+            Lieblingsshots{" "}
+            <Heart className="size-5 fill-primary/40 text-primary" strokeWidth={1.5} />
+          </h2>
+          <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {strip.map((img) => (
+              <Link
+                key={"strip-" + img.id}
+                to="/stories/$slug"
+                params={{ slug: img.trip.slug }}
+                className="paper-card overflow-hidden aspect-[4/5] relative group block"
+              >
+                <ResponsivePicture
+                  webp={img.webp}
+                  avif={img.avif}
+                  alt={img.alt ?? img.trip.title}
+                  width={400}
+                  height={500}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-white text-xs">
+                  <p className="flex items-center gap-1">
+                    <MapPin className="size-3" strokeWidth={1.5} />
+                    {img.trip.title}, {img.trip.region}
+                  </p>
+                  <p className="flex items-center gap-1 opacity-80 mt-0.5">
+                    <Calendar className="size-3" strokeWidth={1.5} />
+                    {img.trip.monthLabel}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <SiteFooter />
     </div>
