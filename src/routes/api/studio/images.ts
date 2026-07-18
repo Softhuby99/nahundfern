@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { sql } from "@/lib/db.server";
-import { requireAuth } from "@/lib/auth.server";
+import { requireAuth, requireSameOrigin } from "@/lib/auth.server";
 import { storeImage, deleteImageFiles } from "@/lib/uploads.server";
+import { auditLog } from "@/lib/audit.server";
+
 
 const PatchInput = z.object({
   id: z.string().uuid(),
@@ -27,8 +29,16 @@ export const Route = createFileRoute("/api/studio/images")({
       },
 
       POST: async ({ request }) => {
-        await requireAuth(request);
+        try {
+          requireSameOrigin(request);
+        } catch (r) {
+          return r as Response;
+        }
+        const session = await requireAuth(request);
         const form = await request.formData();
+        const rawTripId = form.get("tripId");
+        const file = form.get("file");
+
         const rawTripId = form.get("tripId");
         const file = form.get("file");
 
@@ -69,6 +79,13 @@ export const Route = createFileRoute("/api/studio/images")({
             )
             RETURNING *
           `;
+          await auditLog({
+            request,
+            userId: session.userId,
+            action: "image.upload",
+            targetId: image.id,
+            meta: { tripId, size: buffer.length, mime: stored.mime },
+          });
           return Response.json({ image }, { status: 201 });
         } catch (err) {
           // Insert scheiterte (z.B. Race Condition beim Trip-Delete) — Dateien
@@ -83,7 +100,13 @@ export const Route = createFileRoute("/api/studio/images")({
       },
 
       PATCH: async ({ request }) => {
-        await requireAuth(request);
+        try {
+          requireSameOrigin(request);
+        } catch (r) {
+          return r as Response;
+        }
+        const session = await requireAuth(request);
+
         const body = await request.json();
         const parsed = PatchInput.safeParse(body);
         if (!parsed.success) {

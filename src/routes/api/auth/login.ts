@@ -2,12 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { sql } from "@/lib/db.server";
 import {
+  DUMMY_ARGON2_HASH,
   createSessionToken,
-  hashPassword,
   requestIsSecure,
+  requireSameOrigin,
   setSessionCookie,
   verifyPassword,
 } from "@/lib/auth.server";
+import { auditLog } from "@/lib/audit.server";
 
 const LoginInput = z.object({
   email: z.string().email(),
@@ -18,7 +20,14 @@ export const Route = createFileRoute("/api/auth/login")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const body = await request.json();
+        // CSRF: reject cross-origin submissions before doing any work.
+        try {
+          requireSameOrigin(request);
+        } catch (r) {
+          return r as Response;
+        }
+
+        const body = await request.json().catch(() => null);
         const parsed = LoginInput.safeParse(body);
         if (!parsed.success) {
           return Response.json({ error: "Invalid input" }, { status: 400 });
@@ -26,19 +35,42 @@ export const Route = createFileRoute("/api/auth/login")({
 
         const { email, password } = parsed.data;
         const [user] = await sql`SELECT id, email, password_hash FROM users WHERE email = ${email}`;
+
+        // Burn ~equal CPU whether or not the user exists so response times
+        // don't leak account existence. Using a real Argon2 verify against a
+        // pre-computed dummy hash is closer to constant-time than hashing a
+        // throwaway password (which pays the salt-generation cost as well).
         if (!user) {
-          // Hash anyway to avoid timing attacks revealing user existence.
-          await hashPassword("dummy");
+          await verifyPassword(DUMMY_ARGON2_HASH, password).catch(() => false);
+          await auditLog({
+            request,
+            action: "auth.login.failure",
+            emailPlain: email,
+            meta: { reason: "unknown_email" },
+          });
           return Response.json({ error: "Invalid credentials" }, { status: 401 });
         }
 
         const valid = await verifyPassword(user.password_hash, password);
         if (!valid) {
+          await auditLog({
+            request,
+            userId: user.id,
+            action: "auth.login.failure",
+            emailPlain: email,
+            meta: { reason: "bad_password" },
+          });
           return Response.json({ error: "Invalid credentials" }, { status: 401 });
         }
 
         const token = await createSessionToken(user.id);
         const isSecure = requestIsSecure(request);
+        await auditLog({
+          request,
+          userId: user.id,
+          action: "auth.login.success",
+          emailPlain: email,
+        });
         return Response.json(
           { ok: true },
           {
