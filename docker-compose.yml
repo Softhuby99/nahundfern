@@ -87,7 +87,10 @@ services:
       sleep 12h & wait $${!}; done;"
 
   backup:
-    image: postgres:16.6-alpine
+    build:
+      context: .
+      dockerfile: docker/backup/Dockerfile
+    image: nahundfern-backup:local
     container_name: nahundfern-backup
     restart: unless-stopped
     depends_on:
@@ -99,9 +102,15 @@ services:
       PGPASSWORD: ${DB_PASSWORD}
       PGDATABASE: ${DB_NAME}
       BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+      # Set BACKUP_GPG_RECIPIENT (email or key id) AND put the matching public
+      # key at ./secrets/backup-public-key.asc to encrypt dumps. Both empty =
+      # unencrypted .sql.gz.
+      BACKUP_GPG_RECIPIENT: ${BACKUP_GPG_RECIPIENT:-}
     volumes:
       - backups:/backups
       - ./scripts/backup.sh:/usr/local/bin/backup.sh:ro
+      - ./secrets:/run/secrets:ro
+
     entrypoint: /bin/sh
     # Run once every 24h. The backup script keeps a rolling window of
     # BACKUP_KEEP_DAYS daily dumps and deletes older ones.
