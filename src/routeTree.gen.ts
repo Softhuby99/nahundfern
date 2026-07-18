@@ -19,6 +19,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StoriesIndexRouteImport } from './routes/stories.index'
 import { Route as StoriesSlugRouteImport } from './routes/stories.$slug'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
@@ -79,6 +80,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const StoriesIndexRoute = StoriesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => StoriesRoute,
 } as any)
 const StoriesSlugRoute = StoriesSlugRouteImport.update({
   id: '/$slug',
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/admin/login': typeof AdminLoginRoute
   '/api/health': typeof ApiHealthRoute
   '/stories/$slug': typeof StoriesSlugRoute
+  '/stories/': typeof StoriesIndexRoute
   '/admin/studio/$slug': typeof AdminStudioSlugRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
@@ -160,13 +167,13 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/gallery': typeof GalleryRoute
   '/journal': typeof JournalRoute
-  '/stories': typeof StoriesRouteWithChildren
   '/studio': typeof StudioRoute
   '/timeline': typeof TimelineRoute
   '/tips': typeof TipsRoute
   '/admin/login': typeof AdminLoginRoute
   '/api/health': typeof ApiHealthRoute
   '/stories/$slug': typeof StoriesSlugRoute
+  '/stories': typeof StoriesIndexRoute
   '/admin/studio/$slug': typeof AdminStudioSlugRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
@@ -190,6 +197,7 @@ export interface FileRoutesById {
   '/admin/login': typeof AdminLoginRoute
   '/api/health': typeof ApiHealthRoute
   '/stories/$slug': typeof StoriesSlugRoute
+  '/stories/': typeof StoriesIndexRoute
   '/admin/studio/$slug': typeof AdminStudioSlugRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
@@ -214,6 +222,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/api/health'
     | '/stories/$slug'
+    | '/stories/'
     | '/admin/studio/$slug'
     | '/api/auth/login'
     | '/api/auth/logout'
@@ -229,13 +238,13 @@ export interface FileRouteTypes {
     | '/contact'
     | '/gallery'
     | '/journal'
-    | '/stories'
     | '/studio'
     | '/timeline'
     | '/tips'
     | '/admin/login'
     | '/api/health'
     | '/stories/$slug'
+    | '/stories'
     | '/admin/studio/$slug'
     | '/api/auth/login'
     | '/api/auth/logout'
@@ -258,6 +267,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/api/health'
     | '/stories/$slug'
+    | '/stories/'
     | '/admin/studio/$slug'
     | '/api/auth/login'
     | '/api/auth/logout'
@@ -358,6 +368,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/stories/': {
+      id: '/stories/'
+      path: '/'
+      fullPath: '/stories/'
+      preLoaderRoute: typeof StoriesIndexRouteImport
+      parentRoute: typeof StoriesRoute
+    }
     '/stories/$slug': {
       id: '/stories/$slug'
       path: '/$slug'
@@ -447,10 +464,12 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface StoriesRouteChildren {
   StoriesSlugRoute: typeof StoriesSlugRoute
+  StoriesIndexRoute: typeof StoriesIndexRoute
 }
 
 const StoriesRouteChildren: StoriesRouteChildren = {
   StoriesSlugRoute: StoriesSlugRoute,
+  StoriesIndexRoute: StoriesIndexRoute,
 }
 
 const StoriesRouteWithChildren =
