@@ -64,3 +64,24 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash text NOT NULL,
   created_at    timestamptz NOT NULL DEFAULT now()
 );
+
+-- Append-only audit log for sensitive Studio actions. Kept in the base schema
+-- so a fresh docker-entrypoint-initdb.d run creates it; also delivered as
+-- migration 004 for existing deployments.
+CREATE TABLE IF NOT EXISTS audit_log (
+  id          bigserial PRIMARY KEY,
+  request_id  text,
+  user_id     uuid REFERENCES users(id) ON DELETE SET NULL,
+  action      text NOT NULL,
+  target_id   text,
+  ip          text,
+  user_agent  text,
+  email_hash  text,
+  meta        jsonb,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_log_action     ON audit_log(action, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_log_user       ON audit_log(user_id, created_at DESC);
+
