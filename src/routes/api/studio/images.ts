@@ -39,8 +39,8 @@ export const Route = createFileRoute("/api/studio/images")({
         const rawTripId = form.get("tripId");
         const file = form.get("file");
 
-        const rawTripId = form.get("tripId");
-        const file = form.get("file");
+
+
 
         // tripId muss eine gültige UUID sein — sonst gar nicht erst dekodieren.
         const parsedTripId = z.string().uuid().safeParse(rawTripId);
