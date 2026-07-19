@@ -13,9 +13,18 @@ export type AuditAction =
   | "trip.create"
   | "trip.update"
   | "trip.delete"
+  | "trip.publish"
+  | "trip.unpublish"
   | "image.upload"
   | "image.update"
-  | "image.delete";
+  | "image.delete"
+  | "video.upload"
+  | "video.update"
+  | "video.delete"
+  | "user.create"
+  | "user.update.email"
+  | "user.update.password"
+  | "user.delete";
 
 export type AuditContext = {
   request: Request;
