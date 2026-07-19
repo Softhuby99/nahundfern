@@ -33,6 +33,10 @@ import { Route as ApiStudioAuditRouteImport } from './routes/api/studio/audit'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
+import { Route as AdminStudioUsersRouteImport } from './routes/admin.studio.users'
+import { Route as AdminStudioSystemRouteImport } from './routes/admin.studio.system'
+import { Route as AdminStudioLoginsRouteImport } from './routes/admin.studio.logins'
+import { Route as AdminStudioAuditRouteImport } from './routes/admin.studio.audit'
 import { Route as AdminStudioSlugRouteImport } from './routes/admin.studio.$slug'
 
 const TipsRoute = TipsRouteImport.update({
@@ -155,6 +159,26 @@ const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
   path: '/api/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminStudioUsersRoute = AdminStudioUsersRouteImport.update({
+  id: '/studio/users',
+  path: '/studio/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminStudioSystemRoute = AdminStudioSystemRouteImport.update({
+  id: '/studio/system',
+  path: '/studio/system',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminStudioLoginsRoute = AdminStudioLoginsRouteImport.update({
+  id: '/studio/logins',
+  path: '/studio/logins',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminStudioAuditRoute = AdminStudioAuditRouteImport.update({
+  id: '/studio/audit',
+  path: '/studio/audit',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminStudioSlugRoute = AdminStudioSlugRouteImport.update({
   id: '/studio/$slug',
   path: '/studio/$slug',
@@ -177,6 +201,10 @@ export interface FileRoutesByFullPath {
   '/stories/$slug': typeof StoriesSlugRoute
   '/stories/': typeof StoriesIndexRoute
   '/admin/studio/$slug': typeof AdminStudioSlugRoute
+  '/admin/studio/audit': typeof AdminStudioAuditRoute
+  '/admin/studio/logins': typeof AdminStudioLoginsRoute
+  '/admin/studio/system': typeof AdminStudioSystemRoute
+  '/admin/studio/users': typeof AdminStudioUsersRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
@@ -203,6 +231,10 @@ export interface FileRoutesByTo {
   '/stories/$slug': typeof StoriesSlugRoute
   '/stories': typeof StoriesIndexRoute
   '/admin/studio/$slug': typeof AdminStudioSlugRoute
+  '/admin/studio/audit': typeof AdminStudioAuditRoute
+  '/admin/studio/logins': typeof AdminStudioLoginsRoute
+  '/admin/studio/system': typeof AdminStudioSystemRoute
+  '/admin/studio/users': typeof AdminStudioUsersRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
@@ -231,6 +263,10 @@ export interface FileRoutesById {
   '/stories/$slug': typeof StoriesSlugRoute
   '/stories/': typeof StoriesIndexRoute
   '/admin/studio/$slug': typeof AdminStudioSlugRoute
+  '/admin/studio/audit': typeof AdminStudioAuditRoute
+  '/admin/studio/logins': typeof AdminStudioLoginsRoute
+  '/admin/studio/system': typeof AdminStudioSystemRoute
+  '/admin/studio/users': typeof AdminStudioUsersRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
@@ -260,6 +296,10 @@ export interface FileRouteTypes {
     | '/stories/$slug'
     | '/stories/'
     | '/admin/studio/$slug'
+    | '/admin/studio/audit'
+    | '/admin/studio/logins'
+    | '/admin/studio/system'
+    | '/admin/studio/users'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
@@ -286,6 +326,10 @@ export interface FileRouteTypes {
     | '/stories/$slug'
     | '/stories'
     | '/admin/studio/$slug'
+    | '/admin/studio/audit'
+    | '/admin/studio/logins'
+    | '/admin/studio/system'
+    | '/admin/studio/users'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
@@ -313,6 +357,10 @@ export interface FileRouteTypes {
     | '/stories/$slug'
     | '/stories/'
     | '/admin/studio/$slug'
+    | '/admin/studio/audit'
+    | '/admin/studio/logins'
+    | '/admin/studio/system'
+    | '/admin/studio/users'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
@@ -518,6 +566,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/studio/users': {
+      id: '/admin/studio/users'
+      path: '/studio/users'
+      fullPath: '/admin/studio/users'
+      preLoaderRoute: typeof AdminStudioUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/studio/system': {
+      id: '/admin/studio/system'
+      path: '/studio/system'
+      fullPath: '/admin/studio/system'
+      preLoaderRoute: typeof AdminStudioSystemRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/studio/logins': {
+      id: '/admin/studio/logins'
+      path: '/studio/logins'
+      fullPath: '/admin/studio/logins'
+      preLoaderRoute: typeof AdminStudioLoginsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/studio/audit': {
+      id: '/admin/studio/audit'
+      path: '/studio/audit'
+      fullPath: '/admin/studio/audit'
+      preLoaderRoute: typeof AdminStudioAuditRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/studio/$slug': {
       id: '/admin/studio/$slug'
       path: '/studio/$slug'
@@ -531,12 +607,20 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   AdminStudioSlugRoute: typeof AdminStudioSlugRoute
+  AdminStudioAuditRoute: typeof AdminStudioAuditRoute
+  AdminStudioLoginsRoute: typeof AdminStudioLoginsRoute
+  AdminStudioSystemRoute: typeof AdminStudioSystemRoute
+  AdminStudioUsersRoute: typeof AdminStudioUsersRoute
   AdminStudioIndexRoute: typeof AdminStudioIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   AdminStudioSlugRoute: AdminStudioSlugRoute,
+  AdminStudioAuditRoute: AdminStudioAuditRoute,
+  AdminStudioLoginsRoute: AdminStudioLoginsRoute,
+  AdminStudioSystemRoute: AdminStudioSystemRoute,
+  AdminStudioUsersRoute: AdminStudioUsersRoute,
   AdminStudioIndexRoute: AdminStudioIndexRoute,
 }
 
