@@ -159,7 +159,6 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
     return mapRow(row, filtered.map(mapGalleryRow));
   });
 
-
 /** Slim slug+title projection used to build newer/older links on story pages. */
 export type TripNavigationEntry = {
   slug: string;

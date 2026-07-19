@@ -173,7 +173,6 @@ function StoryPage() {
           </div>
         )}
 
-
         {/* Navigation: symmetrical 3-column footer — newer / all / older.
             Placeholders keep the layout stable when a direction is missing. */}
         <div className="px-6 md:px-8 max-w-5xl mx-auto py-16 border-t border-border grid grid-cols-3 items-center gap-8">

@@ -2,7 +2,6 @@ import argon2 from "argon2";
 import { SignJWT, jwtVerify } from "jose";
 import { getServerPublicOrigin } from "./public-origin.server";
 
-
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_ALGORITHM = "HS256";
 const COOKIE_NAME = "nahundfern_session";
@@ -87,7 +86,6 @@ export function requireSameOrigin(request: Request): void {
 
   throw new Response("Forbidden: cross-origin request rejected", { status: 403 });
 }
-
 
 export async function createSessionToken(userId: string): Promise<string> {
   // Keep the token as small as possible: only the subject identifier. Any

@@ -1,5 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { clearSessionCookie, parseSessionCookie, requireSameOrigin, verifySessionToken } from "@/lib/auth.server";
+import {
+  clearSessionCookie,
+  parseSessionCookie,
+  requireSameOrigin,
+  verifySessionToken,
+} from "@/lib/auth.server";
 import { auditLog } from "@/lib/audit.server";
 
 export const Route = createFileRoute("/api/auth/logout")({

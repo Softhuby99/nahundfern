@@ -49,10 +49,10 @@ const TripInput = z
     travelType: z.string().max(50).optional().nullable(),
     featured: z.boolean().optional(),
   })
-  .refine(
-    (d) => !(d.tripStartDate && d.tripEndDate) || d.tripEndDate >= d.tripStartDate,
-    { message: "tripEndDate darf nicht vor tripStartDate liegen", path: ["tripEndDate"] },
-  );
+  .refine((d) => !(d.tripStartDate && d.tripEndDate) || d.tripEndDate >= d.tripStartDate, {
+    message: "tripEndDate darf nicht vor tripStartDate liegen",
+    path: ["tripEndDate"],
+  });
 
 async function getTripsWithCover() {
   return sql`

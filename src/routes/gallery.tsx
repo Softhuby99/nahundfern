@@ -3,10 +3,7 @@ import { useMemo, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ResponsivePicture } from "@/components/HorizontalTimeline";
-import {
-  listPublishedGalleryImages,
-  type PublicGalleryImage,
-} from "@/lib/trips.functions";
+import { listPublishedGalleryImages, type PublicGalleryImage } from "@/lib/trips.functions";
 import { Heart, MapPin, Calendar, Grid3x3 } from "lucide-react";
 
 export const Route = createFileRoute("/gallery")({
@@ -87,9 +84,7 @@ function GalleryPage() {
 
       <section className="max-w-7xl mx-auto px-6 md:px-8 mt-10">
         <div className="grid md:grid-cols-3 gap-4 md:auto-rows-[280px]">
-          {feature && (
-            <PhotoTile image={feature} className="md:col-span-2 md:row-span-2" />
-          )}
+          {feature && <PhotoTile image={feature} className="md:col-span-2 md:row-span-2" />}
           {bento.map((img) => (
             <PhotoTile key={img.id} image={img} />
           ))}
@@ -139,13 +134,7 @@ function GalleryPage() {
   );
 }
 
-function PhotoTile({
-  image,
-  className = "",
-}: {
-  image: PublicGalleryImage;
-  className?: string;
-}) {
+function PhotoTile({ image, className = "" }: { image: PublicGalleryImage; className?: string }) {
   return (
     <Link
       to="/stories/$slug"
