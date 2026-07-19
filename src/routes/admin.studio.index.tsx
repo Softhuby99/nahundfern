@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { StudioNav } from "./admin.studio.system";
 
 export const Route = createFileRoute("/admin/studio/")({
   head: () => ({
@@ -109,6 +110,7 @@ function StudioPage() {
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <SiteHeader />
       <main className="flex-1 px-6 md:px-8 py-12 max-w-6xl mx-auto w-full">
+        <StudioNav active="trips" />
         <div className="flex items-end justify-between mb-12 flex-wrap gap-4">
           <div>
             <p className="font-mono text-primary text-xs uppercase tracking-[0.3em] mb-3">Studio</p>
