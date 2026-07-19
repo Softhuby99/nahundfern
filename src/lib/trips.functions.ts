@@ -32,12 +32,22 @@ export type PublicTrip = {
     alt: string | null;
   };
   gallery: GalleryImage[];
+  videos: TripVideo[];
 };
 
 export type GalleryImage = {
   id: string;
   webp: Record<number, string>;
   avif: Record<number, string>;
+  width: number;
+  height: number;
+  alt: string | null;
+};
+
+export type TripVideo = {
+  id: string;
+  mp4: string;
+  poster: string;
   width: number;
   height: number;
   alt: string | null;
@@ -60,7 +70,7 @@ function toNumber(value: unknown): number | null {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapRow(r: any, gallery: GalleryImage[] = []): PublicTrip {
+function mapRow(r: any, gallery: GalleryImage[] = [], videos: TripVideo[] = []): PublicTrip {
   return {
     id: r.id,
     slug: r.slug,
@@ -90,6 +100,7 @@ function mapRow(r: any, gallery: GalleryImage[] = []): PublicTrip {
       alt: r.cover_alt,
     },
     gallery,
+    videos,
   };
 }
 
@@ -99,6 +110,18 @@ function mapGalleryRow(r: any): GalleryImage {
     id: r.id,
     webp: { 400: r.webp_400, 1200: r.webp_1200, 2000: r.webp_2000 },
     avif: { 400: r.avif_400, 1200: r.avif_1200, 2000: r.avif_2000 },
+    width: Number(r.width),
+    height: Number(r.height),
+    alt: r.alt ?? null,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapVideoRow(r: any): TripVideo {
+  return {
+    id: r.id,
+    mp4: r.mp4_720_path,
+    poster: r.poster_path,
     width: Number(r.width),
     height: Number(r.height),
     alt: r.alt ?? null,
@@ -156,7 +179,13 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
     const filtered = row.cover_image_id
       ? galleryRows.filter((g) => g.id !== row.cover_image_id)
       : galleryRows;
-    return mapRow(row, filtered.map(mapGalleryRow));
+    const videoRows = await sql`
+      SELECT id, mp4_720_path, poster_path, width, height, alt
+      FROM videos
+      WHERE trip_id = ${row.id}
+      ORDER BY sort_order, created_at
+    `;
+    return mapRow(row, filtered.map(mapGalleryRow), videoRows.map(mapVideoRow));
   });
 
 /** Slim slug+title projection used to build newer/older links on story pages. */

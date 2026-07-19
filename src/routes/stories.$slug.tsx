@@ -5,6 +5,7 @@ import rehypeSanitize from "rehype-sanitize";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ResponsivePicture } from "@/components/HorizontalTimeline";
+import { VideoPlayer } from "@/components/trip/VideoPlayer";
 import { getPublishedTrip, listTripNavigationEntries } from "@/lib/trips.functions";
 import { getPublicBaseUrl } from "@/lib/public-base-url";
 
@@ -172,6 +173,20 @@ function StoryPage() {
             </div>
           </div>
         )}
+        {/* Videos */}
+        {trip.videos.length > 0 && (
+          <div className="px-6 md:px-8 max-w-5xl mx-auto pb-16">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-6">
+              Videos
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {trip.videos.map((v: import("@/lib/trips.functions").TripVideo) => (
+                <VideoPlayer key={v.id} video={v} title={trip.title} />
+              ))}
+            </div>
+          </div>
+        )}
+
 
         {/* Navigation: symmetrical 3-column footer — newer / all / older.
             Placeholders keep the layout stable when a direction is missing. */}
