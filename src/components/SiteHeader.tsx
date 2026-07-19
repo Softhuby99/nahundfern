@@ -1,6 +1,7 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Heart, Search, Menu, X } from "lucide-react";
+import { Heart, Search, Menu, X, LogOut } from "lucide-react";
+import { useIsAuthenticated, emitAuthChanged } from "@/hooks/useIsAuthenticated";
 
 const nav = [
   { to: "/", label: "Startseite" },
@@ -10,10 +11,24 @@ const nav = [
   { to: "/gallery", label: "Fotogalerie" },
   { to: "/about", label: "Über mich" },
   { to: "/contact", label: "Kontakt" },
-  { to: "/admin/studio", label: "Studio" },
 ] as const;
 
 export function SiteHeader() {
+  const isAuthenticated = useIsAuthenticated();
+  const navigate = useNavigate();
+
+  const logout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "same-origin",
+      });
+    } finally {
+      emitAuthChanged();
+      await navigate({ to: "/" });
+    }
+  };
+
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -43,7 +58,28 @@ export function SiteHeader() {
                 {n.label}
               </Link>
             ))}
+            {isAuthenticated && (
+              <>
+                <Link
+                  to="/admin/studio"
+                  className="text-sm text-primary hover:text-primary/80 transition-colors font-medium"
+                  activeProps={{ className: "border-b-2 border-primary pb-1" }}
+                >
+                  Studio
+                </Link>
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="inline-flex items-center gap-1.5 text-sm text-foreground/70 hover:text-primary transition-colors"
+                  aria-label="Abmelden"
+                >
+                  <LogOut className="size-4" strokeWidth={1.5} />
+                  Abmelden
+                </button>
+              </>
+            )}
           </nav>
+
 
           <div className="flex items-center gap-3">
             <button
@@ -77,9 +113,31 @@ export function SiteHeader() {
                 {n.label}
               </Link>
             ))}
+            {isAuthenticated && (
+              <>
+                <Link
+                  to="/admin/studio"
+                  onClick={() => setOpen(false)}
+                  className="font-display text-3xl md:text-5xl tracking-tight font-medium text-primary hover:text-primary/80 transition-colors"
+                >
+                  Studio
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    void logout();
+                  }}
+                  className="font-display text-3xl md:text-5xl tracking-tight font-medium text-left hover:text-primary transition-colors"
+                >
+                  Abmelden
+                </button>
+              </>
+            )}
           </nav>
         </div>
       )}
+
     </>
   );
 }
