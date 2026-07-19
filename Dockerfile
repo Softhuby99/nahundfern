@@ -33,7 +33,7 @@ RUN if [ -f bun.lock ]; then bun run build ; else npm run build ; fi
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-RUN apk add --no-cache vips tini \
+RUN apk add --no-cache vips tini ffmpeg \
     && addgroup -S app && adduser -S app -G app
 
 ENV NODE_ENV=production
@@ -47,6 +47,7 @@ COPY --from=build --chown=app:app /app/scripts ./scripts
 COPY --from=build --chown=app:app /app/src/assets ./src/assets
 
 RUN mkdir -p /app/uploads/originals /app/uploads/webp /app/uploads/avif \
+      /app/uploads/videos/originals /app/uploads/videos/mp4 /app/uploads/videos/poster \
     && chown -R app:app /app/uploads
 
 USER app

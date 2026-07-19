@@ -65,6 +65,14 @@ export const Route = createFileRoute("/api/auth/login")({
 
         const token = await createSessionToken(user.id);
         const isSecure = requestIsSecure(request);
+        // Track last successful login for the User admin view. Prefer
+        // X-Forwarded-For (nginx sets it), fall back to request headers.
+        const xff = request.headers.get("x-forwarded-for");
+        const ip = xff ? xff.split(",")[0].trim() : null;
+        await sql`
+          UPDATE users SET last_login_at = now(), last_login_ip = ${ip}
+          WHERE id = ${user.id}
+        `;
         await auditLog({
           request,
           userId: user.id,
