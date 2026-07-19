@@ -113,9 +113,31 @@ export function SiteHeader() {
                 {n.label}
               </Link>
             ))}
+            {isAuthenticated && (
+              <>
+                <Link
+                  to="/admin/studio"
+                  onClick={() => setOpen(false)}
+                  className="font-display text-3xl md:text-5xl tracking-tight font-medium text-primary hover:text-primary/80 transition-colors"
+                >
+                  Studio
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    void logout();
+                  }}
+                  className="font-display text-3xl md:text-5xl tracking-tight font-medium text-left hover:text-primary transition-colors"
+                >
+                  Abmelden
+                </button>
+              </>
+            )}
           </nav>
         </div>
       )}
+
     </>
   );
 }
