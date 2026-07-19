@@ -2,6 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { emitAuthChanged } from "@/hooks/useIsAuthenticated";
+
 
 export const Route = createFileRoute("/admin/login")({
   head: () => ({
