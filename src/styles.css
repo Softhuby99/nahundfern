@@ -43,16 +43,31 @@
 }
 
 @keyframes drawLine {
-  from { transform: scaleY(0); }
-  to { transform: scaleY(1); }
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
 }
 @keyframes revealNode {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes float {
-  0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); }
-  50% { transform: translateY(-6px) rotate(var(--r, 0deg)); }
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--r, 0deg));
+  }
+  50% {
+    transform: translateY(-6px) rotate(var(--r, 0deg));
+  }
 }
 
 /* Respect the OS "reduce motion" preference: disable timeline reveal
@@ -76,7 +91,9 @@
 }
 
 @utility scrollbar-hide {
-  &::-webkit-scrollbar { display: none; }
+  &::-webkit-scrollbar {
+    display: none;
+  }
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
@@ -85,7 +102,9 @@
   background-color: var(--color-note);
   border: 1px solid var(--color-border);
   border-radius: 0.75rem;
-  box-shadow: 0 1px 2px rgba(60, 40, 20, 0.04), 0 8px 24px -12px rgba(60, 40, 20, 0.12);
+  box-shadow:
+    0 1px 2px rgba(60, 40, 20, 0.04),
+    0 8px 24px -12px rgba(60, 40, 20, 0.12);
 }
 
 @utility script {
@@ -108,12 +127,18 @@
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
-  html, body {
+  * {
+    border-color: var(--color-border);
+  }
+  html,
+  body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
   }
-  ::selection { background: var(--color-primary); color: var(--color-primary-foreground); }
+  ::selection {
+    background: var(--color-primary);
+    color: var(--color-primary-foreground);
+  }
 }
