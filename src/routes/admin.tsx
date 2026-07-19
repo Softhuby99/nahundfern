@@ -2,7 +2,10 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: async ({ location }) => {
-    // Client-side auth gate for /admin: check session, redirect to login if missing.
+    // /admin/login is public — never gate it.
+    if (location.pathname === "/admin/login") return;
+
+    // Client-side auth gate: check session, redirect to login if missing.
     // Skipped during SSR/prerender where fetch has no cookies.
     if (typeof window !== "undefined") {
       try {
@@ -12,7 +15,6 @@ export const Route = createFileRoute("/admin")({
         }
       } catch (e) {
         if (e && typeof e === "object" && "isRedirect" in e) throw e;
-        // Network error → send to login so the user can retry there.
         throw redirect({ to: "/admin/login" });
       }
     }
@@ -20,6 +22,7 @@ export const Route = createFileRoute("/admin")({
       throw redirect({ to: "/admin/studio" });
     }
   },
+
   component: AdminLayout,
 });
 
