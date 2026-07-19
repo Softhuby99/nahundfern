@@ -33,8 +33,10 @@ function LoginPage() {
         setError("Login fehlgeschlagen.");
         return;
       }
+      emitAuthChanged();
       await navigate({ to: "/admin/studio" });
     } finally {
+
       setLoading(false);
     }
   };
