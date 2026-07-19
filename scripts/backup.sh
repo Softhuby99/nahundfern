@@ -16,6 +16,7 @@ set -eu
 
 STAMP=$(date -u +%Y%m%dT%H%M%SZ)
 OUT_DIR="/backups"
+UPLOADS_DIR="${UPLOADS_DIR:-/var/www/uploads}"
 KEEP_DAYS="${BACKUP_KEEP_DAYS:-14}"
 GPG_KEY_FILE="/run/secrets/backup-public-key.asc"
 
@@ -56,9 +57,42 @@ fi
 mv "${PART}" "${FINAL}"
 trap - EXIT INT TERM
 
-# Retention: delete dumps older than KEEP_DAYS.
+# --- Uploads backup ---------------------------------------------------------
+# Bilder liegen im gemounteten uploads-Volume und werden separat als tar.gz
+# gesichert. Ohne diesen Schritt wären nach einem Restore die Datenbank-
+# Referenzen intakt, aber die Bilddateien verloren.
+if [ -d "${UPLOADS_DIR}" ]; then
+  if [ "${ENCRYPT}" -eq 1 ]; then
+    U_FINAL="${OUT_DIR}/uploads_${STAMP}.tar.gz.gpg"
+  else
+    U_FINAL="${OUT_DIR}/uploads_${STAMP}.tar.gz"
+  fi
+  U_PART="${U_FINAL}.part"
+  cleanup_u() { rm -f "${U_PART}" 2>/dev/null || true; }
+  trap cleanup_u EXIT INT TERM
+
+  echo "backup: archiving ${UPLOADS_DIR} -> ${U_FINAL}"
+  if [ "${ENCRYPT}" -eq 1 ]; then
+    GNUPGHOME=$(mktemp -d); export GNUPGHOME
+    gpg --batch --quiet --import "${GPG_KEY_FILE}"
+    tar -C "${UPLOADS_DIR}" -czf - . \
+      | gpg --batch --yes --trust-model always \
+            --recipient "${BACKUP_GPG_RECIPIENT}" \
+            --encrypt --output "${U_PART}"
+    rm -rf "${GNUPGHOME}"
+  else
+    tar -C "${UPLOADS_DIR}" -czf "${U_PART}" .
+  fi
+  mv "${U_PART}" "${U_FINAL}"
+  trap - EXIT INT TERM
+else
+  echo "backup: WARN uploads dir ${UPLOADS_DIR} missing — skipping image backup"
+fi
+
+# Retention: delete dumps and upload archives older than KEEP_DAYS.
 find "${OUT_DIR}" -type f \
-  \( -name 'nahundfern_*.sql.gz' -o -name 'nahundfern_*.sql.gz.gpg' \) \
+  \( -name 'nahundfern_*.sql.gz' -o -name 'nahundfern_*.sql.gz.gpg' \
+     -o -name 'uploads_*.tar.gz' -o -name 'uploads_*.tar.gz.gpg' \) \
   -mtime "+${KEEP_DAYS}" -print -delete || true
 
 echo "backup: done (${FINAL})"
