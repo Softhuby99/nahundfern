@@ -1,6 +1,7 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Heart, Search, Menu, X } from "lucide-react";
+import { Heart, Search, Menu, X, LogOut } from "lucide-react";
+import { useIsAuthenticated, emitAuthChanged } from "@/hooks/useIsAuthenticated";
 
 const nav = [
   { to: "/", label: "Startseite" },
@@ -10,10 +11,24 @@ const nav = [
   { to: "/gallery", label: "Fotogalerie" },
   { to: "/about", label: "Über mich" },
   { to: "/contact", label: "Kontakt" },
-  { to: "/admin/studio", label: "Studio" },
 ] as const;
 
 export function SiteHeader() {
+  const isAuthenticated = useIsAuthenticated();
+  const navigate = useNavigate();
+
+  const logout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "same-origin",
+      });
+    } finally {
+      emitAuthChanged();
+      await navigate({ to: "/" });
+    }
+  };
+
   const [open, setOpen] = useState(false);
   return (
     <>
