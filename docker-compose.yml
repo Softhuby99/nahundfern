@@ -108,8 +108,10 @@ services:
       BACKUP_GPG_RECIPIENT: ${BACKUP_GPG_RECIPIENT:-}
     volumes:
       - backups:/backups
+      - uploads:/var/www/uploads:ro
       - ./scripts/backup.sh:/usr/local/bin/backup.sh:ro
       - ./secrets:/run/secrets:ro
+
 
     entrypoint: /bin/sh
     # Run once every 24h. The backup script keeps a rolling window of

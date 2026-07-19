@@ -1,7 +1,7 @@
 {
   "name": "tanstack_start_ts",
   "private": true,
-  "version": "0.5.5",
+  "version": "0.5.6",
   "sideEffects": false,
   "type": "module",
   "scripts": {
@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
-    "check": "bun run typecheck && bun run lint && bun run build"
+    "test": "vitest run --passWithNoTests",
+    "check": "bun run typecheck && bun run lint && bun run build && bun run test"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
