@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, isRedirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: async ({ location }) => {
@@ -14,7 +14,8 @@ export const Route = createFileRoute("/admin")({
           throw redirect({ to: "/admin/login" });
         }
       } catch (e) {
-        if (e && typeof e === "object" && "isRedirect" in e) throw e;
+        if (isRedirect(e)) throw e;
+
         throw redirect({ to: "/admin/login" });
       }
     }
