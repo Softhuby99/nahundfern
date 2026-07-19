@@ -5,7 +5,6 @@ import { requireAuth, requireSameOrigin } from "@/lib/auth.server";
 import { storeImage, deleteImageFiles } from "@/lib/uploads.server";
 import { auditLog } from "@/lib/audit.server";
 
-
 const PatchInput = z.object({
   id: z.string().uuid(),
   alt: z.string().max(500).optional(),
@@ -38,9 +37,6 @@ export const Route = createFileRoute("/api/studio/images")({
         const form = await request.formData();
         const rawTripId = form.get("tripId");
         const file = form.get("file");
-
-
-
 
         // tripId muss eine gültige UUID sein — sonst gar nicht erst dekodieren.
         const parsedTripId = z.string().uuid().safeParse(rawTripId);
