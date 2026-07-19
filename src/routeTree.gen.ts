@@ -24,8 +24,12 @@ import { Route as StoriesSlugRouteImport } from './routes/stories.$slug'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AdminStudioIndexRouteImport } from './routes/admin.studio.index'
+import { Route as ApiStudioVideosRouteImport } from './routes/api/studio/videos'
+import { Route as ApiStudioUsersRouteImport } from './routes/api/studio/users'
 import { Route as ApiStudioTripsRouteImport } from './routes/api/studio/trips'
+import { Route as ApiStudioSystemStatusRouteImport } from './routes/api/studio/system-status'
 import { Route as ApiStudioImagesRouteImport } from './routes/api/studio/images'
+import { Route as ApiStudioAuditRouteImport } from './routes/api/studio/audit'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
@@ -106,14 +110,34 @@ const AdminStudioIndexRoute = AdminStudioIndexRouteImport.update({
   path: '/studio/',
   getParentRoute: () => AdminRoute,
 } as any)
+const ApiStudioVideosRoute = ApiStudioVideosRouteImport.update({
+  id: '/api/studio/videos',
+  path: '/api/studio/videos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStudioUsersRoute = ApiStudioUsersRouteImport.update({
+  id: '/api/studio/users',
+  path: '/api/studio/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiStudioTripsRoute = ApiStudioTripsRouteImport.update({
   id: '/api/studio/trips',
   path: '/api/studio/trips',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiStudioSystemStatusRoute = ApiStudioSystemStatusRouteImport.update({
+  id: '/api/studio/system-status',
+  path: '/api/studio/system-status',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiStudioImagesRoute = ApiStudioImagesRouteImport.update({
   id: '/api/studio/images',
   path: '/api/studio/images',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStudioAuditRoute = ApiStudioAuditRouteImport.update({
+  id: '/api/studio/audit',
+  path: '/api/studio/audit',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthMeRoute = ApiAuthMeRouteImport.update({
@@ -156,8 +180,12 @@ export interface FileRoutesByFullPath {
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
+  '/api/studio/audit': typeof ApiStudioAuditRoute
   '/api/studio/images': typeof ApiStudioImagesRoute
+  '/api/studio/system-status': typeof ApiStudioSystemStatusRoute
   '/api/studio/trips': typeof ApiStudioTripsRoute
+  '/api/studio/users': typeof ApiStudioUsersRoute
+  '/api/studio/videos': typeof ApiStudioVideosRoute
   '/admin/studio/': typeof AdminStudioIndexRoute
 }
 export interface FileRoutesByTo {
@@ -178,8 +206,12 @@ export interface FileRoutesByTo {
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
+  '/api/studio/audit': typeof ApiStudioAuditRoute
   '/api/studio/images': typeof ApiStudioImagesRoute
+  '/api/studio/system-status': typeof ApiStudioSystemStatusRoute
   '/api/studio/trips': typeof ApiStudioTripsRoute
+  '/api/studio/users': typeof ApiStudioUsersRoute
+  '/api/studio/videos': typeof ApiStudioVideosRoute
   '/admin/studio': typeof AdminStudioIndexRoute
 }
 export interface FileRoutesById {
@@ -202,8 +234,12 @@ export interface FileRoutesById {
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
+  '/api/studio/audit': typeof ApiStudioAuditRoute
   '/api/studio/images': typeof ApiStudioImagesRoute
+  '/api/studio/system-status': typeof ApiStudioSystemStatusRoute
   '/api/studio/trips': typeof ApiStudioTripsRoute
+  '/api/studio/users': typeof ApiStudioUsersRoute
+  '/api/studio/videos': typeof ApiStudioVideosRoute
   '/admin/studio/': typeof AdminStudioIndexRoute
 }
 export interface FileRouteTypes {
@@ -227,8 +263,12 @@ export interface FileRouteTypes {
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
+    | '/api/studio/audit'
     | '/api/studio/images'
+    | '/api/studio/system-status'
     | '/api/studio/trips'
+    | '/api/studio/users'
+    | '/api/studio/videos'
     | '/admin/studio/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -249,8 +289,12 @@ export interface FileRouteTypes {
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
+    | '/api/studio/audit'
     | '/api/studio/images'
+    | '/api/studio/system-status'
     | '/api/studio/trips'
+    | '/api/studio/users'
+    | '/api/studio/videos'
     | '/admin/studio'
   id:
     | '__root__'
@@ -272,8 +316,12 @@ export interface FileRouteTypes {
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/me'
+    | '/api/studio/audit'
     | '/api/studio/images'
+    | '/api/studio/system-status'
     | '/api/studio/trips'
+    | '/api/studio/users'
+    | '/api/studio/videos'
     | '/admin/studio/'
   fileRoutesById: FileRoutesById
 }
@@ -292,8 +340,12 @@ export interface RootRouteChildren {
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
+  ApiStudioAuditRoute: typeof ApiStudioAuditRoute
   ApiStudioImagesRoute: typeof ApiStudioImagesRoute
+  ApiStudioSystemStatusRoute: typeof ApiStudioSystemStatusRoute
   ApiStudioTripsRoute: typeof ApiStudioTripsRoute
+  ApiStudioUsersRoute: typeof ApiStudioUsersRoute
+  ApiStudioVideosRoute: typeof ApiStudioVideosRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -403,6 +455,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminStudioIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/api/studio/videos': {
+      id: '/api/studio/videos'
+      path: '/api/studio/videos'
+      fullPath: '/api/studio/videos'
+      preLoaderRoute: typeof ApiStudioVideosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/studio/users': {
+      id: '/api/studio/users'
+      path: '/api/studio/users'
+      fullPath: '/api/studio/users'
+      preLoaderRoute: typeof ApiStudioUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/studio/trips': {
       id: '/api/studio/trips'
       path: '/api/studio/trips'
@@ -410,11 +476,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStudioTripsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/studio/system-status': {
+      id: '/api/studio/system-status'
+      path: '/api/studio/system-status'
+      fullPath: '/api/studio/system-status'
+      preLoaderRoute: typeof ApiStudioSystemStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/studio/images': {
       id: '/api/studio/images'
       path: '/api/studio/images'
       fullPath: '/api/studio/images'
       preLoaderRoute: typeof ApiStudioImagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/studio/audit': {
+      id: '/api/studio/audit'
+      path: '/api/studio/audit'
+      fullPath: '/api/studio/audit'
+      preLoaderRoute: typeof ApiStudioAuditRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/me': {
@@ -490,8 +570,12 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthLoginRoute: ApiAuthLoginRoute,
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
+  ApiStudioAuditRoute: ApiStudioAuditRoute,
   ApiStudioImagesRoute: ApiStudioImagesRoute,
+  ApiStudioSystemStatusRoute: ApiStudioSystemStatusRoute,
   ApiStudioTripsRoute: ApiStudioTripsRoute,
+  ApiStudioUsersRoute: ApiStudioUsersRoute,
+  ApiStudioVideosRoute: ApiStudioVideosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
