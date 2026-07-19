@@ -32,12 +32,22 @@ export type PublicTrip = {
     alt: string | null;
   };
   gallery: GalleryImage[];
+  videos: TripVideo[];
 };
 
 export type GalleryImage = {
   id: string;
   webp: Record<number, string>;
   avif: Record<number, string>;
+  width: number;
+  height: number;
+  alt: string | null;
+};
+
+export type TripVideo = {
+  id: string;
+  mp4: string;
+  poster: string;
   width: number;
   height: number;
   alt: string | null;
