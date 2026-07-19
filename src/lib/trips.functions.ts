@@ -179,7 +179,13 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
     const filtered = row.cover_image_id
       ? galleryRows.filter((g) => g.id !== row.cover_image_id)
       : galleryRows;
-    return mapRow(row, filtered.map(mapGalleryRow));
+    const videoRows = await sql`
+      SELECT id, mp4_720_path, poster_path, width, height, alt
+      FROM videos
+      WHERE trip_id = ${row.id}
+      ORDER BY sort_order, created_at
+    `;
+    return mapRow(row, filtered.map(mapGalleryRow), videoRows.map(mapVideoRow));
   });
 
 /** Slim slug+title projection used to build newer/older links on story pages. */
