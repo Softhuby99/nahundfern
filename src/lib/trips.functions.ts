@@ -105,6 +105,18 @@ function mapRow(r: any, gallery: GalleryImage[] = [], videos: TripVideo[] = []):
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapGalleryRow(r: any): GalleryImage {
+  return {
+    id: r.id,
+    webp: { 400: r.webp_400, 1200: r.webp_1200, 2000: r.webp_2000 },
+    avif: { 400: r.avif_400, 1200: r.avif_1200, 2000: r.avif_2000 },
+    width: Number(r.width),
+    height: Number(r.height),
+    alt: r.alt ?? null,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapVideoRow(r: any): TripVideo {
   return {
     id: r.id,
