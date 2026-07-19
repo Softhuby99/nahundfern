@@ -58,7 +58,28 @@ export function SiteHeader() {
                 {n.label}
               </Link>
             ))}
+            {isAuthenticated && (
+              <>
+                <Link
+                  to="/admin/studio"
+                  className="text-sm text-primary hover:text-primary/80 transition-colors font-medium"
+                  activeProps={{ className: "border-b-2 border-primary pb-1" }}
+                >
+                  Studio
+                </Link>
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="inline-flex items-center gap-1.5 text-sm text-foreground/70 hover:text-primary transition-colors"
+                  aria-label="Abmelden"
+                >
+                  <LogOut className="size-4" strokeWidth={1.5} />
+                  Abmelden
+                </button>
+              </>
+            )}
           </nav>
+
 
           <div className="flex items-center gap-3">
             <button
