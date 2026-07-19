@@ -180,7 +180,7 @@ function StoryPage() {
               Videos
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {trip.videos.map((v) => (
+              {trip.videos.map((v: import("@/lib/trips.functions").TripVideo) => (
                 <VideoPlayer key={v.id} video={v} title={trip.title} />
               ))}
             </div>
