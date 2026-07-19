@@ -70,7 +70,7 @@ function toNumber(value: unknown): number | null {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapRow(r: any, gallery: GalleryImage[] = []): PublicTrip {
+function mapRow(r: any, gallery: GalleryImage[] = [], videos: TripVideo[] = []): PublicTrip {
   return {
     id: r.id,
     slug: r.slug,
@@ -100,15 +100,16 @@ function mapRow(r: any, gallery: GalleryImage[] = []): PublicTrip {
       alt: r.cover_alt,
     },
     gallery,
+    videos,
   };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapGalleryRow(r: any): GalleryImage {
+function mapVideoRow(r: any): TripVideo {
   return {
     id: r.id,
-    webp: { 400: r.webp_400, 1200: r.webp_1200, 2000: r.webp_2000 },
-    avif: { 400: r.avif_400, 1200: r.avif_1200, 2000: r.avif_2000 },
+    mp4: r.mp4_720_path,
+    poster: r.poster_path,
     width: Number(r.width),
     height: Number(r.height),
     alt: r.alt ?? null,
