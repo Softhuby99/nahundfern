@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { VideoEditor, type StudioVideo } from "@/components/studio/VideoEditor";
 
 export const Route = createFileRoute("/admin/studio/$slug")({
   head: () => ({
