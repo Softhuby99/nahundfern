@@ -617,6 +617,12 @@ function EditorPage() {
                 </div>
               )}
             </div>
+
+            {trip.id && (
+              <div className="pt-6 border-t border-border">
+                <VideoEditor tripId={trip.id} />
+              </div>
+            )}
           </aside>
         </div>
       </main>
