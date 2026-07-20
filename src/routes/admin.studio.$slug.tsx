@@ -112,8 +112,82 @@ function EditorPage() {
       xhr.send(form);
     });
 
+  // Skip the fetch-on-load once, right after we auto-created a draft below.
+  const skipLoadSlugRef = useRef<string | null>(null);
+  const draftCreatedRef = useRef(false);
+
+  // Auto-create a draft trip as soon as the user opens "New" so that
+  // trip.id exists immediately and cover/gallery/video uploads work
+  // without a manual "Save" first. An abandoned draft simply stays
+  // unpublished; opening "New" again creates a fresh one.
+  useEffect(() => {
+    if (!isNew || draftCreatedRef.current) return;
+    draftCreatedRef.current = true;
+    (async () => {
+      const draftSlug = `entwurf-${Date.now()}`;
+      const draftPayload = {
+        slug: draftSlug,
+        title: "Neuer Reisebericht",
+        region: "Europe" as const,
+        where: "—",
+        when: "—",
+        monthLabel: "—",
+        who: "—",
+        excerpt: "—",
+        body: "—",
+        published: false,
+        featured: false,
+      };
+      try {
+        const res = await fetch("/api/studio/trips", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(draftPayload),
+          credentials: "same-origin",
+        });
+        if (res.status === 401) {
+          await navigate({ to: "/admin/login" });
+          return;
+        }
+        if (!res.ok) {
+          setError("Entwurf konnte nicht angelegt werden");
+          return;
+        }
+        const data = await res.json();
+        // Blank the placeholders in the UI so the user starts with empty fields,
+        // while trip.id/slug carry the freshly-created draft.
+        setTrip({
+          ...emptyTrip(),
+          id: data.trip.id,
+          slug: data.trip.slug,
+          title: "",
+          where: "",
+          when: "",
+          monthLabel: "",
+          who: "",
+          excerpt: "",
+          body: "",
+        });
+        skipLoadSlugRef.current = data.trip.slug;
+        setLoading(false);
+        await navigate({
+          to: "/admin/studio/$slug",
+          params: { slug: data.trip.slug },
+          replace: true,
+        });
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+      }
+    })();
+  }, [isNew, navigate]);
+
   useEffect(() => {
     if (isNew) return;
+    if (skipLoadSlugRef.current === slug) {
+      skipLoadSlugRef.current = null;
+      setLoading(false);
+      return;
+    }
     fetch(`/api/studio/trips?slug=${encodeURIComponent(slug)}`, { credentials: "same-origin" })
       .then(async (res) => {
         if (res.status === 401) {
@@ -166,6 +240,7 @@ function EditorPage() {
       .catch((e) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setLoading(false));
   }, [slug, isNew, navigate]);
+
 
   const setField = <K extends keyof StudioTrip>(k: K, v: StudioTrip[K]) =>
     setTrip((t) => ({ ...t, [k]: v }));
