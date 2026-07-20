@@ -38,6 +38,8 @@ import { Route as AdminStudioSystemRouteImport } from './routes/admin.studio.sys
 import { Route as AdminStudioLoginsRouteImport } from './routes/admin.studio.logins'
 import { Route as AdminStudioAuditRouteImport } from './routes/admin.studio.audit'
 import { Route as AdminStudioSlugRouteImport } from './routes/admin.studio.$slug'
+import { Route as ApiStudioVideosTrimRouteImport } from './routes/api/studio/videos.trim'
+import { Route as ApiStudioVideosPosterRouteImport } from './routes/api/studio/videos.poster'
 
 const TipsRoute = TipsRouteImport.update({
   id: '/tips',
@@ -184,6 +186,16 @@ const AdminStudioSlugRoute = AdminStudioSlugRouteImport.update({
   path: '/studio/$slug',
   getParentRoute: () => AdminRoute,
 } as any)
+const ApiStudioVideosTrimRoute = ApiStudioVideosTrimRouteImport.update({
+  id: '/trim',
+  path: '/trim',
+  getParentRoute: () => ApiStudioVideosRoute,
+} as any)
+const ApiStudioVideosPosterRoute = ApiStudioVideosPosterRouteImport.update({
+  id: '/poster',
+  path: '/poster',
+  getParentRoute: () => ApiStudioVideosRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -213,8 +225,10 @@ export interface FileRoutesByFullPath {
   '/api/studio/system-status': typeof ApiStudioSystemStatusRoute
   '/api/studio/trips': typeof ApiStudioTripsRoute
   '/api/studio/users': typeof ApiStudioUsersRoute
-  '/api/studio/videos': typeof ApiStudioVideosRoute
+  '/api/studio/videos': typeof ApiStudioVideosRouteWithChildren
   '/admin/studio/': typeof AdminStudioIndexRoute
+  '/api/studio/videos/poster': typeof ApiStudioVideosPosterRoute
+  '/api/studio/videos/trim': typeof ApiStudioVideosTrimRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -243,8 +257,10 @@ export interface FileRoutesByTo {
   '/api/studio/system-status': typeof ApiStudioSystemStatusRoute
   '/api/studio/trips': typeof ApiStudioTripsRoute
   '/api/studio/users': typeof ApiStudioUsersRoute
-  '/api/studio/videos': typeof ApiStudioVideosRoute
+  '/api/studio/videos': typeof ApiStudioVideosRouteWithChildren
   '/admin/studio': typeof AdminStudioIndexRoute
+  '/api/studio/videos/poster': typeof ApiStudioVideosPosterRoute
+  '/api/studio/videos/trim': typeof ApiStudioVideosTrimRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -275,8 +291,10 @@ export interface FileRoutesById {
   '/api/studio/system-status': typeof ApiStudioSystemStatusRoute
   '/api/studio/trips': typeof ApiStudioTripsRoute
   '/api/studio/users': typeof ApiStudioUsersRoute
-  '/api/studio/videos': typeof ApiStudioVideosRoute
+  '/api/studio/videos': typeof ApiStudioVideosRouteWithChildren
   '/admin/studio/': typeof AdminStudioIndexRoute
+  '/api/studio/videos/poster': typeof ApiStudioVideosPosterRoute
+  '/api/studio/videos/trim': typeof ApiStudioVideosTrimRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -310,6 +328,8 @@ export interface FileRouteTypes {
     | '/api/studio/users'
     | '/api/studio/videos'
     | '/admin/studio/'
+    | '/api/studio/videos/poster'
+    | '/api/studio/videos/trim'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -340,6 +360,8 @@ export interface FileRouteTypes {
     | '/api/studio/users'
     | '/api/studio/videos'
     | '/admin/studio'
+    | '/api/studio/videos/poster'
+    | '/api/studio/videos/trim'
   id:
     | '__root__'
     | '/'
@@ -371,6 +393,8 @@ export interface FileRouteTypes {
     | '/api/studio/users'
     | '/api/studio/videos'
     | '/admin/studio/'
+    | '/api/studio/videos/poster'
+    | '/api/studio/videos/trim'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -393,7 +417,7 @@ export interface RootRouteChildren {
   ApiStudioSystemStatusRoute: typeof ApiStudioSystemStatusRoute
   ApiStudioTripsRoute: typeof ApiStudioTripsRoute
   ApiStudioUsersRoute: typeof ApiStudioUsersRoute
-  ApiStudioVideosRoute: typeof ApiStudioVideosRoute
+  ApiStudioVideosRoute: typeof ApiStudioVideosRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -601,6 +625,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminStudioSlugRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/api/studio/videos/trim': {
+      id: '/api/studio/videos/trim'
+      path: '/trim'
+      fullPath: '/api/studio/videos/trim'
+      preLoaderRoute: typeof ApiStudioVideosTrimRouteImport
+      parentRoute: typeof ApiStudioVideosRoute
+    }
+    '/api/studio/videos/poster': {
+      id: '/api/studio/videos/poster'
+      path: '/poster'
+      fullPath: '/api/studio/videos/poster'
+      preLoaderRoute: typeof ApiStudioVideosPosterRouteImport
+      parentRoute: typeof ApiStudioVideosRoute
+    }
   }
 }
 
@@ -639,6 +677,20 @@ const StoriesRouteChildren: StoriesRouteChildren = {
 const StoriesRouteWithChildren =
   StoriesRoute._addFileChildren(StoriesRouteChildren)
 
+interface ApiStudioVideosRouteChildren {
+  ApiStudioVideosPosterRoute: typeof ApiStudioVideosPosterRoute
+  ApiStudioVideosTrimRoute: typeof ApiStudioVideosTrimRoute
+}
+
+const ApiStudioVideosRouteChildren: ApiStudioVideosRouteChildren = {
+  ApiStudioVideosPosterRoute: ApiStudioVideosPosterRoute,
+  ApiStudioVideosTrimRoute: ApiStudioVideosTrimRoute,
+}
+
+const ApiStudioVideosRouteWithChildren = ApiStudioVideosRoute._addFileChildren(
+  ApiStudioVideosRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -659,18 +711,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiStudioSystemStatusRoute: ApiStudioSystemStatusRoute,
   ApiStudioTripsRoute: ApiStudioTripsRoute,
   ApiStudioUsersRoute: ApiStudioUsersRoute,
-  ApiStudioVideosRoute: ApiStudioVideosRoute,
+  ApiStudioVideosRoute: ApiStudioVideosRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

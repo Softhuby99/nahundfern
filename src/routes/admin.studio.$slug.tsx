@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { VideoEditor } from "@/components/studio/VideoEditor";
 
 export const Route = createFileRoute("/admin/studio/$slug")({
   head: () => ({
@@ -616,6 +617,12 @@ function EditorPage() {
                 </div>
               )}
             </div>
+
+            {trip.id && (
+              <div className="pt-6 border-t border-border">
+                <VideoEditor tripId={trip.id} />
+              </div>
+            )}
           </aside>
         </div>
       </main>

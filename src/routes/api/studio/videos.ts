@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { sql } from "@/lib/db.server";
 import { requireAuth, requireSameOrigin } from "@/lib/auth.server";
-import { storeVideo, deleteVideoFiles } from "@/lib/videos.server";
+import { storeVideo, deleteVideoFiles, VideoError } from "@/lib/videos.server";
 import { auditLog } from "@/lib/audit.server";
 
 const PatchInput = z.object({
@@ -57,21 +57,26 @@ export const Route = createFileRoute("/api/studio/videos")({
         try {
           stored = await storeVideo(buffer, file.name);
         } catch (err) {
+          if (err instanceof VideoError) {
+            return Response.json({ error: err.message }, { status: err.status });
+          }
           return Response.json(
             { error: err instanceof Error ? err.message : "Video-Verarbeitung fehlgeschlagen" },
-            { status: 400 },
+            { status: 500 },
           );
         }
 
         try {
           const [video] = await sql`
             INSERT INTO videos (
-              trip_id, original_path, mp4_720_path, poster_path,
-              width, height, duration_ms, bytes, mime, alt, sort_order
+              id, trip_id, original_path, mp4_720_path, poster_path,
+              width, height, duration_ms, bytes, mime, alt, sort_order,
+              original_duration_ms, video_version, poster_version
             ) VALUES (
-              ${tripId}, ${stored.originalPath}, ${stored.mp4_720_path}, ${stored.posterPath},
+              ${stored.id}, ${tripId}, ${stored.originalPath}, ${stored.mp4_720_path}, ${stored.posterPath},
               ${stored.width}, ${stored.height}, ${stored.durationMs}, ${stored.bytes},
-              ${stored.mime}, ${file.name}, 0
+              ${stored.mime}, ${file.name}, 0,
+              ${stored.originalDurationMs}, ${stored.videoVersion}, ${stored.posterVersion}
             )
             RETURNING *
           `;
