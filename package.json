@@ -13,6 +13,7 @@
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
+    "test:video-integration": "vitest run src/lib/videos.integration.test.ts",
     "check": "bun run typecheck && bun run lint && bun run build && bun run test"
   },
   "dependencies": {
