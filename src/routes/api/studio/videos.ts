@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { sql } from "@/lib/db.server";
 import { requireAuth, requireSameOrigin } from "@/lib/auth.server";
-import { storeVideo, deleteVideoFiles } from "@/lib/videos.server";
+import { storeVideo, deleteVideoFiles, VideoError } from "@/lib/videos.server";
 import { auditLog } from "@/lib/audit.server";
 
 const PatchInput = z.object({
@@ -57,9 +57,12 @@ export const Route = createFileRoute("/api/studio/videos")({
         try {
           stored = await storeVideo(buffer, file.name);
         } catch (err) {
+          if (err instanceof VideoError) {
+            return Response.json({ error: err.message }, { status: err.status });
+          }
           return Response.json(
             { error: err instanceof Error ? err.message : "Video-Verarbeitung fehlgeschlagen" },
-            { status: 400 },
+            { status: 500 },
           );
         }
 
