@@ -66,12 +66,14 @@ export const Route = createFileRoute("/api/studio/videos")({
         try {
           const [video] = await sql`
             INSERT INTO videos (
-              trip_id, original_path, mp4_720_path, poster_path,
-              width, height, duration_ms, bytes, mime, alt, sort_order
+              id, trip_id, original_path, mp4_720_path, poster_path,
+              width, height, duration_ms, bytes, mime, alt, sort_order,
+              original_duration_ms, video_version, poster_version
             ) VALUES (
-              ${tripId}, ${stored.originalPath}, ${stored.mp4_720_path}, ${stored.posterPath},
+              ${stored.id}, ${tripId}, ${stored.originalPath}, ${stored.mp4_720_path}, ${stored.posterPath},
               ${stored.width}, ${stored.height}, ${stored.durationMs}, ${stored.bytes},
-              ${stored.mime}, ${file.name}, 0
+              ${stored.mime}, ${file.name}, 0,
+              ${stored.originalDurationMs}, ${stored.videoVersion}, ${stored.posterVersion}
             )
             RETURNING *
           `;
