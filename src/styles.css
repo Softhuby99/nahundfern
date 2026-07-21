@@ -142,3 +142,8 @@
     color: var(--color-primary-foreground);
   }
 }
+
+.gallery-lightbox {
+  z-index: 1000;
+  overscroll-behavior: contain;
+}
