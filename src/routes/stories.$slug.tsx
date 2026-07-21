@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeSanitize from "rehype-sanitize";
@@ -6,8 +7,10 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ResponsivePicture } from "@/components/HorizontalTimeline";
 import { VideoPlayer } from "@/components/trip/VideoPlayer";
+import { GalleryLightbox } from "@/components/trip/GalleryLightbox";
 import { getPublishedTrip, listTripNavigationEntries } from "@/lib/trips.functions";
 import { getPublicBaseUrl } from "@/lib/public-base-url";
+
 
 export const Route = createFileRoute("/stories/$slug")({
   loader: async ({ params }) => {
@@ -83,6 +86,7 @@ export const Route = createFileRoute("/stories/$slug")({
 
 function StoryPage() {
   const { trip, navigationEntries } = Route.useLoaderData();
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   // List is sorted newest → oldest, so index-1 is the more recent trip and
   // index+1 is the older one. Defensive: if the current slug is missing from
@@ -91,6 +95,7 @@ function StoryPage() {
   const index = navigationEntries.findIndex((e: { slug: string }) => e.slug === trip.slug);
   const newer = index > 0 ? navigationEntries[index - 1] : null;
   const older = index >= 0 ? (navigationEntries[index + 1] ?? null) : null;
+
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -152,28 +157,40 @@ function StoryPage() {
               Galerie
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {trip.gallery.map((img: import("@/lib/trips.functions").GalleryImage) => (
-                <a
-                  key={img.id}
-                  href={img.webp[2000] ?? img.webp[1200]}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block overflow-hidden rounded-sm bg-card"
-                >
-                  <ResponsivePicture
-                    webp={img.webp}
-                    avif={img.avif}
-                    alt={img.alt ?? trip.title}
-                    width={img.width}
-                    height={img.height}
-                    className="w-full h-full object-cover aspect-[4/3] hover:opacity-90 transition-opacity"
-                  />
-                </a>
-              ))}
+              {trip.gallery.map(
+                (img: import("@/lib/trips.functions").GalleryImage, i: number) => (
+                  <button
+                    key={img.id}
+                    type="button"
+                    onClick={() => setLightboxIndex(i)}
+                    className="block overflow-hidden rounded-sm bg-card text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    aria-label={`Bild ${i + 1} von ${trip.gallery.length} öffnen`}
+                  >
+                    <ResponsivePicture
+                      webp={img.webp}
+                      avif={img.avif}
+                      alt={img.alt ?? trip.title}
+                      width={img.width}
+                      height={img.height}
+                      className="w-full h-full object-cover aspect-[4/3] hover:opacity-90 transition-opacity"
+                    />
+                  </button>
+                ),
+              )}
             </div>
+            {lightboxIndex !== null && (
+              <GalleryLightbox
+                open
+                images={trip.gallery}
+                startIndex={lightboxIndex}
+                onClose={() => setLightboxIndex(null)}
+                title={trip.title}
+              />
+            )}
           </div>
         )}
         {/* Videos */}
+
         {trip.videos.length > 0 && (
           <div className="px-6 md:px-8 max-w-5xl mx-auto pb-16">
             <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-6">
