@@ -102,9 +102,10 @@ export default function RouteMap({
       if (!mapRef.current?.isStyleLoaded()) setFailed(true);
     });
 
+    const markers = markersRef.current;
     return () => {
-      markersRef.current.forEach((m) => m.remove());
-      markersRef.current.clear();
+      markers.forEach((m) => m.remove());
+      markers.clear();
       map?.remove();
       mapRef.current = null;
       setReady(false);
