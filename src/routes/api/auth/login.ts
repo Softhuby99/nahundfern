@@ -12,7 +12,9 @@ import {
 import { auditLog } from "@/lib/audit.server";
 
 const LoginInput = z.object({
-  email: z.string().email(),
+  // Normalize like the user-creation paths do, otherwise a stray space or a
+  // capital letter in the typed address never matches the stored row.
+  email: z.string().trim().toLowerCase().email(),
   password: z.string().min(1),
 });
 
