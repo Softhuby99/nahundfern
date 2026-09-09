@@ -7,7 +7,7 @@ Jede Reise bekommt **Stationen** (z. B. München → Verona → Rom). Stationen 
 Grundentscheidungen:
 
 - Karte: MapLibre GL mit Globus-Projektion, Kacheln von OpenFreeMap (kostenlos, kein Konto). Kartenquelle austauschbar über eine einzige Einstellung (`VITE_MAP_STYLE_URL`).
-- Routenlinie: gestrichelte Großkreis-Bögen zwischen aufeinanderfolgenden Stationen, kein Straßen-Routing.
+- Routenlinie: **Straßen-Routing** zwischen aufeinanderfolgenden Stationen (echter Straßenverlauf), gestrichelte Großkreis-Bögen als Alternative für Flug-/Fährabschnitte und als automatischer Ausweich, wenn keine Straßenroute möglich ist. Pro Abschnitt wählbar: Auto, Fahrrad, zu Fuß oder Flug/Bogen.
 - Bisheriger Berichtstext + Galerie bleiben als Einleitung; Stationen kommen darunter. Reisen ohne Stationen sehen aus wie heute (keine Karte).
 - Reihenfolge: manuell (Pfeile) plus Button „nach Ankunftsdatum sortieren“.
 - Marker-Bild: pro Station wählbar; Fallback zur Laufzeit (erstes Stationsbild, sonst nummerierter Punkt).
@@ -112,9 +112,18 @@ type PublicStation = {
 
 `sort_order` ist primär. „Nach Datum sortieren“: `arrival_date` aufsteigend, Stationen ohne Datum ans Ende; bei gleichem oder fehlendem Datum bleibt die bisherige Reihenfolge stabil (stabile Sortierung). Danach werden neue `sort_order`-Werte gespeichert.
 
+**Straßen-Routing pro Abschnitt**
+
+- Migration 008 erweitert `trip_stations` um `leg_mode text NOT NULL DEFAULT 'drive'` (`drive` | `cycle` | `walk` | `air`) und `leg_geometry jsonb NULL` — die Verbindung *zur jeweiligen Station von der vorherigen*. Die erste Station hat keinen Abschnitt.
+- Die Straßenroute wird **einmalig im Studio berechnet und gespeichert** (nicht bei jedem Seitenaufruf). Neue Server-Route `POST /api/studio/stations/:id/route` (Auth, Same-Origin, Audit) holt die Geometrie über OSRM (öffentlicher Demo-Server `router.project-osrm.org`, austauschbar über `ROUTING_BASE_URL`; ein eigener OSRM-Container ist später möglich), vereinfacht sie serverseitig (Douglas-Peucker, Ziel ≤ 500 Punkte / ~50 KB je Abschnitt) und legt sie in `leg_geometry` ab. Timeout, serverseitiges Rate-Limit und Cache wie beim Geocoding.
+- Neuberechnung automatisch beim Ändern von Koordinaten oder `leg_mode`, zusätzlich Button „Route neu berechnen“; Statusanzeige „berechne …“ / „gespeichert“ / „nicht möglich“.
+- Fallback-Kette beim Zeichnen: `leg_geometry` → Großkreis-Bogen. `leg_mode = 'air'`, fehlgeschlagenes Routing, keine Landverbindung (z. B. über den Atlantik) oder Abschnitte über ~2000 km ergeben automatisch den gestrichelten Bogen. Ein fehlendes Routing blockiert nie die Anzeige.
+- Darstellung: Straßenabschnitte durchgezogen, Flug-/Bogenabschnitte gestrichelt, Abschnitte zu unveröffentlichten Stationen entfallen öffentlich vollständig.
+- Öffentlich wird nur die gespeicherte Geometrie ausgeliefert; die Besucherseite fragt **keinen** externen Routing-Dienst. Datenschutzerklärung nennt OSRM als Studio-Dienst.
+
 **Routengeometrie / Antimeridian**
 
-`src/components/map/route-geometry.ts` (SSR-sicher) liefert `LineString | MultiLineString`. Bögen, die den 180. Längengrad kreuzen, werden dort in getrennte Segmente geteilt (`@turf/great-circle` mit MultiLineString-Ausgabe) — für durchgezogene und gepunktete Linien. Auch die Kamerafahrt nimmt den kurzen Weg über die Datumsgrenze. Tests: Tokio→San Francisco, Auckland→Santiago, Station exakt auf ±180, Route mit mehreren Kreuzungen.
+`src/components/map/route-geometry.ts` (SSR-sicher) liefert `LineString | MultiLineString` — sowohl für gespeicherte Straßengeometrie als auch für berechnete Bögen. Linien, die den 180. Längengrad kreuzen, werden dort in getrennte Segmente geteilt (`@turf/great-circle` mit MultiLineString-Ausgabe bzw. Split der Straßengeometrie). Auch die Kamerafahrt nimmt den kurzen Weg über die Datumsgrenze. Tests: Tokio→San Francisco, Auckland→Santiago, Station exakt auf ±180, Route mit mehreren Kreuzungen.
 
 **Frontend-Komponenten**
 
@@ -124,27 +133,27 @@ type PublicStation = {
 - `src/routes/map.tsx` mit eigenem `head()`; Nav-Eintrag „Karte“ in `SiteHeader`.
 - Lightbox wird pro Station wiederverwendet.
 
-**Pakete**: `maplibre-gl`, `@turf/great-circle`.
+**Pakete**: `maplibre-gl`, `@turf/great-circle`, `@turf/simplify` (Geometrie-Vereinfachung).
 
-**Konfiguration**: `.env.example` + docker-compose Build-Arg `VITE_MAP_STYLE_URL=https://tiles.openfreemap.org/styles/liberty`, `GEOCODER_USER_AGENT=…`. CSP-Snippet um `img-src`/`connect-src https://tiles.openfreemap.org` ergänzen.
+**Konfiguration**: `.env.example` + docker-compose Build-Arg `VITE_MAP_STYLE_URL=https://tiles.openfreemap.org/styles/liberty`, `GEOCODER_USER_AGENT=…`, `ROUTING_BASE_URL=https://router.project-osrm.org`. CSP-Snippet um `img-src`/`connect-src https://tiles.openfreemap.org` ergänzen (OSRM nur serverseitig, daher keine CSP-Änderung nötig).
 
 **Tests**
 
-- Unit: Großkreis + Antimeridian-Fälle, ungültige Koordinaten, Sortierung (inkl. fehlende/gleiche Daten), Datumsvalidierung, Zielort-Fallback, Filterung veröffentlichter Stationen, Routen mit 0/1/2 Stationen, Marker-Fallback-Kette inkl. fehlender 400px-Variante.
-- API/Integration: Auth, Same-Origin, Trip-Gleichheit bei Medienzuordnung, `station_id = NULL` setzen, Station löschen, Zielort-Eindeutigkeit, unveröffentlichten Zielort ablehnen, Reorder mit fremden/fehlenden/doppelten/unvollständigen IDs, Geocoding-Cache/Rate-Limit/Timeout, Public-Payload ohne jede Spur unveröffentlichter Stationen (auch keine Gesamtzahl), Stationsobergrenze.
+- Unit: Großkreis + Antimeridian-Fälle, ungültige Koordinaten, Sortierung (inkl. fehlende/gleiche Daten), Datumsvalidierung, Zielort-Fallback, Filterung veröffentlichter Stationen, Routen mit 0/1/2 Stationen, Marker-Fallback-Kette inkl. fehlender 400px-Variante, Fallback Straßengeometrie → Bogen, Vereinfachung hält die Punktobergrenze ein.
+- API/Integration: Auth, Same-Origin, Trip-Gleichheit bei Medienzuordnung, `station_id = NULL` setzen, Station löschen, Zielort-Eindeutigkeit, unveröffentlichten Zielort ablehnen, Reorder mit fremden/fehlenden/doppelten/unvollständigen IDs, Geocoding-Cache/Rate-Limit/Timeout, Routing-Timeout und „keine Route möglich“, `leg_mode = 'air'` erzeugt keinen OSRM-Aufruf, Public-Payload ohne jede Spur unveröffentlichter Stationen (auch keine Gesamtzahl), Stationsobergrenze.
 - E2E: Karte lädt, alte Reise ohne Stationen bleibt funktional, Markerklick, Scroll-Sync, Animation überspringen, Reduced Motion, Station anlegen/bearbeiten/löschen, Medien hin und zurück, mobile Ansicht, `/map` Empty State.
 
 **Logging**: Fehler bei Geocoding (inkl. Timeout/Rate-Limit), Stationsspeicherung, Medienzuordnung; Kartenfehler clientseitig. Keine vollständigen Suchtexte, keine privaten Koordinaten ohne Grund. Kein Analytics.
 
 ## Nicht Bestandteil von v0.7.0
 
-GPS-Tracking, automatische Trackaufzeichnung, Straßenrouting, GPX-Import und Trackpunkt-Speicherung, Höhenprofile, Offline-Karten, mehrere Routen pro Reise, Many-to-Many-Medien, AR, KI-Stationsvorschläge, eigene URLs pro Station, Kommentare/Social, Analytics-Dashboard, 3D-Gebäude/POIs, automatische Migration bestehender Trip-Koordinaten (nur der Ein-Klick-Weg), anonymisierter Teaser, Undo-Toast, Clustering, Batch-Speichern aller Stationen.
+GPS-Tracking, automatische Trackaufzeichnung, GPX-Import und Trackpunkt-Speicherung, eigener OSRM-Server (vorbereitet, aber nicht Teil dieser Version), Zwischenwegpunkte innerhalb eines Abschnitts, Höhenprofile, Offline-Karten, mehrere Routen pro Reise, Many-to-Many-Medien, AR, KI-Stationsvorschläge, eigene URLs pro Station, Kommentare/Social, Analytics-Dashboard, 3D-Gebäude/POIs, automatische Migration bestehender Trip-Koordinaten (nur der Ein-Klick-Weg), anonymisierter Teaser, Undo-Toast, Clustering, Batch-Speichern aller Stationen.
 
 ## Umsetzungsreihenfolge
 
 1. Migration 008 + Schema + öffentliche/Studio-Datenfunktionen (inkl. Sichtbarkeitsregel).
 2. Stations-API (inkl. Reorder-, Zielort- und Medien-Semantik) + Geocoding-Proxy mit Fallback.
-3. `route-geometry.ts` inkl. Antimeridian + Unit-Tests.
+3. `route-geometry.ts` inkl. Antimeridian + Straßen-/Bogen-Fallback + Unit-Tests; Routing-Endpunkt mit Vereinfachung und Speicherung.
 4. RouteMap-Komponente (Globus, Bögen, Marker als Buttons, Fehlerzustand, Animation).
 5. Studio-StationEditor inkl. Medienzuordnung und Ein-Klick-Übernahme.
 6. **Prototyp mobile Kartenanimation**, dann öffentliche Berichtsseite (Split-Layout, Scroll-Sync).
