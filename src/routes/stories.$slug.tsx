@@ -8,6 +8,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { ResponsivePicture } from "@/components/HorizontalTimeline";
 import { VideoPlayer } from "@/components/trip/VideoPlayer";
 import { GalleryLightbox } from "@/components/trip/GalleryLightbox";
+import { StationSections } from "@/components/trip/StationSections";
 import { getPublishedTrip, listTripNavigationEntries } from "@/lib/trips.functions";
 import { getPublicBaseUrl } from "@/lib/public-base-url";
 

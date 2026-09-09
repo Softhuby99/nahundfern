@@ -13,6 +13,7 @@ import { Route as TipsRouteImport } from './routes/tips'
 import { Route as TimelineRouteImport } from './routes/timeline'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as StoriesRouteImport } from './routes/stories'
+import { Route as MapRouteImport } from './routes/map'
 import { Route as JournalRouteImport } from './routes/journal'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -62,6 +63,11 @@ const StudioRoute = StudioRouteImport.update({
 const StoriesRoute = StoriesRouteImport.update({
   id: '/stories',
   path: '/stories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MapRoute = MapRouteImport.update({
+  id: '/map',
+  path: '/map',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JournalRoute = JournalRouteImport.update({
@@ -222,6 +228,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/gallery': typeof GalleryRoute
   '/journal': typeof JournalRoute
+  '/map': typeof MapRoute
   '/stories': typeof StoriesRouteWithChildren
   '/studio': typeof StudioRoute
   '/timeline': typeof TimelineRoute
@@ -258,6 +265,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/gallery': typeof GalleryRoute
   '/journal': typeof JournalRoute
+  '/map': typeof MapRoute
   '/studio': typeof StudioRoute
   '/timeline': typeof TimelineRoute
   '/tips': typeof TipsRoute
@@ -294,6 +302,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/gallery': typeof GalleryRoute
   '/journal': typeof JournalRoute
+  '/map': typeof MapRoute
   '/stories': typeof StoriesRouteWithChildren
   '/studio': typeof StudioRoute
   '/timeline': typeof TimelineRoute
@@ -332,6 +341,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/gallery'
     | '/journal'
+    | '/map'
     | '/stories'
     | '/studio'
     | '/timeline'
@@ -368,6 +378,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/gallery'
     | '/journal'
+    | '/map'
     | '/studio'
     | '/timeline'
     | '/tips'
@@ -403,6 +414,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/gallery'
     | '/journal'
+    | '/map'
     | '/stories'
     | '/studio'
     | '/timeline'
@@ -440,6 +452,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   GalleryRoute: typeof GalleryRoute
   JournalRoute: typeof JournalRoute
+  MapRoute: typeof MapRoute
   StoriesRoute: typeof StoriesRouteWithChildren
   StudioRoute: typeof StudioRoute
   TimelineRoute: typeof TimelineRoute
@@ -479,6 +492,13 @@ declare module '@tanstack/react-router' {
       path: '/stories'
       fullPath: '/stories'
       preLoaderRoute: typeof StoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/map': {
+      id: '/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof MapRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/journal': {
@@ -776,6 +796,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   GalleryRoute: GalleryRoute,
   JournalRoute: JournalRoute,
+  MapRoute: MapRoute,
   StoriesRoute: StoriesRouteWithChildren,
   StudioRoute: StudioRoute,
   TimelineRoute: TimelineRoute,
