@@ -151,6 +151,9 @@ function StoryPage() {
           </div>
         </div>
 
+        {/* Reiseroute mit Stationen (nur veröffentlichte Stationen) */}
+        <StationSections stations={trip.stations} tripTitle={trip.title} />
+
         {/* Gallery */}
         {trip.gallery.length > 0 && (
           <div className="px-6 md:px-8 max-w-5xl mx-auto pb-16">
