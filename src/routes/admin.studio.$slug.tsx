@@ -698,14 +698,16 @@ function EditorPage() {
                 <VideoEditor tripId={trip.id} />
               </div>
             )}
-
-            {trip.id && (
-              <div className="pt-6 border-t border-border">
-                <StationEditor tripId={trip.id} />
-              </div>
-            )}
           </aside>
         </div>
+
+        {/* Reisestationen: voller Seitenbreite, damit Suche, Liste und
+            Weltkarte nebeneinander Platz haben. */}
+        {trip.id && (
+          <div className="mt-10 pt-8 border-t border-border">
+            <StationEditor tripId={trip.id} />
+          </div>
+        )}
       </main>
       <SiteFooter />
     </div>
