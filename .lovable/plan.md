@@ -7,7 +7,7 @@ Jede Reise bekommt **Stationen** (z. B. München → Verona → Rom). Stationen 
 Grundentscheidungen:
 
 - Karte: MapLibre GL mit Globus-Projektion, Kacheln von OpenFreeMap (kostenlos, kein Konto). Kartenquelle austauschbar über eine einzige Einstellung (`VITE_MAP_STYLE_URL`).
-- Routenlinie: gestrichelte Großkreis-Bögen zwischen aufeinanderfolgenden Stationen, kein Straßen-Routing.
+- Routenlinie: **Straßen-Routing** zwischen aufeinanderfolgenden Stationen (echter Straßenverlauf), gestrichelte Großkreis-Bögen als Alternative für Flug-/Fährabschnitte und als automatischer Ausweich, wenn keine Straßenroute möglich ist. Pro Abschnitt wählbar: Auto, Fahrrad, zu Fuß oder Flug/Bogen.
 - Bisheriger Berichtstext + Galerie bleiben als Einleitung; Stationen kommen darunter. Reisen ohne Stationen sehen aus wie heute (keine Karte).
 - Reihenfolge: manuell (Pfeile) plus Button „nach Ankunftsdatum sortieren“.
 - Marker-Bild: pro Station wählbar; Fallback zur Laufzeit (erstes Stationsbild, sonst nummerierter Punkt).
