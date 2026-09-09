@@ -159,7 +159,10 @@ export const Route = createFileRoute("/api/studio/users")({
         }
         const [{ count }] = await sql`SELECT count(*)::int AS count FROM users`;
         if (Number(count) <= 1) {
-          return Response.json({ error: "Letzter User kann nicht gelöscht werden" }, { status: 400 });
+          return Response.json(
+            { error: "Letzter User kann nicht gelöscht werden" },
+            { status: 400 },
+          );
         }
         const [row] = await sql`DELETE FROM users WHERE id = ${idParsed.data} RETURNING id, email`;
         if (!row) return Response.json({ error: "User nicht gefunden" }, { status: 404 });

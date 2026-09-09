@@ -254,7 +254,9 @@ function VideoRow({
     );
 
   const applyPoster = () =>
-    runAction("poster", () => postJson("/api/studio/videos/poster", { id: video.id, atMs: posterAt }));
+    runAction("poster", () =>
+      postJson("/api/studio/videos/poster", { id: video.id, atMs: posterAt }),
+    );
 
   return (
     <div className="border border-border rounded-sm p-4 space-y-3">

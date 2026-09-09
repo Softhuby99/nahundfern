@@ -242,7 +242,6 @@ function EditorPage() {
       .finally(() => setLoading(false));
   }, [slug, isNew, navigate]);
 
-
   const setField = <K extends keyof StudioTrip>(k: K, v: StudioTrip[K]) =>
     setTrip((t) => ({ ...t, [k]: v }));
 

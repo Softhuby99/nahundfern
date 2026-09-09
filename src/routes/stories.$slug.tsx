@@ -12,7 +12,6 @@ import { StationSections } from "@/components/trip/StationSections";
 import { getPublishedTrip, listTripNavigationEntries } from "@/lib/trips.functions";
 import { getPublicBaseUrl } from "@/lib/public-base-url";
 
-
 export const Route = createFileRoute("/stories/$slug")({
   loader: async ({ params }) => {
     // Load story and navigation entries in parallel. A missing story is a real
@@ -97,7 +96,6 @@ function StoryPage() {
   const newer = index > 0 ? navigationEntries[index - 1] : null;
   const older = index >= 0 ? (navigationEntries[index + 1] ?? null) : null;
 
-
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
@@ -161,26 +159,24 @@ function StoryPage() {
               Galerie
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {trip.gallery.map(
-                (img: import("@/lib/trips.functions").GalleryImage, i: number) => (
-                  <button
-                    key={img.id}
-                    type="button"
-                    onClick={() => setLightboxIndex(i)}
-                    className="block overflow-hidden rounded-sm bg-card text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                    aria-label={`Bild ${i + 1} von ${trip.gallery.length} öffnen`}
-                  >
-                    <ResponsivePicture
-                      webp={img.webp}
-                      avif={img.avif}
-                      alt={img.alt ?? trip.title}
-                      width={img.width}
-                      height={img.height}
-                      className="w-full h-full object-cover aspect-[4/3] hover:opacity-90 transition-opacity"
-                    />
-                  </button>
-                ),
-              )}
+              {trip.gallery.map((img: import("@/lib/trips.functions").GalleryImage, i: number) => (
+                <button
+                  key={img.id}
+                  type="button"
+                  onClick={() => setLightboxIndex(i)}
+                  className="block overflow-hidden rounded-sm bg-card text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  aria-label={`Bild ${i + 1} von ${trip.gallery.length} öffnen`}
+                >
+                  <ResponsivePicture
+                    webp={img.webp}
+                    avif={img.avif}
+                    alt={img.alt ?? trip.title}
+                    width={img.width}
+                    height={img.height}
+                    className="w-full h-full object-cover aspect-[4/3] hover:opacity-90 transition-opacity"
+                  />
+                </button>
+              ))}
             </div>
             {lightboxIndex !== null && (
               <GalleryLightbox
@@ -207,7 +203,6 @@ function StoryPage() {
             </div>
           </div>
         )}
-
 
         {/* Navigation: symmetrical 3-column footer — newer / all / older.
             Placeholders keep the layout stable when a direction is missing. */}

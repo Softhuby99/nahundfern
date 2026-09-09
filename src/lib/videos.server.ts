@@ -53,8 +53,7 @@ function run(
     const child = spawn(cmd, args, { stdio: ["ignore", "pipe", "pipe"] });
     let stdout = "";
     let stderr = "";
-    const cap = (buf: string, chunk: Buffer) =>
-      (buf + chunk.toString()).slice(-10_000);
+    const cap = (buf: string, chunk: Buffer) => (buf + chunk.toString()).slice(-10_000);
     child.stdout.on("data", (c: Buffer) => (stdout = cap(stdout, c)));
     child.stderr.on("data", (c: Buffer) => (stderr = cap(stderr, c)));
 
@@ -259,7 +258,10 @@ export async function storeVideo(buffer: Buffer, originalName: string): Promise<
 
 function validateInputLimits(probe: ProbeResult): void {
   if (probe.videoStreamCount !== 1) {
-    throw new VideoError(422, `Video muss genau einen Videostream haben (gefunden: ${probe.videoStreamCount})`);
+    throw new VideoError(
+      422,
+      `Video muss genau einen Videostream haben (gefunden: ${probe.videoStreamCount})`,
+    );
   }
   if (probe.width > MAX_WIDTH || probe.height > MAX_HEIGHT) {
     throw new VideoError(422, `Auflösung zu hoch (max ${MAX_WIDTH}×${MAX_HEIGHT})`);
@@ -279,12 +281,7 @@ async function runFfmpegRender(opts: {
   hasAudio: boolean;
   signal?: AbortSignal;
 }): Promise<void> {
-  const args: string[] = [
-    "-hide_banner",
-    "-nostdin",
-    "-i",
-    opts.inputPath,
-  ];
+  const args: string[] = ["-hide_banner", "-nostdin", "-i", opts.inputPath];
   if (opts.startMs !== null && opts.endMs !== null) {
     const startSec = (opts.startMs / 1000).toFixed(3);
     const durSec = ((opts.endMs - opts.startMs) / 1000).toFixed(3);
@@ -454,8 +451,8 @@ export async function trimVideo(opts: {
     const row = await ensureOriginalDuration(initial, originalDisk);
 
     // Reset-Semantik: startMs=endMs=null → aus vollem Original rendern.
-    let effectiveStart: number | null = opts.startMs;
-    let effectiveEnd: number | null = opts.endMs;
+    const effectiveStart: number | null = opts.startMs;
+    const effectiveEnd: number | null = opts.endMs;
     if (effectiveStart === null && effectiveEnd === null) {
       // Reset
     } else if (effectiveStart === null || effectiveEnd === null) {
@@ -502,9 +499,7 @@ export async function trimVideo(opts: {
       const trimStart = effectiveStart ?? 0;
       const trimEnd = effectiveEnd ?? row.original_duration_ms ?? newDurationMs;
       const posterOk =
-        row.poster_at_ms !== null &&
-        row.poster_at_ms >= trimStart &&
-        row.poster_at_ms <= trimEnd;
+        row.poster_at_ms !== null && row.poster_at_ms >= trimStart && row.poster_at_ms <= trimEnd;
 
       if (!posterOk) {
         const newPosterAtSource = Math.min(

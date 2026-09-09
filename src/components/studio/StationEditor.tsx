@@ -289,7 +289,7 @@ export function StationEditor({ tripId }: { tripId: string }) {
       void patchStation(id, { latitude: coords.latitude, longitude: coords.longitude });
       setRouteStatus("Koordinate geändert — Route neu berechnen.");
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     [],
   );
 
