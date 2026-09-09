@@ -5,7 +5,7 @@ import readline from "node:readline";
 import postgres from "postgres";
 import argon2 from "argon2";
 
-const email = process.argv[2];
+const email = process.argv[2]?.trim().toLowerCase();
 if (!email) {
   console.error("Usage: node scripts/create-user.js <email>");
   process.exit(1);
