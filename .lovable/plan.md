@@ -133,14 +133,14 @@ type PublicStation = {
 - `src/routes/map.tsx` mit eigenem `head()`; Nav-Eintrag „Karte“ in `SiteHeader`.
 - Lightbox wird pro Station wiederverwendet.
 
-**Pakete**: `maplibre-gl`, `@turf/great-circle`.
+**Pakete**: `maplibre-gl`, `@turf/great-circle`, `@turf/simplify` (Geometrie-Vereinfachung).
 
-**Konfiguration**: `.env.example` + docker-compose Build-Arg `VITE_MAP_STYLE_URL=https://tiles.openfreemap.org/styles/liberty`, `GEOCODER_USER_AGENT=…`. CSP-Snippet um `img-src`/`connect-src https://tiles.openfreemap.org` ergänzen.
+**Konfiguration**: `.env.example` + docker-compose Build-Arg `VITE_MAP_STYLE_URL=https://tiles.openfreemap.org/styles/liberty`, `GEOCODER_USER_AGENT=…`, `ROUTING_BASE_URL=https://router.project-osrm.org`. CSP-Snippet um `img-src`/`connect-src https://tiles.openfreemap.org` ergänzen (OSRM nur serverseitig, daher keine CSP-Änderung nötig).
 
 **Tests**
 
-- Unit: Großkreis + Antimeridian-Fälle, ungültige Koordinaten, Sortierung (inkl. fehlende/gleiche Daten), Datumsvalidierung, Zielort-Fallback, Filterung veröffentlichter Stationen, Routen mit 0/1/2 Stationen, Marker-Fallback-Kette inkl. fehlender 400px-Variante.
-- API/Integration: Auth, Same-Origin, Trip-Gleichheit bei Medienzuordnung, `station_id = NULL` setzen, Station löschen, Zielort-Eindeutigkeit, unveröffentlichten Zielort ablehnen, Reorder mit fremden/fehlenden/doppelten/unvollständigen IDs, Geocoding-Cache/Rate-Limit/Timeout, Public-Payload ohne jede Spur unveröffentlichter Stationen (auch keine Gesamtzahl), Stationsobergrenze.
+- Unit: Großkreis + Antimeridian-Fälle, ungültige Koordinaten, Sortierung (inkl. fehlende/gleiche Daten), Datumsvalidierung, Zielort-Fallback, Filterung veröffentlichter Stationen, Routen mit 0/1/2 Stationen, Marker-Fallback-Kette inkl. fehlender 400px-Variante, Fallback Straßengeometrie → Bogen, Vereinfachung hält die Punktobergrenze ein.
+- API/Integration: Auth, Same-Origin, Trip-Gleichheit bei Medienzuordnung, `station_id = NULL` setzen, Station löschen, Zielort-Eindeutigkeit, unveröffentlichten Zielort ablehnen, Reorder mit fremden/fehlenden/doppelten/unvollständigen IDs, Geocoding-Cache/Rate-Limit/Timeout, Routing-Timeout und „keine Route möglich“, `leg_mode = 'air'` erzeugt keinen OSRM-Aufruf, Public-Payload ohne jede Spur unveröffentlichter Stationen (auch keine Gesamtzahl), Stationsobergrenze.
 - E2E: Karte lädt, alte Reise ohne Stationen bleibt funktional, Markerklick, Scroll-Sync, Animation überspringen, Reduced Motion, Station anlegen/bearbeiten/löschen, Medien hin und zurück, mobile Ansicht, `/map` Empty State.
 
 **Logging**: Fehler bei Geocoding (inkl. Timeout/Rate-Limit), Stationsspeicherung, Medienzuordnung; Kartenfehler clientseitig. Keine vollständigen Suchtexte, keine privaten Koordinaten ohne Grund. Kein Analytics.
@@ -153,7 +153,7 @@ GPS-Tracking, automatische Trackaufzeichnung, Straßenrouting, GPX-Import und Tr
 
 1. Migration 008 + Schema + öffentliche/Studio-Datenfunktionen (inkl. Sichtbarkeitsregel).
 2. Stations-API (inkl. Reorder-, Zielort- und Medien-Semantik) + Geocoding-Proxy mit Fallback.
-3. `route-geometry.ts` inkl. Antimeridian + Unit-Tests.
+3. `route-geometry.ts` inkl. Antimeridian + Straßen-/Bogen-Fallback + Unit-Tests; Routing-Endpunkt mit Vereinfachung und Speicherung.
 4. RouteMap-Komponente (Globus, Bögen, Marker als Buttons, Fehlerzustand, Animation).
 5. Studio-StationEditor inkl. Medienzuordnung und Ein-Klick-Übernahme.
 6. **Prototyp mobile Kartenanimation**, dann öffentliche Berichtsseite (Split-Layout, Scroll-Sync).
