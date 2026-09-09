@@ -147,7 +147,7 @@ type PublicStation = {
 
 ## Nicht Bestandteil von v0.7.0
 
-GPS-Tracking, automatische Trackaufzeichnung, Straßenrouting, GPX-Import und Trackpunkt-Speicherung, Höhenprofile, Offline-Karten, mehrere Routen pro Reise, Many-to-Many-Medien, AR, KI-Stationsvorschläge, eigene URLs pro Station, Kommentare/Social, Analytics-Dashboard, 3D-Gebäude/POIs, automatische Migration bestehender Trip-Koordinaten (nur der Ein-Klick-Weg), anonymisierter Teaser, Undo-Toast, Clustering, Batch-Speichern aller Stationen.
+GPS-Tracking, automatische Trackaufzeichnung, GPX-Import und Trackpunkt-Speicherung, eigener OSRM-Server (vorbereitet, aber nicht Teil dieser Version), Zwischenwegpunkte innerhalb eines Abschnitts, Höhenprofile, Offline-Karten, mehrere Routen pro Reise, Many-to-Many-Medien, AR, KI-Stationsvorschläge, eigene URLs pro Station, Kommentare/Social, Analytics-Dashboard, 3D-Gebäude/POIs, automatische Migration bestehender Trip-Koordinaten (nur der Ein-Klick-Weg), anonymisierter Teaser, Undo-Toast, Clustering, Batch-Speichern aller Stationen.
 
 ## Umsetzungsreihenfolge
 
