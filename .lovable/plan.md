@@ -41,12 +41,15 @@ Neuer Abschnitt „Reiseroute“ unter den bisherigen Feldern:
 
 Die Ortssuche läuft über deinen Server (Nominatim von OpenStreetMap, 1 Anfrage/s, Ergebnis-Cache), nur eingeloggt nutzbar, mit Eingabeverzögerung – die Nutzungsregeln von OSM erlauben das für diesen Umfang.
 
-## Zu beachten (Kosten, Datenschutz, Betrieb)
+## Zu beachten (Kosten, Datenschutz, Betrieb, GPS)
 
+- **GPS-Tracking nicht nötig:** Echtes Tracking (Handy-App, die den Weg automatisch aufzeichnet) wäre ein eigenes App-Projekt mit Standort-Freigaben. Der Plan setzt Stationen bewusst von Hand – schneller, exakter, privatsphärefreundlich.
+- **GPX-Import (Option für später):** Wer Tracks aus Komoot, Garmin & Co. hat, kann später einen GPX-Upload ergänzen, der daraus Stationen ableitet. Im Datenmodell ist das mitgedacht; jetzt noch nicht umgesetzt.
 - Keine Kosten, keine Accounts. Besucher-Browser laden Kartenkacheln von openfreemap.org (Hinweis in der Datenschutzerklärung ergänzen: IP-Adresse geht an OpenFreeMap). Später austauschbar gegen eigenen Kachelserver (~80 GB Planet-Daten + Container).
 - Kartenbibliothek ist ~250 KB zusätzlich – wird nur auf Seiten mit Karte und erst im Browser geladen (SSR-sicher).
 - Backup: keine neuen Dateiordner; Stationsbilder liegen im bestehenden `uploads`-Volume, Migration ist Teil des normalen Migrationslaufs.
 - Datenschutz Fotos: EXIF wird wie bisher entfernt; Standort kommt nur aus der manuell gesetzten Station.
+- OSM-Nutzungsregeln: Ortssuche serverseitig gedrosselt (1 req/s, Cache) – für deine Bearbeitungs-Frequenz ausreichend.
 
 ## Technische Details
 
