@@ -23,12 +23,15 @@ import { Route as StoriesIndexRouteImport } from './routes/stories.index'
 import { Route as StoriesSlugRouteImport } from './routes/stories.$slug'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as ApiStudioRouteRouteImport } from './routes/api/studio/route'
 import { Route as AdminStudioIndexRouteImport } from './routes/admin.studio.index'
 import { Route as ApiStudioVideosRouteImport } from './routes/api/studio/videos'
 import { Route as ApiStudioUsersRouteImport } from './routes/api/studio/users'
 import { Route as ApiStudioTripsRouteImport } from './routes/api/studio/trips'
 import { Route as ApiStudioSystemStatusRouteImport } from './routes/api/studio/system-status'
+import { Route as ApiStudioStationsRouteImport } from './routes/api/studio/stations'
 import { Route as ApiStudioImagesRouteImport } from './routes/api/studio/images'
+import { Route as ApiStudioGeocodeRouteImport } from './routes/api/studio/geocode'
 import { Route as ApiStudioAuditRouteImport } from './routes/api/studio/audit'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
@@ -111,40 +114,55 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AdminRoute,
 } as any)
+const ApiStudioRouteRoute = ApiStudioRouteRouteImport.update({
+  id: '/api/studio',
+  path: '/api/studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminStudioIndexRoute = AdminStudioIndexRouteImport.update({
   id: '/studio/',
   path: '/studio/',
   getParentRoute: () => AdminRoute,
 } as any)
 const ApiStudioVideosRoute = ApiStudioVideosRouteImport.update({
-  id: '/api/studio/videos',
-  path: '/api/studio/videos',
-  getParentRoute: () => rootRouteImport,
+  id: '/videos',
+  path: '/videos',
+  getParentRoute: () => ApiStudioRouteRoute,
 } as any)
 const ApiStudioUsersRoute = ApiStudioUsersRouteImport.update({
-  id: '/api/studio/users',
-  path: '/api/studio/users',
-  getParentRoute: () => rootRouteImport,
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => ApiStudioRouteRoute,
 } as any)
 const ApiStudioTripsRoute = ApiStudioTripsRouteImport.update({
-  id: '/api/studio/trips',
-  path: '/api/studio/trips',
-  getParentRoute: () => rootRouteImport,
+  id: '/trips',
+  path: '/trips',
+  getParentRoute: () => ApiStudioRouteRoute,
 } as any)
 const ApiStudioSystemStatusRoute = ApiStudioSystemStatusRouteImport.update({
-  id: '/api/studio/system-status',
-  path: '/api/studio/system-status',
-  getParentRoute: () => rootRouteImport,
+  id: '/system-status',
+  path: '/system-status',
+  getParentRoute: () => ApiStudioRouteRoute,
+} as any)
+const ApiStudioStationsRoute = ApiStudioStationsRouteImport.update({
+  id: '/stations',
+  path: '/stations',
+  getParentRoute: () => ApiStudioRouteRoute,
 } as any)
 const ApiStudioImagesRoute = ApiStudioImagesRouteImport.update({
-  id: '/api/studio/images',
-  path: '/api/studio/images',
-  getParentRoute: () => rootRouteImport,
+  id: '/images',
+  path: '/images',
+  getParentRoute: () => ApiStudioRouteRoute,
+} as any)
+const ApiStudioGeocodeRoute = ApiStudioGeocodeRouteImport.update({
+  id: '/geocode',
+  path: '/geocode',
+  getParentRoute: () => ApiStudioRouteRoute,
 } as any)
 const ApiStudioAuditRoute = ApiStudioAuditRouteImport.update({
-  id: '/api/studio/audit',
-  path: '/api/studio/audit',
-  getParentRoute: () => rootRouteImport,
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => ApiStudioRouteRoute,
 } as any)
 const ApiAuthMeRoute = ApiAuthMeRouteImport.update({
   id: '/api/auth/me',
@@ -208,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/studio': typeof StudioRoute
   '/timeline': typeof TimelineRoute
   '/tips': typeof TipsRoute
+  '/api/studio': typeof ApiStudioRouteRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/api/health': typeof ApiHealthRoute
   '/stories/$slug': typeof StoriesSlugRoute
@@ -221,7 +240,9 @@ export interface FileRoutesByFullPath {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/studio/audit': typeof ApiStudioAuditRoute
+  '/api/studio/geocode': typeof ApiStudioGeocodeRoute
   '/api/studio/images': typeof ApiStudioImagesRoute
+  '/api/studio/stations': typeof ApiStudioStationsRoute
   '/api/studio/system-status': typeof ApiStudioSystemStatusRoute
   '/api/studio/trips': typeof ApiStudioTripsRoute
   '/api/studio/users': typeof ApiStudioUsersRoute
@@ -240,6 +261,7 @@ export interface FileRoutesByTo {
   '/studio': typeof StudioRoute
   '/timeline': typeof TimelineRoute
   '/tips': typeof TipsRoute
+  '/api/studio': typeof ApiStudioRouteRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/api/health': typeof ApiHealthRoute
   '/stories/$slug': typeof StoriesSlugRoute
@@ -253,7 +275,9 @@ export interface FileRoutesByTo {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/studio/audit': typeof ApiStudioAuditRoute
+  '/api/studio/geocode': typeof ApiStudioGeocodeRoute
   '/api/studio/images': typeof ApiStudioImagesRoute
+  '/api/studio/stations': typeof ApiStudioStationsRoute
   '/api/studio/system-status': typeof ApiStudioSystemStatusRoute
   '/api/studio/trips': typeof ApiStudioTripsRoute
   '/api/studio/users': typeof ApiStudioUsersRoute
@@ -274,6 +298,7 @@ export interface FileRoutesById {
   '/studio': typeof StudioRoute
   '/timeline': typeof TimelineRoute
   '/tips': typeof TipsRoute
+  '/api/studio': typeof ApiStudioRouteRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/api/health': typeof ApiHealthRoute
   '/stories/$slug': typeof StoriesSlugRoute
@@ -287,7 +312,9 @@ export interface FileRoutesById {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/studio/audit': typeof ApiStudioAuditRoute
+  '/api/studio/geocode': typeof ApiStudioGeocodeRoute
   '/api/studio/images': typeof ApiStudioImagesRoute
+  '/api/studio/stations': typeof ApiStudioStationsRoute
   '/api/studio/system-status': typeof ApiStudioSystemStatusRoute
   '/api/studio/trips': typeof ApiStudioTripsRoute
   '/api/studio/users': typeof ApiStudioUsersRoute
@@ -309,6 +336,7 @@ export interface FileRouteTypes {
     | '/studio'
     | '/timeline'
     | '/tips'
+    | '/api/studio'
     | '/admin/login'
     | '/api/health'
     | '/stories/$slug'
@@ -322,7 +350,9 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/studio/audit'
+    | '/api/studio/geocode'
     | '/api/studio/images'
+    | '/api/studio/stations'
     | '/api/studio/system-status'
     | '/api/studio/trips'
     | '/api/studio/users'
@@ -341,6 +371,7 @@ export interface FileRouteTypes {
     | '/studio'
     | '/timeline'
     | '/tips'
+    | '/api/studio'
     | '/admin/login'
     | '/api/health'
     | '/stories/$slug'
@@ -354,7 +385,9 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/studio/audit'
+    | '/api/studio/geocode'
     | '/api/studio/images'
+    | '/api/studio/stations'
     | '/api/studio/system-status'
     | '/api/studio/trips'
     | '/api/studio/users'
@@ -374,6 +407,7 @@ export interface FileRouteTypes {
     | '/studio'
     | '/timeline'
     | '/tips'
+    | '/api/studio'
     | '/admin/login'
     | '/api/health'
     | '/stories/$slug'
@@ -387,7 +421,9 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/me'
     | '/api/studio/audit'
+    | '/api/studio/geocode'
     | '/api/studio/images'
+    | '/api/studio/stations'
     | '/api/studio/system-status'
     | '/api/studio/trips'
     | '/api/studio/users'
@@ -408,16 +444,11 @@ export interface RootRouteChildren {
   StudioRoute: typeof StudioRoute
   TimelineRoute: typeof TimelineRoute
   TipsRoute: typeof TipsRoute
+  ApiStudioRouteRoute: typeof ApiStudioRouteRouteWithChildren
   ApiHealthRoute: typeof ApiHealthRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
-  ApiStudioAuditRoute: typeof ApiStudioAuditRoute
-  ApiStudioImagesRoute: typeof ApiStudioImagesRoute
-  ApiStudioSystemStatusRoute: typeof ApiStudioSystemStatusRoute
-  ApiStudioTripsRoute: typeof ApiStudioTripsRoute
-  ApiStudioUsersRoute: typeof ApiStudioUsersRoute
-  ApiStudioVideosRoute: typeof ApiStudioVideosRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -520,6 +551,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/api/studio': {
+      id: '/api/studio'
+      path: '/api/studio'
+      fullPath: '/api/studio'
+      preLoaderRoute: typeof ApiStudioRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/studio/': {
       id: '/admin/studio/'
       path: '/studio'
@@ -529,45 +567,59 @@ declare module '@tanstack/react-router' {
     }
     '/api/studio/videos': {
       id: '/api/studio/videos'
-      path: '/api/studio/videos'
+      path: '/videos'
       fullPath: '/api/studio/videos'
       preLoaderRoute: typeof ApiStudioVideosRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiStudioRouteRoute
     }
     '/api/studio/users': {
       id: '/api/studio/users'
-      path: '/api/studio/users'
+      path: '/users'
       fullPath: '/api/studio/users'
       preLoaderRoute: typeof ApiStudioUsersRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiStudioRouteRoute
     }
     '/api/studio/trips': {
       id: '/api/studio/trips'
-      path: '/api/studio/trips'
+      path: '/trips'
       fullPath: '/api/studio/trips'
       preLoaderRoute: typeof ApiStudioTripsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiStudioRouteRoute
     }
     '/api/studio/system-status': {
       id: '/api/studio/system-status'
-      path: '/api/studio/system-status'
+      path: '/system-status'
       fullPath: '/api/studio/system-status'
       preLoaderRoute: typeof ApiStudioSystemStatusRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiStudioRouteRoute
+    }
+    '/api/studio/stations': {
+      id: '/api/studio/stations'
+      path: '/stations'
+      fullPath: '/api/studio/stations'
+      preLoaderRoute: typeof ApiStudioStationsRouteImport
+      parentRoute: typeof ApiStudioRouteRoute
     }
     '/api/studio/images': {
       id: '/api/studio/images'
-      path: '/api/studio/images'
+      path: '/images'
       fullPath: '/api/studio/images'
       preLoaderRoute: typeof ApiStudioImagesRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiStudioRouteRoute
+    }
+    '/api/studio/geocode': {
+      id: '/api/studio/geocode'
+      path: '/geocode'
+      fullPath: '/api/studio/geocode'
+      preLoaderRoute: typeof ApiStudioGeocodeRouteImport
+      parentRoute: typeof ApiStudioRouteRoute
     }
     '/api/studio/audit': {
       id: '/api/studio/audit'
-      path: '/api/studio/audit'
+      path: '/audit'
       fullPath: '/api/studio/audit'
       preLoaderRoute: typeof ApiStudioAuditRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiStudioRouteRoute
     }
     '/api/auth/me': {
       id: '/api/auth/me'
@@ -691,6 +743,32 @@ const ApiStudioVideosRouteWithChildren = ApiStudioVideosRoute._addFileChildren(
   ApiStudioVideosRouteChildren,
 )
 
+interface ApiStudioRouteRouteChildren {
+  ApiStudioAuditRoute: typeof ApiStudioAuditRoute
+  ApiStudioGeocodeRoute: typeof ApiStudioGeocodeRoute
+  ApiStudioImagesRoute: typeof ApiStudioImagesRoute
+  ApiStudioStationsRoute: typeof ApiStudioStationsRoute
+  ApiStudioSystemStatusRoute: typeof ApiStudioSystemStatusRoute
+  ApiStudioTripsRoute: typeof ApiStudioTripsRoute
+  ApiStudioUsersRoute: typeof ApiStudioUsersRoute
+  ApiStudioVideosRoute: typeof ApiStudioVideosRouteWithChildren
+}
+
+const ApiStudioRouteRouteChildren: ApiStudioRouteRouteChildren = {
+  ApiStudioAuditRoute: ApiStudioAuditRoute,
+  ApiStudioGeocodeRoute: ApiStudioGeocodeRoute,
+  ApiStudioImagesRoute: ApiStudioImagesRoute,
+  ApiStudioStationsRoute: ApiStudioStationsRoute,
+  ApiStudioSystemStatusRoute: ApiStudioSystemStatusRoute,
+  ApiStudioTripsRoute: ApiStudioTripsRoute,
+  ApiStudioUsersRoute: ApiStudioUsersRoute,
+  ApiStudioVideosRoute: ApiStudioVideosRouteWithChildren,
+}
+
+const ApiStudioRouteRouteWithChildren = ApiStudioRouteRoute._addFileChildren(
+  ApiStudioRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -702,16 +780,11 @@ const rootRouteChildren: RootRouteChildren = {
   StudioRoute: StudioRoute,
   TimelineRoute: TimelineRoute,
   TipsRoute: TipsRoute,
+  ApiStudioRouteRoute: ApiStudioRouteRouteWithChildren,
   ApiHealthRoute: ApiHealthRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
-  ApiStudioAuditRoute: ApiStudioAuditRoute,
-  ApiStudioImagesRoute: ApiStudioImagesRoute,
-  ApiStudioSystemStatusRoute: ApiStudioSystemStatusRoute,
-  ApiStudioTripsRoute: ApiStudioTripsRoute,
-  ApiStudioUsersRoute: ApiStudioUsersRoute,
-  ApiStudioVideosRoute: ApiStudioVideosRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

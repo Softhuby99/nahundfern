@@ -36,6 +36,8 @@ services:
         # Vite bakes this into the client bundle at build time; runtime
         # PUBLIC_BASE_URL alone doesn't reach the browser.
         VITE_PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://nahundfern.servuswir.de}
+        # Kartenstil landet ebenfalls im Client-Bundle.
+        VITE_MAP_STYLE_URL: ${VITE_MAP_STYLE_URL:-https://tiles.openfreemap.org/styles/liberty}
     container_name: nahundfern-app
     restart: unless-stopped
     depends_on:
@@ -48,6 +50,10 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
       UPLOADS_DIR: /app/uploads
+      # Ortssuche und Straßen-Routing laufen serverseitig (Studio-only).
+      NOMINATIM_BASE_URL: ${NOMINATIM_BASE_URL:-https://nominatim.openstreetmap.org}
+      GEOCODER_USER_AGENT: ${GEOCODER_USER_AGENT:-nahundfern-reisejournal}
+      ROUTING_BASE_URL: ${ROUTING_BASE_URL:-https://router.project-osrm.org}
       # Seeding is opt-in. Set SEED_ON_START=true explicitly on the first boot
       # of a fresh deployment; leave it off in normal operation so the seed
       # script cannot resurrect demo data after a wipe.
