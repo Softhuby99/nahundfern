@@ -112,9 +112,18 @@ type PublicStation = {
 
 `sort_order` ist primär. „Nach Datum sortieren“: `arrival_date` aufsteigend, Stationen ohne Datum ans Ende; bei gleichem oder fehlendem Datum bleibt die bisherige Reihenfolge stabil (stabile Sortierung). Danach werden neue `sort_order`-Werte gespeichert.
 
+**Straßen-Routing pro Abschnitt**
+
+- Migration 008 erweitert `trip_stations` um `leg_mode text NOT NULL DEFAULT 'drive'` (`drive` | `cycle` | `walk` | `air`) und `leg_geometry jsonb NULL` — die Verbindung *zur jeweiligen Station von der vorherigen*. Die erste Station hat keinen Abschnitt.
+- Die Straßenroute wird **einmalig im Studio berechnet und gespeichert** (nicht bei jedem Seitenaufruf). Neue Server-Route `POST /api/studio/stations/:id/route` (Auth, Same-Origin, Audit) holt die Geometrie über OSRM (öffentlicher Demo-Server `router.project-osrm.org`, austauschbar über `ROUTING_BASE_URL`; ein eigener OSRM-Container ist später möglich), vereinfacht sie serverseitig (Douglas-Peucker, Ziel ≤ 500 Punkte / ~50 KB je Abschnitt) und legt sie in `leg_geometry` ab. Timeout, serverseitiges Rate-Limit und Cache wie beim Geocoding.
+- Neuberechnung automatisch beim Ändern von Koordinaten oder `leg_mode`, zusätzlich Button „Route neu berechnen“; Statusanzeige „berechne …“ / „gespeichert“ / „nicht möglich“.
+- Fallback-Kette beim Zeichnen: `leg_geometry` → Großkreis-Bogen. `leg_mode = 'air'`, fehlgeschlagenes Routing, keine Landverbindung (z. B. über den Atlantik) oder Abschnitte über ~2000 km ergeben automatisch den gestrichelten Bogen. Ein fehlendes Routing blockiert nie die Anzeige.
+- Darstellung: Straßenabschnitte durchgezogen, Flug-/Bogenabschnitte gestrichelt, Abschnitte zu unveröffentlichten Stationen entfallen öffentlich vollständig.
+- Öffentlich wird nur die gespeicherte Geometrie ausgeliefert; die Besucherseite fragt **keinen** externen Routing-Dienst. Datenschutzerklärung nennt OSRM als Studio-Dienst.
+
 **Routengeometrie / Antimeridian**
 
-`src/components/map/route-geometry.ts` (SSR-sicher) liefert `LineString | MultiLineString`. Bögen, die den 180. Längengrad kreuzen, werden dort in getrennte Segmente geteilt (`@turf/great-circle` mit MultiLineString-Ausgabe) — für durchgezogene und gepunktete Linien. Auch die Kamerafahrt nimmt den kurzen Weg über die Datumsgrenze. Tests: Tokio→San Francisco, Auckland→Santiago, Station exakt auf ±180, Route mit mehreren Kreuzungen.
+`src/components/map/route-geometry.ts` (SSR-sicher) liefert `LineString | MultiLineString` — sowohl für gespeicherte Straßengeometrie als auch für berechnete Bögen. Linien, die den 180. Längengrad kreuzen, werden dort in getrennte Segmente geteilt (`@turf/great-circle` mit MultiLineString-Ausgabe bzw. Split der Straßengeometrie). Auch die Kamerafahrt nimmt den kurzen Weg über die Datumsgrenze. Tests: Tokio→San Francisco, Auckland→Santiago, Station exakt auf ±180, Route mit mehreren Kreuzungen.
 
 **Frontend-Komponenten**
 
