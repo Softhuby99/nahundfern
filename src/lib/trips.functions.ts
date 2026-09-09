@@ -92,7 +92,6 @@ function toNumber(value: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapRow(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   r: any,

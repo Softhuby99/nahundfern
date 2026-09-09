@@ -271,28 +271,25 @@ export function StationEditor({ tripId }: { tripId: string }) {
     }
   }
 
-  const handleMapClick = useCallback(
-    async (coords: { latitude: number; longitude: number }) => {
-      const hit = await reverseLookup(coords);
-      // Kein Treffer → Name bleibt leer und wird manuell eingetragen.
-      setManualLat(coords.latitude.toFixed(6));
-      setManualLon(coords.longitude.toFixed(6));
-      setManualName(hit?.name ?? "");
-      setStatus(
-        hit
-          ? `Ort erkannt: ${hit.name}. Unten prüfen und hinzufügen.`
-          : "Ort nicht erkannt — bitte Namen unten eintragen.",
-      );
-    },
-    [],
-  );
+  const handleMapClick = useCallback(async (coords: { latitude: number; longitude: number }) => {
+    const hit = await reverseLookup(coords);
+    // Kein Treffer → Name bleibt leer und wird manuell eingetragen.
+    setManualLat(coords.latitude.toFixed(6));
+    setManualLon(coords.longitude.toFixed(6));
+    setManualName(hit?.name ?? "");
+    setStatus(
+      hit
+        ? `Ort erkannt: ${hit.name}. Unten prüfen und hinzufügen.`
+        : "Ort nicht erkannt — bitte Namen unten eintragen.",
+    );
+  }, []);
 
   const handleMoveStation = useCallback(
     (id: string, coords: { latitude: number; longitude: number }) => {
       void patchStation(id, { latitude: coords.latitude, longitude: coords.longitude });
       setRouteStatus("Koordinate geändert — Route neu berechnen.");
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     [],
   );
 
@@ -423,7 +420,11 @@ export function StationEditor({ tripId }: { tripId: string }) {
             <button type="button" onClick={() => void sortByDate()} disabled={stations.length < 2}>
               Nach Datum sortieren
             </button>
-            <button type="button" onClick={() => void recomputeRoute()} disabled={stations.length < 2}>
+            <button
+              type="button"
+              onClick={() => void recomputeRoute()}
+              disabled={stations.length < 2}
+            >
               Route berechnen
             </button>
           </div>

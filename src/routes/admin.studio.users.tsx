@@ -161,9 +161,7 @@ function UsersPage() {
                   angelegt: {new Date(u.created_at).toLocaleString("de-DE")}
                   {" · "}
                   letzter Login:{" "}
-                  {u.last_login_at
-                    ? new Date(u.last_login_at).toLocaleString("de-DE")
-                    : "nie"}
+                  {u.last_login_at ? new Date(u.last_login_at).toLocaleString("de-DE") : "nie"}
                   {u.last_login_ip ? ` (${u.last_login_ip})` : ""}
                 </p>
               </div>

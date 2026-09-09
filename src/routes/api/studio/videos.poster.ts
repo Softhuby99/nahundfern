@@ -29,7 +29,10 @@ export const Route = createFileRoute("/api/studio/videos/poster")({
         }
         const parsed = PosterInput.safeParse(body);
         if (!parsed.success) {
-          return Response.json({ error: "Ungültige Eingabe", details: parsed.error.format() }, { status: 400 });
+          return Response.json(
+            { error: "Ungültige Eingabe", details: parsed.error.format() },
+            { status: 400 },
+          );
         }
         const { id, atMs } = parsed.data;
 

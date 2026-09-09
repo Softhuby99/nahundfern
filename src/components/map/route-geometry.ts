@@ -20,7 +20,12 @@ const toDeg = (rad: number) => (rad * 180) / Math.PI;
 
 export function isValidLatLon(lat: number, lon: number): boolean {
   return (
-    Number.isFinite(lat) && Number.isFinite(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180
+    Number.isFinite(lat) &&
+    Number.isFinite(lon) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    lon >= -180 &&
+    lon <= 180
   );
 }
 
@@ -32,8 +37,7 @@ export function distanceKm(
   const dLon = toRad(b.longitude - a.longitude);
   const lat1 = toRad(a.latitude);
   const lat2 = toRad(b.latitude);
-  const h =
-    Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
   return 2 * EARTH_RADIUS_KM * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
@@ -134,7 +138,10 @@ export function buildRouteLegs(points: RoutePoint[]): RouteLeg[] {
   for (let i = 1; i < points.length; i++) {
     const from = points[i - 1]!;
     const to = points[i]!;
-    if (!isValidLatLon(from.latitude, from.longitude) || !isValidLatLon(to.latitude, to.longitude)) {
+    if (
+      !isValidLatLon(from.latitude, from.longitude) ||
+      !isValidLatLon(to.latitude, to.longitude)
+    ) {
       continue;
     }
     const road = to.legGeometry;
@@ -161,9 +168,9 @@ export function buildRouteLegs(points: RoutePoint[]): RouteLeg[] {
 }
 
 /** Bounding box [west, south, east, north] über alle Punkte. */
-export function boundsOf(points: Array<{ latitude: number; longitude: number }>):
-  | [number, number, number, number]
-  | null {
+export function boundsOf(
+  points: Array<{ latitude: number; longitude: number }>,
+): [number, number, number, number] | null {
   const valid = points.filter((p) => isValidLatLon(p.latitude, p.longitude));
   if (valid.length === 0) return null;
   let west = valid[0]!.longitude;

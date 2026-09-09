@@ -24,9 +24,7 @@ export const Route = createFileRoute("/api/studio/audit")({
           requestId: url.searchParams.get("requestId") ?? undefined,
           userId: url.searchParams.get("userId") ?? undefined,
           before: url.searchParams.get("before") ?? undefined,
-          limit: url.searchParams.get("limit")
-            ? Number(url.searchParams.get("limit"))
-            : undefined,
+          limit: url.searchParams.get("limit") ? Number(url.searchParams.get("limit")) : undefined,
         });
         if (!parsed.success) {
           return Response.json({ error: "Invalid query" }, { status: 400 });

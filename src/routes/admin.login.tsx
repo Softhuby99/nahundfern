@@ -4,7 +4,6 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { emitAuthChanged } from "@/hooks/useIsAuthenticated";
 
-
 export const Route = createFileRoute("/admin/login")({
   head: () => ({
     meta: [{ title: "Admin Login — Vagabond" }, { name: "robots", content: "noindex" }],
@@ -36,7 +35,6 @@ function LoginPage() {
       emitAuthChanged();
       await navigate({ to: "/admin/studio" });
     } finally {
-
       setLoading(false);
     }
   };

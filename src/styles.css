@@ -147,3 +147,237 @@
   z-index: 1000;
   overscroll-behavior: contain;
 }
+
+/* ---------- Weltkarte / Reisestationen (v0.7.0) ---------- */
+.route-map-canvas {
+  width: 100%;
+  height: 480px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--card, #1a1a1a);
+}
+.route-map-canvas--tall {
+  height: 65vh;
+  min-height: 420px;
+}
+.station-map-canvas {
+  width: 100%;
+  height: 520px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--card, #1a1a1a);
+}
+.map-fallback {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 240px;
+  padding: 1.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+.map-fallback button {
+  border: 1px solid currentColor;
+  padding: 0.4rem 0.9rem;
+  border-radius: 2px;
+}
+
+/* Marker mit kleinem Ortsbild */
+.route-marker {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 2px solid #c2410c;
+  background: #111;
+  overflow: hidden;
+  cursor: pointer;
+  padding: 0;
+}
+.route-marker img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.route-marker.no-image {
+  width: 26px;
+  height: 26px;
+}
+.route-marker.is-active {
+  outline: 3px solid #fdba74;
+  outline-offset: 2px;
+}
+.route-marker:focus-visible {
+  outline: 3px solid #fdba74;
+  outline-offset: 2px;
+}
+.route-marker-index {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  min-width: 16px;
+  padding: 0 3px;
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+  border-radius: 999px;
+  background: #c2410c;
+  color: #fff;
+}
+
+/* Stationseditor */
+.station-editor-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+@media (min-width: 1024px) {
+  .station-editor-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+  .station-editor-map {
+    position: sticky;
+    top: 6rem;
+  }
+}
+.station-editor .field {
+  display: block;
+  margin-bottom: 0.75rem;
+}
+.station-editor .field span {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.25rem;
+  opacity: 0.75;
+}
+.station-editor input,
+.station-editor textarea,
+.station-editor select {
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border, #333);
+  border-radius: 2px;
+  background: transparent;
+  color: inherit;
+}
+.station-editor button {
+  border: 1px solid var(--border, #333);
+  border-radius: 2px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.85rem;
+}
+.station-editor button:disabled {
+  opacity: 0.45;
+}
+.station-hits,
+.station-items,
+.station-thumbs {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+}
+.station-items {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.station-item {
+  border: 1px solid var(--border, #333);
+  border-radius: 2px;
+  padding: 0.75rem;
+}
+.station-item.is-active {
+  border-color: #c2410c;
+}
+.station-item header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+.station-item-title {
+  border: 0;
+  padding: 0;
+  font-size: 1rem;
+  text-align: left;
+}
+.station-badges {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+}
+.station-item-row {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+.station-item-form {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border, #333);
+}
+.station-manual-coords {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+.station-manual {
+  border: 1px solid var(--border, #333);
+  border-radius: 2px;
+  padding: 0.75rem;
+  margin: 1rem 0;
+}
+.station-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+.station-checkbox input {
+  width: auto;
+}
+.station-route-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+  flex-wrap: wrap;
+}
+.station-thumbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.5rem;
+}
+.station-thumbs img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 2px;
+}
+.station-hint {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin: 0.4rem 0;
+}
+.station-status {
+  font-size: 0.85rem;
+  color: #4ade80;
+}
+.station-error {
+  font-size: 0.85rem;
+  color: #f87171;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .maplibregl-map * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

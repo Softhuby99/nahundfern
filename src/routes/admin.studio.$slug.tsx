@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { VideoEditor } from "@/components/studio/VideoEditor";
+import { StationEditor } from "@/components/studio/StationEditor";
 
 export const Route = createFileRoute("/admin/studio/$slug")({
   head: () => ({
@@ -240,7 +241,6 @@ function EditorPage() {
       .catch((e) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setLoading(false));
   }, [slug, isNew, navigate]);
-
 
   const setField = <K extends keyof StudioTrip>(k: K, v: StudioTrip[K]) =>
     setTrip((t) => ({ ...t, [k]: v }));
@@ -696,6 +696,12 @@ function EditorPage() {
             {trip.id && (
               <div className="pt-6 border-t border-border">
                 <VideoEditor tripId={trip.id} />
+              </div>
+            )}
+
+            {trip.id && (
+              <div className="pt-6 border-t border-border">
+                <StationEditor tripId={trip.id} />
               </div>
             )}
           </aside>

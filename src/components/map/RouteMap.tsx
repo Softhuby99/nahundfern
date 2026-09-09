@@ -45,8 +45,7 @@ const SOLID_LAYER = "trip-route-solid";
 
 function prefersReducedMotion(): boolean {
   return (
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
   );
 }
 
@@ -103,9 +102,10 @@ export default function RouteMap({
       if (!mapRef.current?.isStyleLoaded()) setFailed(true);
     });
 
+    const markers = markersRef.current;
     return () => {
-      markersRef.current.forEach((m) => m.remove());
-      markersRef.current.clear();
+      markers.forEach((m) => m.remove());
+      markers.clear();
       map?.remove();
       mapRef.current = null;
       setReady(false);

@@ -30,10 +30,7 @@ export const Route = createFileRoute("/api/studio/geocode")({
         const asReverse = ReverseInput.safeParse(body);
         try {
           if (asReverse.success) {
-            const result = await geocodeReverse(
-              asReverse.data.latitude,
-              asReverse.data.longitude,
-            );
+            const result = await geocodeReverse(asReverse.data.latitude, asReverse.data.longitude);
             return Response.json({ result });
           }
           const asSearch = SearchInput.safeParse(body);

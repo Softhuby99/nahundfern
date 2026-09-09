@@ -5,8 +5,7 @@
 const ROUTING_BASE_URL = () => process.env.ROUTING_BASE_URL ?? "https://router.project-osrm.org";
 const NOMINATIM_BASE_URL = () =>
   process.env.NOMINATIM_BASE_URL ?? "https://nominatim.openstreetmap.org";
-const USER_AGENT = () =>
-  process.env.GEOCODER_USER_AGENT ?? "nahundfern-reisejournal (self-hosted)";
+const USER_AGENT = () => process.env.GEOCODER_USER_AGENT ?? "nahundfern-reisejournal (self-hosted)";
 
 const REQUEST_TIMEOUT_MS = 8000;
 /** Obergrenze für gespeicherte Geometrie pro Abschnitt. */

@@ -30,7 +30,10 @@ export const Route = createFileRoute("/api/studio/videos/trim")({
         }
         const parsed = TrimInput.safeParse(body);
         if (!parsed.success) {
-          return Response.json({ error: "Ungültige Eingabe", details: parsed.error.format() }, { status: 400 });
+          return Response.json(
+            { error: "Ungültige Eingabe", details: parsed.error.format() },
+            { status: 400 },
+          );
         }
         const { id, startMs, endMs } = parsed.data;
 
