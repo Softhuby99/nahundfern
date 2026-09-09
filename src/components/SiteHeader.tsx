@@ -7,6 +7,7 @@ const nav = [
   { to: "/", label: "Startseite" },
   { to: "/timeline", label: "Timeline" },
   { to: "/stories", label: "Reiseberichte" },
+  { to: "/map", label: "Karte" },
   { to: "/journal", label: "Reisetagebuch" },
   { to: "/gallery", label: "Fotogalerie" },
   { to: "/about", label: "Über mich" },
