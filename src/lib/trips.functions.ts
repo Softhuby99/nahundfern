@@ -33,6 +33,29 @@ export type PublicTrip = {
   };
   gallery: GalleryImage[];
   videos: TripVideo[];
+  /** Nur veröffentlichte Stationen, in Reisereihenfolge. */
+  stations: PublicStation[];
+  destinationStationId: string | null;
+};
+
+/** Transportart des Abschnitts VON der vorherigen Station ZU dieser. */
+export type LegMode = "drive" | "cycle" | "walk" | "air";
+
+export type PublicStation = {
+  id: string;
+  name: string;
+  countryCode: string | null;
+  latitude: number;
+  longitude: number;
+  arrivalDate: string | null;
+  departureDate: string | null;
+  bodyMd: string;
+  legMode: LegMode;
+  /** Gespeicherte Straßengeometrie; null → Großkreis-Bogen zeichnen. */
+  legGeometry: number[][][] | null;
+  images: GalleryImage[];
+  videos: TripVideo[];
+  markerImage: GalleryImage | null;
 };
 
 export type GalleryImage = {
@@ -70,8 +93,16 @@ function toNumber(value: unknown): number | null {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapRow(r: any, gallery: GalleryImage[] = [], videos: TripVideo[] = []): PublicTrip {
+function mapRow(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  r: any,
+  gallery: GalleryImage[] = [],
+  videos: TripVideo[] = [],
+  stations: PublicStation[] = [],
+): PublicTrip {
   return {
+    stations,
+    destinationStationId: stations.find((s) => s.id === r.destination_station_id)?.id ?? null,
     id: r.id,
     slug: r.slug,
     title: r.title,
@@ -171,7 +202,7 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
     const galleryRows = await sql`
       SELECT id, webp_400, webp_1200, webp_2000,
              avif_400, avif_1200, avif_2000,
-             width, height, alt
+             width, height, alt, station_id
       FROM images
       WHERE trip_id = ${row.id}
       ORDER BY sort_order, created_at
@@ -180,12 +211,49 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
       ? galleryRows.filter((g) => g.id !== row.cover_image_id)
       : galleryRows;
     const videoRows = await sql`
-      SELECT id, mp4_720_path, poster_path, width, height, alt
+      SELECT id, mp4_720_path, poster_path, width, height, alt, station_id
       FROM videos
       WHERE trip_id = ${row.id}
       ORDER BY sort_order, created_at
     `;
-    return mapRow(row, filtered.map(mapGalleryRow), videoRows.map(mapVideoRow));
+    // Nur veröffentlichte Stationen verlassen den Server — keine ID, kein Name,
+    // keine Koordinate und keine Zählung unveröffentlichter Stationen.
+    const stationRows = await sql`
+      SELECT id, name, country_code, latitude, longitude,
+             arrival_date, departure_date, body_md,
+             leg_mode, leg_geometry, marker_image_id, is_destination
+      FROM trip_stations
+      WHERE trip_id = ${row.id} AND published = true
+      ORDER BY sort_order, created_at
+    `;
+    const stations: PublicStation[] = stationRows.map((s) => {
+      const stationImages = filtered.filter((g) => g.station_id === s.id).map(mapGalleryRow);
+      const marker =
+        stationImages.find((img) => img.id === s.marker_image_id) ?? stationImages[0] ?? null;
+      return {
+        id: s.id,
+        name: s.name,
+        countryCode: s.country_code ?? null,
+        latitude: Number(s.latitude),
+        longitude: Number(s.longitude),
+        arrivalDate: toIsoDate(s.arrival_date),
+        departureDate: toIsoDate(s.departure_date),
+        bodyMd: s.body_md ?? "",
+        legMode: (s.leg_mode ?? "drive") as LegMode,
+        legGeometry: Array.isArray(s.leg_geometry) ? (s.leg_geometry as number[][][]) : null,
+        images: stationImages,
+        videos: videoRows.filter((v) => v.station_id === s.id).map(mapVideoRow),
+        markerImage: marker && marker.webp[400] ? marker : null,
+      };
+    });
+    const destinationStationId = stationRows.find((s) => s.is_destination)?.id ?? null;
+    // Einleitung zeigt nur Medien, die keiner Station zugeordnet sind.
+    return mapRow(
+      { ...row, destination_station_id: destinationStationId },
+      filtered.filter((g) => !g.station_id).map(mapGalleryRow),
+      videoRows.filter((v) => !v.station_id).map(mapVideoRow),
+      stations,
+    );
   });
 
 /** Slim slug+title projection used to build newer/older links on story pages. */
@@ -216,6 +284,8 @@ export type PublicGalleryImage = {
   width: number;
   height: number;
   alt: string | null;
+  /** Station, zu der das Bild gehört (nur veröffentlichte Stationen). */
+  stationName: string | null;
   trip: {
     slug: string;
     title: string;
@@ -234,10 +304,15 @@ export const listPublishedGalleryImages = createServerFn({ method: "GET" }).hand
              t.slug         AS trip_slug,
              t.title        AS trip_title,
              t.region       AS trip_region,
-             t.month_label  AS trip_month_label
+             t.month_label  AS trip_month_label,
+             s.name         AS station_name
       FROM images i
       JOIN trips t ON t.id = i.trip_id
+      LEFT JOIN trip_stations s
+             ON s.id = i.station_id AND s.published = true
       WHERE t.published = true
+        -- Bilder unveröffentlichter Stationen bleiben verborgen.
+        AND (i.station_id IS NULL OR s.id IS NOT NULL)
       ORDER BY COALESCE(t.trip_start_date, t.created_at::date) DESC,
                i.sort_order ASC,
                i.created_at ASC
@@ -249,6 +324,7 @@ export const listPublishedGalleryImages = createServerFn({ method: "GET" }).hand
       width: Number(r.width),
       height: Number(r.height),
       alt: r.alt ?? null,
+      stationName: r.station_name ?? null,
       trip: {
         slug: r.trip_slug,
         title: r.trip_title,
@@ -256,5 +332,66 @@ export const listPublishedGalleryImages = createServerFn({ method: "GET" }).hand
         monthLabel: r.trip_month_label,
       },
     }));
+  },
+);
+
+/** Ein Marker pro veröffentlichter Reise für die Seite /map. */
+export type MapTrip = {
+  slug: string;
+  title: string;
+  monthLabel: string;
+  region: string;
+  latitude: number;
+  longitude: number;
+  cover400: string | null;
+  stationCount: number;
+};
+
+export const listMapTrips = createServerFn({ method: "GET" }).handler(
+  async (): Promise<MapTrip[]> => {
+    const rows = await sql`
+      SELECT t.slug, t.title, t.month_label, t.region,
+             t.latitude AS trip_lat, t.longitude AS trip_lon,
+             i.webp_400 AS cover_400,
+             d.latitude  AS dest_lat,
+             d.longitude AS dest_lon,
+             l.latitude  AS last_lat,
+             l.longitude AS last_lon,
+             (SELECT count(*) FROM trip_stations s
+               WHERE s.trip_id = t.id AND s.published = true) AS station_count
+      FROM trips t
+      LEFT JOIN images i ON i.id = t.cover_image_id
+      -- (1) manuell markierter, veröffentlichter Zielort
+      LEFT JOIN trip_stations d
+             ON d.trip_id = t.id AND d.is_destination = true AND d.published = true
+      -- (2) letzte veröffentlichte Station
+      LEFT JOIN LATERAL (
+        SELECT s.latitude, s.longitude
+        FROM trip_stations s
+        WHERE s.trip_id = t.id AND s.published = true
+        ORDER BY s.sort_order DESC, s.created_at DESC
+        LIMIT 1
+      ) l ON true
+      WHERE t.published = true
+      ORDER BY COALESCE(t.trip_start_date, t.created_at::date) DESC, t.created_at DESC
+    `;
+    return rows
+      .map((r) => {
+        // (3) Trip-Koordinaten, (4) sonst kein Marker.
+        const lat = toNumber(r.dest_lat) ?? toNumber(r.last_lat) ?? toNumber(r.trip_lat);
+        const lon = toNumber(r.dest_lon) ?? toNumber(r.last_lon) ?? toNumber(r.trip_lon);
+        if (lat === null || lon === null) return null;
+        return {
+          slug: r.slug,
+          title: r.title,
+          monthLabel: r.month_label,
+          region: r.region,
+          latitude: lat,
+          longitude: lon,
+          cover400: r.cover_400 ?? null,
+          stationCount: Number(r.station_count ?? 0),
+        } satisfies MapTrip;
+      })
+      .filter((x): x is MapTrip => x !== null);
   },
 );

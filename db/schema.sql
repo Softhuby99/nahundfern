@@ -58,6 +58,44 @@ CREATE INDEX IF NOT EXISTS idx_trips_trip_start_date ON trips(trip_start_date DE
 CREATE INDEX IF NOT EXISTS idx_trips_country_code    ON trips(country_code);
 CREATE INDEX IF NOT EXISTS idx_trips_featured        ON trips(featured) WHERE featured;
 
+-- Reisestationen (siehe migration 008). Unveröffentlichte Stationen sind
+-- öffentlich vollständig verborgen.
+CREATE TABLE IF NOT EXISTS trip_stations (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  trip_id         uuid NOT NULL REFERENCES trips(id) ON DELETE CASCADE,
+  name            text NOT NULL,
+  country_code    char(2),
+  latitude        numeric(9,6) NOT NULL,
+  longitude       numeric(9,6) NOT NULL,
+  arrival_date    date,
+  departure_date  date,
+  body_md         text NOT NULL DEFAULT '',
+  sort_order      int  NOT NULL DEFAULT 0,
+  published       boolean NOT NULL DEFAULT false,
+  is_destination  boolean NOT NULL DEFAULT false,
+  marker_image_id uuid REFERENCES images(id) ON DELETE SET NULL,
+  leg_mode        text NOT NULL DEFAULT 'drive',
+  leg_geometry    jsonb,
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  updated_at      timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT trip_stations_dates_ordered
+    CHECK (departure_date IS NULL OR arrival_date IS NULL OR departure_date >= arrival_date),
+  CONSTRAINT trip_stations_destination_published
+    CHECK (is_destination = false OR published = true),
+  CONSTRAINT trip_stations_leg_mode
+    CHECK (leg_mode IN ('drive', 'cycle', 'walk', 'air')),
+  CONSTRAINT trip_stations_lat_range CHECK (latitude BETWEEN -90 AND 90),
+  CONSTRAINT trip_stations_lon_range CHECK (longitude BETWEEN -180 AND 180)
+);
+
+CREATE INDEX IF NOT EXISTS idx_trip_stations_trip ON trip_stations(trip_id, sort_order);
+CREATE UNIQUE INDEX IF NOT EXISTS trip_stations_one_destination
+  ON trip_stations (trip_id) WHERE is_destination = true;
+
+ALTER TABLE images
+  ADD COLUMN IF NOT EXISTS station_id uuid REFERENCES trip_stations(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_images_station ON images(station_id, sort_order);
+
 CREATE TABLE IF NOT EXISTS users (
   id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   email         text UNIQUE NOT NULL,

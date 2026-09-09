@@ -13,6 +13,11 @@ ARG BUN_VERSION=1.3.3
 ARG VITE_PUBLIC_BASE_URL=https://nahundfern.servuswir.de
 ENV VITE_PUBLIC_BASE_URL=$VITE_PUBLIC_BASE_URL
 
+# Kartenstil (Vektor-Kacheln) für die Weltkarte. Muss zur Build-Zeit gesetzt
+# sein, weil Vite VITE_*-Variablen ins Client-Bundle backt.
+ARG VITE_MAP_STYLE_URL=https://tiles.openfreemap.org/styles/liberty
+ENV VITE_MAP_STYLE_URL=$VITE_MAP_STYLE_URL
+
 RUN apk add --no-cache libc6-compat vips-dev python3 make g++ \
     && corepack enable
 

@@ -24,7 +24,16 @@ export type AuditAction =
   | "user.create"
   | "user.update.email"
   | "user.update.password"
-  | "user.delete";
+  | "user.delete"
+  | "station.create"
+  | "station.update"
+  | "station.delete"
+  | "station.reorder"
+  | "station.destination"
+  | "station.publish"
+  | "station.unpublish"
+  | "station.route"
+  | "station.media.assign";
 
 export type AuditContext = {
   request: Request;

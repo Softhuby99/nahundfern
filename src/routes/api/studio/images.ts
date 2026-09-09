@@ -9,6 +9,8 @@ const PatchInput = z.object({
   id: z.string().uuid(),
   alt: z.string().max(500).optional(),
   sortOrder: z.number().int().min(0).optional(),
+  // null = zurück in die allgemeine Galerie, undefined = unverändert.
+  stationId: z.string().uuid().nullable().optional(),
 });
 
 export const Route = createFileRoute("/api/studio/images")({
@@ -37,6 +39,7 @@ export const Route = createFileRoute("/api/studio/images")({
         const form = await request.formData();
         const rawTripId = form.get("tripId");
         const file = form.get("file");
+        const rawStationId = form.get("stationId");
 
         // tripId muss eine gültige UUID sein — sonst gar nicht erst dekodieren.
         const parsedTripId = z.string().uuid().safeParse(rawTripId);
@@ -44,6 +47,15 @@ export const Route = createFileRoute("/api/studio/images")({
           return Response.json({ error: "Invalid tripId" }, { status: 400 });
         }
         const tripId = parsedTripId.data;
+
+        let stationId: string | null = null;
+        if (typeof rawStationId === "string" && rawStationId !== "") {
+          const parsedStation = z.string().uuid().safeParse(rawStationId);
+          if (!parsedStation.success) {
+            return Response.json({ error: "Invalid stationId" }, { status: 400 });
+          }
+          stationId = parsedStation.data;
+        }
 
         if (!file || !(file instanceof File)) {
           return Response.json({ error: "Missing file" }, { status: 400 });
@@ -59,6 +71,15 @@ export const Route = createFileRoute("/api/studio/images")({
         if (!trip) {
           return Response.json({ error: "Trip not found" }, { status: 404 });
         }
+        // Station muss zur selben Reise gehören.
+        if (stationId) {
+          const [station] = await sql`
+            SELECT id FROM trip_stations WHERE id = ${stationId} AND trip_id = ${tripId}
+          `;
+          if (!station) {
+            return Response.json({ error: "Station not found for this trip" }, { status: 404 });
+          }
+        }
 
         const buffer = Buffer.from(await file.arrayBuffer());
         const stored = await storeImage(buffer, file.name);
@@ -66,10 +87,10 @@ export const Route = createFileRoute("/api/studio/images")({
         try {
           const [image] = await sql`
             INSERT INTO images (
-              trip_id, original_path, webp_400, webp_1200, webp_2000,
+              trip_id, station_id, original_path, webp_400, webp_1200, webp_2000,
               avif_400, avif_1200, avif_2000, width, height, mime, alt, sort_order
             ) VALUES (
-              ${tripId}, ${stored.originalPath}, ${stored.webp[400]}, ${stored.webp[1200]}, ${stored.webp[2000]},
+              ${tripId}, ${stationId}, ${stored.originalPath}, ${stored.webp[400]}, ${stored.webp[1200]}, ${stored.webp[2000]},
               ${stored.avif[400]}, ${stored.avif[1200]}, ${stored.avif[2000]},
               ${stored.width}, ${stored.height}, ${stored.mime}, ${file.name}, 0
             )
@@ -108,7 +129,33 @@ export const Route = createFileRoute("/api/studio/images")({
         if (!parsed.success) {
           return Response.json({ error: "Invalid input" }, { status: 400 });
         }
-        const { id, alt, sortOrder } = parsed.data;
+        const { id, alt, sortOrder, stationId } = parsed.data;
+
+        // Stationszuordnung nur, wenn Bild und Station zur selben Reise gehören.
+        if (stationId !== undefined) {
+          const [current] = await sql`SELECT trip_id FROM images WHERE id = ${id}`;
+          if (!current) {
+            return Response.json({ error: "Image not found" }, { status: 404 });
+          }
+          if (stationId !== null) {
+            const [station] = await sql`
+              SELECT id FROM trip_stations
+              WHERE id = ${stationId} AND trip_id = ${current.trip_id}
+            `;
+            if (!station) {
+              return Response.json({ error: "Station not found for this trip" }, { status: 404 });
+            }
+          }
+          await sql`UPDATE images SET station_id = ${stationId} WHERE id = ${id}`;
+          await auditLog({
+            request,
+            userId: session.userId,
+            action: "station.media.assign",
+            targetId: id,
+            meta: { stationId, kind: "image" },
+          });
+        }
+
         const [image] = await sql`
           UPDATE images SET
             alt = COALESCE(${alt ?? null}, alt),
