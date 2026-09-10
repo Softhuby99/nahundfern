@@ -43,3 +43,4 @@ nginx/certs/
 secrets/*
 !secrets/.gitkeep
 rc/routes/api/studio/trips.tscat
+public/assets
