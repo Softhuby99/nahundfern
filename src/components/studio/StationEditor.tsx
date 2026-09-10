@@ -227,6 +227,35 @@ export function StationEditor({ tripId }: { tripId: string }) {
     }
   }
 
+  async function publishAllDrafts() {
+    const drafts = stations.filter((station) => !station.published);
+    if (drafts.length === 0) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const responses = await Promise.all(
+        drafts.map((station) =>
+          fetch("/api/studio/stations", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: station.id, published: true }),
+          }),
+        ),
+      );
+      if (responses.some((response) => !response.ok)) {
+        throw new Error("Nicht alle Stationen konnten veröffentlicht werden");
+      }
+      await load();
+      setStatus(
+        `${drafts.length} ${drafts.length === 1 ? "Station wurde" : "Stationen wurden"} veröffentlicht.`,
+      );
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function assignImage(imageId: string, stationId: string | null) {
     const res = await fetch("/api/studio/images", {
       method: "PATCH",
@@ -417,6 +446,11 @@ export function StationEditor({ tripId }: { tripId: string }) {
           </fieldset>
 
           <div className="station-route-actions">
+            {stations.some((station) => !station.published) && (
+              <button type="button" onClick={() => void publishAllDrafts()} disabled={busy}>
+                Alle Stationen veröffentlichen
+              </button>
+            )}
             <button type="button" onClick={() => void sortByDate()} disabled={stations.length < 2}>
               Nach Datum sortieren
             </button>
