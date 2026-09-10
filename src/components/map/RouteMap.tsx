@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
 import type { LngLatBoundsLike, Map as MapLibreMap } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import mapWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import {
   boundsOf,
   buildRouteLegs,
@@ -38,6 +39,12 @@ export type RouteMapProps = {
 
 const STYLE_URL =
   import.meta.env.VITE_MAP_STYLE_URL ?? "https://tiles.openfreemap.org/styles/liberty";
+
+// MapLibre resolves its worker relative to the generated JavaScript chunk by
+// default. In the self-hosted build that points at a file which is not copied
+// to /assets, so the basemap appears but markers and route layers never load.
+// The explicit Vite URL import emits the worker as a versioned build asset.
+maplibregl.setWorkerUrl(mapWorkerUrl);
 
 const ROUTE_SOURCE = "trip-route";
 const DASHED_LAYER = "trip-route-dashed";
