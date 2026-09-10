@@ -99,7 +99,7 @@ export const Route = createFileRoute("/api/studio/stations")({
           return badRequest("Abreise darf nicht vor der Ankunft liegen");
         }
 
-        const [trip] = await sql`SELECT id FROM trips WHERE id = ${d.tripId}`;
+        const [trip] = await sql`SELECT id, published FROM trips WHERE id = ${d.tripId}`;
         if (!trip) return Response.json({ error: "Trip not found" }, { status: 404 });
 
         const [{ count }] = await sql<{ count: string }[]>`
@@ -112,11 +112,11 @@ export const Route = createFileRoute("/api/studio/stations")({
         const [station] = await sql`
           INSERT INTO trip_stations (
             trip_id, name, country_code, latitude, longitude,
-            arrival_date, departure_date, body_md, leg_mode, sort_order
+            arrival_date, departure_date, body_md, leg_mode, published, sort_order
           ) VALUES (
             ${d.tripId}, ${d.name}, ${d.countryCode ?? null}, ${d.latitude}, ${d.longitude},
             ${d.arrivalDate ?? null}, ${d.departureDate ?? null}, ${d.bodyMd ?? ""},
-            ${d.legMode ?? "drive"},
+            ${d.legMode ?? "drive"}, ${Boolean(trip.published)},
             COALESCE((SELECT max(sort_order) + 1 FROM trip_stations WHERE trip_id = ${d.tripId}), 0)
           )
           RETURNING *
