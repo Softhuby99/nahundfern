@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
+    "prebuild": "mkdir -p public/assets && cp node_modules/maplibre-gl/dist/maplibre-gl-shared.mjs public/assets/maplibre-gl-shared.mjs",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
