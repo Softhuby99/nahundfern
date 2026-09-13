@@ -48,7 +48,32 @@ function isoDate(value: string | null): string {
   return value ? String(value).slice(0, 10) : "";
 }
 
-export function StationEditor({ tripId }: { tripId: string }) {
+/** Vorschlagsdaten der Reise: Zielort, Land und Koordinaten. */
+export type StationSuggestion = {
+  city?: string | null;
+  countryCode?: string | null;
+  latitude?: string | number | null;
+  longitude?: string | number | null;
+  whereText?: string | null;
+};
+
+/** „München, Bayern, DE“ → „münchen“ — für den Namensvergleich. */
+function normalizePlace(value: string): string {
+  return (value.split(",")[0] ?? value)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "")
+    .trim();
+}
+
+export function StationEditor({
+  tripId,
+  suggestion,
+}: {
+  tripId: string;
+  suggestion?: StationSuggestion;
+}) {
   const [stations, setStations] = useState<StationRow[]>([]);
   const [images, setImages] = useState<StudioImage[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
