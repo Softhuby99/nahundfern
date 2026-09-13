@@ -598,31 +598,73 @@ export function StationEditor({
                         }
                       />
                     </label>
+                    <div className="station-name-check">
+                      <button type="button" onClick={() => void checkStationName(station)}>
+                        Ortsnamen prüfen
+                      </button>
+                      {nameChecks[station.id]?.state === "checking" && (
+                        <span className="station-hint">Prüfe Ort …</span>
+                      )}
+                      {nameChecks[station.id]?.state === "ok" && (
+                        <span className="station-hint">Name passt zur Kartenposition ✓</span>
+                      )}
+                      {nameChecks[station.id]?.state === "failed" && (
+                        <span className="station-hint">
+                          Ort konnte nicht geprüft werden — Koordinaten bitte selbst kontrollieren.
+                        </span>
+                      )}
+                      {nameChecks[station.id]?.state === "differs" && (
+                        <span className="station-hint">
+                          An dieser Position liegt „{nameChecks[station.id]?.suggested}“.{" "}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const suggested = nameChecks[station.id]?.suggested;
+                              if (suggested) void patchStation(station.id, { name: suggested });
+                            }}
+                          >
+                            Namen übernehmen
+                          </button>
+                        </span>
+                      )}
+                    </div>
                     <div className="station-manual-coords">
-                      <label className="field">
-                        <span>Ankunft</span>
-                        <input
-                          type="date"
-                          defaultValue={isoDate(station.arrival_date)}
-                          onChange={(e) =>
-                            void patchStation(station.id, {
-                              arrivalDate: e.target.value || null,
-                            })
-                          }
-                        />
-                      </label>
-                      <label className="field">
-                        <span>Abreise</span>
-                        <input
-                          type="date"
-                          defaultValue={isoDate(station.departure_date)}
-                          onChange={(e) =>
-                            void patchStation(station.id, {
-                              departureDate: e.target.value || null,
-                            })
-                          }
-                        />
-                      </label>
+                      {index === 0 ? (
+                        <p className="station-hint">
+                          Abreiseort — hier ist keine Ankunft nötig, nur das Abreisedatum.
+                        </p>
+                      ) : (
+                        <label className="field">
+                          <span>Ankunft</span>
+                          <input
+                            type="date"
+                            defaultValue={isoDate(station.arrival_date)}
+                            onChange={(e) =>
+                              void patchStation(station.id, {
+                                arrivalDate: e.target.value || null,
+                              })
+                            }
+                          />
+                        </label>
+                      )}
+                      {index === stations.length - 1 && stations.length > 1 ? (
+                        <p className="station-hint">
+                          Letzter Ort der Reise — ein Abreisedatum ist hier nicht nötig.
+                        </p>
+                      ) : (
+                        <label className="field">
+                          <span>Abreise</span>
+                          <input
+                            type="date"
+                            defaultValue={isoDate(station.departure_date)}
+                            onChange={(e) =>
+                              void patchStation(station.id, {
+                                departureDate: e.target.value || null,
+                              })
+                            }
+                          />
+                        </label>
+                      )}
                     </div>
                     <label className="field">
                       <span>Anreise zu dieser Station</span>
