@@ -705,7 +705,16 @@ function EditorPage() {
             Weltkarte nebeneinander Platz haben. */}
         {trip.id && (
           <div className="mt-10 pt-8 border-t border-border">
-            <StationEditor tripId={trip.id} />
+            <StationEditor
+              tripId={trip.id}
+              suggestion={{
+                city: trip.city,
+                countryCode: trip.countryCode,
+                latitude: trip.latitude,
+                longitude: trip.longitude,
+                whereText: trip.where,
+              }}
+            />
           </div>
         )}
       </main>

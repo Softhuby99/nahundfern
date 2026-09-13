@@ -48,7 +48,32 @@ function isoDate(value: string | null): string {
   return value ? String(value).slice(0, 10) : "";
 }
 
-export function StationEditor({ tripId }: { tripId: string }) {
+/** Vorschlagsdaten der Reise: Zielort, Land und Koordinaten. */
+export type StationSuggestion = {
+  city?: string | null;
+  countryCode?: string | null;
+  latitude?: string | number | null;
+  longitude?: string | number | null;
+  whereText?: string | null;
+};
+
+/** „München, Bayern, DE“ → „münchen“ — für den Namensvergleich. */
+function normalizePlace(value: string): string {
+  return (value.split(",")[0] ?? value)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "")
+    .trim();
+}
+
+export function StationEditor({
+  tripId,
+  suggestion,
+}: {
+  tripId: string;
+  suggestion?: StationSuggestion;
+}) {
   const [stations, setStations] = useState<StationRow[]>([]);
   const [images, setImages] = useState<StudioImage[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -62,7 +87,12 @@ export function StationEditor({ tripId }: { tripId: string }) {
   const [manualLon, setManualLon] = useState("");
   const [manualName, setManualName] = useState("");
   const [routeStatus, setRouteStatus] = useState<string | null>(null);
+  /** Ergebnis der Ortsnamenprüfung pro Station. */
+  const [nameChecks, setNameChecks] = useState<
+    Record<string, { state: "checking" | "ok" | "differs" | "failed"; suggested?: string }>
+  >({});
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prefilled = useRef(false);
 
   const load = useCallback(async () => {
     const [stationRes, imageRes] = await Promise.all([
@@ -82,6 +112,22 @@ export function StationEditor({ tripId }: { tripId: string }) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // Reise ohne Stationen: Zielort der Reise als Vorschlag übernehmen.
+  useEffect(() => {
+    if (prefilled.current || stations.length > 0 || !suggestion) return;
+    const name = (suggestion.city ?? suggestion.whereText ?? "").trim();
+    if (!name) return;
+    prefilled.current = true;
+    setManualName((prev) => prev || name);
+    if (suggestion.latitude !== null && suggestion.latitude !== undefined) {
+      setManualLat((prev) => prev || String(suggestion.latitude));
+    }
+    if (suggestion.longitude !== null && suggestion.longitude !== undefined) {
+      setManualLon((prev) => prev || String(suggestion.longitude));
+    }
+    setQuery((prev) => prev || name);
+  }, [stations.length, suggestion]);
 
   // --- Ortssuche (entprellt) ----------------------------------------------
   useEffect(() => {
@@ -300,6 +346,33 @@ export function StationEditor({ tripId }: { tripId: string }) {
     }
   }
 
+  /**
+   * Prüft, ob der Stationsname zur gesetzten Koordinate passt. So landen die
+   * Marker auf der Karte am richtigen Ort, auch bei Tippfehlern im Namen.
+   */
+  async function checkStationName(station: StationRow) {
+    setNameChecks((prev) => ({ ...prev, [station.id]: { state: "checking" } }));
+    const hit = await reverseLookup({
+      latitude: Number(station.latitude),
+      longitude: Number(station.longitude),
+    });
+    if (!hit?.name) {
+      setNameChecks((prev) => ({ ...prev, [station.id]: { state: "failed" } }));
+      return;
+    }
+    const same = normalizePlace(hit.name) === normalizePlace(station.name);
+    setNameChecks((prev) => ({
+      ...prev,
+      [station.id]: same ? { state: "ok" } : { state: "differs", suggested: hit.name },
+    }));
+  }
+
+  async function checkAllNames() {
+    for (const station of stations) {
+      await checkStationName(station);
+    }
+  }
+
   const handleMapClick = useCallback(async (coords: { latitude: number; longitude: number }) => {
     const hit = await reverseLookup(coords);
     // Kein Treffer → Name bleibt leer und wird manuell eingetragen.
@@ -456,6 +529,13 @@ export function StationEditor({ tripId }: { tripId: string }) {
             </button>
             <button
               type="button"
+              onClick={() => void checkAllNames()}
+              disabled={stations.length === 0}
+            >
+              Alle Ortsnamen prüfen
+            </button>
+            <button
+              type="button"
               onClick={() => void recomputeRoute()}
               disabled={stations.length < 2}
             >
@@ -523,31 +603,73 @@ export function StationEditor({ tripId }: { tripId: string }) {
                         }
                       />
                     </label>
+                    <div className="station-name-check">
+                      <button type="button" onClick={() => void checkStationName(station)}>
+                        Ortsnamen prüfen
+                      </button>
+                      {nameChecks[station.id]?.state === "checking" && (
+                        <span className="station-hint">Prüfe Ort …</span>
+                      )}
+                      {nameChecks[station.id]?.state === "ok" && (
+                        <span className="station-hint">Name passt zur Kartenposition ✓</span>
+                      )}
+                      {nameChecks[station.id]?.state === "failed" && (
+                        <span className="station-hint">
+                          Ort konnte nicht geprüft werden — Koordinaten bitte selbst kontrollieren.
+                        </span>
+                      )}
+                      {nameChecks[station.id]?.state === "differs" && (
+                        <span className="station-hint">
+                          An dieser Position liegt „{nameChecks[station.id]?.suggested}“.{" "}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const suggested = nameChecks[station.id]?.suggested;
+                              if (suggested) void patchStation(station.id, { name: suggested });
+                            }}
+                          >
+                            Namen übernehmen
+                          </button>
+                        </span>
+                      )}
+                    </div>
                     <div className="station-manual-coords">
-                      <label className="field">
-                        <span>Ankunft</span>
-                        <input
-                          type="date"
-                          defaultValue={isoDate(station.arrival_date)}
-                          onChange={(e) =>
-                            void patchStation(station.id, {
-                              arrivalDate: e.target.value || null,
-                            })
-                          }
-                        />
-                      </label>
-                      <label className="field">
-                        <span>Abreise</span>
-                        <input
-                          type="date"
-                          defaultValue={isoDate(station.departure_date)}
-                          onChange={(e) =>
-                            void patchStation(station.id, {
-                              departureDate: e.target.value || null,
-                            })
-                          }
-                        />
-                      </label>
+                      {index === 0 ? (
+                        <p className="station-hint">
+                          Abreiseort — hier ist keine Ankunft nötig, nur das Abreisedatum.
+                        </p>
+                      ) : (
+                        <label className="field">
+                          <span>Ankunft</span>
+                          <input
+                            type="date"
+                            defaultValue={isoDate(station.arrival_date)}
+                            onChange={(e) =>
+                              void patchStation(station.id, {
+                                arrivalDate: e.target.value || null,
+                              })
+                            }
+                          />
+                        </label>
+                      )}
+                      {index === stations.length - 1 && stations.length > 1 ? (
+                        <p className="station-hint">
+                          Letzter Ort der Reise — ein Abreisedatum ist hier nicht nötig.
+                        </p>
+                      ) : (
+                        <label className="field">
+                          <span>Abreise</span>
+                          <input
+                            type="date"
+                            defaultValue={isoDate(station.departure_date)}
+                            onChange={(e) =>
+                              void patchStation(station.id, {
+                                departureDate: e.target.value || null,
+                              })
+                            }
+                          />
+                        </label>
+                      )}
                     </div>
                     <label className="field">
                       <span>Anreise zu dieser Station</span>
