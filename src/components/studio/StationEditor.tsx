@@ -94,7 +94,6 @@ export function StationEditor({
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prefilled = useRef(false);
 
-
   const load = useCallback(async () => {
     const [stationRes, imageRes] = await Promise.all([
       fetch(`/api/studio/stations?tripId=${tripId}`),
@@ -129,7 +128,6 @@ export function StationEditor({
     }
     setQuery((prev) => prev || name);
   }, [stations.length, suggestion]);
-
 
   // --- Ortssuche (entprellt) ----------------------------------------------
   useEffect(() => {
