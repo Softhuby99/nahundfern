@@ -87,7 +87,13 @@ export function StationEditor({
   const [manualLon, setManualLon] = useState("");
   const [manualName, setManualName] = useState("");
   const [routeStatus, setRouteStatus] = useState<string | null>(null);
+  /** Ergebnis der Ortsnamenprüfung pro Station. */
+  const [nameChecks, setNameChecks] = useState<
+    Record<string, { state: "checking" | "ok" | "differs" | "failed"; suggested?: string }>
+  >({});
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prefilled = useRef(false);
+
 
   const load = useCallback(async () => {
     const [stationRes, imageRes] = await Promise.all([
