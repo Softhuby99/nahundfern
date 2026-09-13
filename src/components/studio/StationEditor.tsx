@@ -348,6 +348,33 @@ export function StationEditor({
     }
   }
 
+  /**
+   * Prüft, ob der Stationsname zur gesetzten Koordinate passt. So landen die
+   * Marker auf der Karte am richtigen Ort, auch bei Tippfehlern im Namen.
+   */
+  async function checkStationName(station: StationRow) {
+    setNameChecks((prev) => ({ ...prev, [station.id]: { state: "checking" } }));
+    const hit = await reverseLookup({
+      latitude: Number(station.latitude),
+      longitude: Number(station.longitude),
+    });
+    if (!hit?.name) {
+      setNameChecks((prev) => ({ ...prev, [station.id]: { state: "failed" } }));
+      return;
+    }
+    const same = normalizePlace(hit.name) === normalizePlace(station.name);
+    setNameChecks((prev) => ({
+      ...prev,
+      [station.id]: same ? { state: "ok" } : { state: "differs", suggested: hit.name },
+    }));
+  }
+
+  async function checkAllNames() {
+    for (const station of stations) {
+      await checkStationName(station);
+    }
+  }
+
   const handleMapClick = useCallback(async (coords: { latitude: number; longitude: number }) => {
     const hit = await reverseLookup(coords);
     // Kein Treffer → Name bleibt leer und wird manuell eingetragen.
