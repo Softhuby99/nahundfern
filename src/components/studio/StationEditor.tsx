@@ -114,6 +114,23 @@ export function StationEditor({
     void load();
   }, [load]);
 
+  // Reise ohne Stationen: Zielort der Reise als Vorschlag übernehmen.
+  useEffect(() => {
+    if (prefilled.current || stations.length > 0 || !suggestion) return;
+    const name = (suggestion.city ?? suggestion.whereText ?? "").trim();
+    if (!name) return;
+    prefilled.current = true;
+    setManualName((prev) => prev || name);
+    if (suggestion.latitude !== null && suggestion.latitude !== undefined) {
+      setManualLat((prev) => prev || String(suggestion.latitude));
+    }
+    if (suggestion.longitude !== null && suggestion.longitude !== undefined) {
+      setManualLon((prev) => prev || String(suggestion.longitude));
+    }
+    setQuery((prev) => prev || name);
+  }, [stations.length, suggestion]);
+
+
   // --- Ortssuche (entprellt) ----------------------------------------------
   useEffect(() => {
     if (searchTimer.current) clearTimeout(searchTimer.current);
