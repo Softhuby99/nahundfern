@@ -531,6 +531,13 @@ export function StationEditor({
             </button>
             <button
               type="button"
+              onClick={() => void checkAllNames()}
+              disabled={stations.length === 0}
+            >
+              Alle Ortsnamen prüfen
+            </button>
+            <button
+              type="button"
               onClick={() => void recomputeRoute()}
               disabled={stations.length < 2}
             >
