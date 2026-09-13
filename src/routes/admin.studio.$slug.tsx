@@ -712,7 +712,7 @@ function EditorPage() {
                 countryCode: trip.countryCode,
                 latitude: trip.latitude,
                 longitude: trip.longitude,
-                whereText: trip.whereText,
+                whereText: trip.where,
               }}
             />
           </div>
