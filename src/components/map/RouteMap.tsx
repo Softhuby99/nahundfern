@@ -33,6 +33,8 @@ export type RouteMapProps = {
   draggableMarkers?: boolean;
   /** Kurze Routenanimation beim ersten Anzeigen. */
   animateOnMount?: boolean;
+  /** Verbindungslinie zwischen den Punkten zeichnen. */
+  showRoute?: boolean;
   className?: string;
   ariaLabel?: string;
 };
@@ -64,6 +66,7 @@ export default function RouteMap({
   onMoveStation,
   draggableMarkers = false,
   animateOnMount = false,
+  showRoute = true,
   className,
   ariaLabel = "Karte der Reiseroute",
 }: RouteMapProps) {
@@ -137,7 +140,7 @@ export default function RouteMap({
     const map = mapRef.current;
     if (!map || !ready) return;
 
-    const legs = buildRouteLegs(stations);
+    const legs = showRoute ? buildRouteLegs(stations) : [];
     const dashed = legs.filter((l) => l.dashed).flatMap((l) => l.segments);
     const solid = legs.filter((l) => !l.dashed).flatMap((l) => l.segments);
 
