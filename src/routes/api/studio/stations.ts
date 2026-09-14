@@ -14,7 +14,7 @@ const IsoDate = z
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Datum muss YYYY-MM-TT sein")
   .refine((v) => !Number.isNaN(Date.parse(v)), "Ungültiges Datum");
 
-const LegMode = z.enum(["drive", "cycle", "walk", "air"]);
+const LegMode = z.enum(["drive", "train", "cycle", "walk", "air"]);
 
 const CreateInput = z.object({
   tripId: z.string().uuid(),

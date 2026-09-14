@@ -1,7 +1,7 @@
 // SSR-sichere Geometrie-Helfer: keine Browser-APIs, kein MapLibre-Import.
 // Wird sowohl vom öffentlichen Bericht als auch vom Studio-Editor genutzt.
 
-export type LegMode = "drive" | "cycle" | "walk" | "air";
+export type LegMode = "drive" | "train" | "cycle" | "walk" | "air";
 
 export type RoutePoint = {
   latitude: number;
@@ -147,6 +147,7 @@ export function buildRouteLegs(points: RoutePoint[]): RouteLeg[] {
     const road = to.legGeometry;
     const useRoad =
       to.legMode !== "air" &&
+      to.legMode !== "train" &&
       Array.isArray(road) &&
       road.length > 0 &&
       road.every((line) => Array.isArray(line) && line.length >= 2);

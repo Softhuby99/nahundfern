@@ -39,7 +39,7 @@ export type PublicTrip = {
 };
 
 /** Transportart des Abschnitts VON der vorherigen Station ZU dieser. */
-export type LegMode = "drive" | "cycle" | "walk" | "air";
+export type LegMode = "drive" | "train" | "cycle" | "walk" | "air";
 
 export type PublicStation = {
   id: string;
