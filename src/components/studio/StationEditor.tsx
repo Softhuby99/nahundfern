@@ -666,6 +666,26 @@ export function StationEditor({
                       {nameChecks[station.id]?.state === "ok" && (
                         <span className="station-hint">Name passt zur Kartenposition ✓</span>
                       )}
+                      {nameChecks[station.id]?.state === "coords" && (
+                        <span className="station-hint">
+                          „{nameChecks[station.id]?.suggested}“ liegt laut Ortssuche an einer
+                          anderen Stelle.{" "}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const check = nameChecks[station.id];
+                              if (check?.latitude == null || check?.longitude == null) return;
+                              void patchStation(station.id, {
+                                latitude: check.latitude,
+                                longitude: check.longitude,
+                              });
+                              setRouteStatus("Koordinate geändert — Route neu berechnen.");
+                            }}
+                          >
+                            Position übernehmen
+                          </button>
+                        </span>
+                      )}
                       {nameChecks[station.id]?.state === "failed" && (
                         <span className="station-hint">
                           Ort konnte nicht geprüft werden — Koordinaten bitte selbst kontrollieren.
