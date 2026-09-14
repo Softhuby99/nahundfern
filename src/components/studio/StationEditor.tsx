@@ -2,7 +2,7 @@
 // Koordinaten, Text, Reihenfolge, Zielort und Medienzuordnung.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RouteMapLazy, type MapStation } from "@/components/map/RouteMapLazy";
-import { sortByArrival, type LegMode } from "@/components/map/route-geometry";
+import { distanceKm, sortByArrival, type LegMode } from "@/components/map/route-geometry";
 
 type StationRow = {
   id: string;
@@ -355,25 +355,69 @@ export function StationEditor({
     }
   }
 
+  /** Ortssuche nach einem Namen (erster Treffer). */
+  async function forwardLookup(name: string) {
+    try {
+      const res = await fetch("/api/studio/geocode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ q: name }),
+      });
+      const data = await res.json();
+      const list = (data?.results ?? []) as GeocodeHit[];
+      return list[0] ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   /**
-   * Prüft, ob der Stationsname zur gesetzten Koordinate passt. So landen die
-   * Marker auf der Karte am richtigen Ort, auch bei Tippfehlern im Namen.
+   * Prüft, ob Stationsname und Kartenposition zusammenpassen. Geprüft wird in
+   * beide Richtungen: Name → Koordinate (Ortssuche) und Koordinate → Name
+   * (Rückwärtssuche). So genügt es, wenn einer der beiden Dienste antwortet.
    */
   async function checkStationName(station: StationRow) {
     setNameChecks((prev) => ({ ...prev, [station.id]: { state: "checking" } }));
-    const hit = await reverseLookup({
-      latitude: Number(station.latitude),
-      longitude: Number(station.longitude),
-    });
-    if (!hit?.name) {
-      setNameChecks((prev) => ({ ...prev, [station.id]: { state: "failed" } }));
+    const coords = { latitude: Number(station.latitude), longitude: Number(station.longitude) };
+    const typed = station.name.trim();
+    const [reverse, forward] = await Promise.all([
+      reverseLookup(coords),
+      typed ? forwardLookup(typed) : Promise.resolve(null),
+    ]);
+
+    if (reverse?.name && normalizePlace(reverse.name) === normalizePlace(typed)) {
+      setNameChecks((prev) => ({ ...prev, [station.id]: { state: "ok" } }));
       return;
     }
-    const same = normalizePlace(hit.name) === normalizePlace(station.name);
-    setNameChecks((prev) => ({
-      ...prev,
-      [station.id]: same ? { state: "ok" } : { state: "differs", suggested: hit.name },
-    }));
+
+    if (forward) {
+      // Name ist bekannt: passt die gespeicherte Koordinate dazu?
+      const km = distanceKm(coords, forward);
+      if (km <= 25) {
+        setNameChecks((prev) => ({ ...prev, [station.id]: { state: "ok" } }));
+        return;
+      }
+      setNameChecks((prev) => ({
+        ...prev,
+        [station.id]: {
+          state: "coords",
+          suggested: forward.name,
+          latitude: forward.latitude,
+          longitude: forward.longitude,
+        },
+      }));
+      return;
+    }
+
+    if (reverse?.name) {
+      setNameChecks((prev) => ({
+        ...prev,
+        [station.id]: { state: "differs", suggested: reverse.name },
+      }));
+      return;
+    }
+
+    setNameChecks((prev) => ({ ...prev, [station.id]: { state: "failed" } }));
   }
 
   async function checkAllNames() {
