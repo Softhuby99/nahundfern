@@ -186,7 +186,7 @@ export default function RouteMap({
         },
       });
     }
-  }, [stations, ready]);
+  }, [stations, ready, showRoute]);
 
   // --- Marker ---------------------------------------------------------------
   useEffect(() => {
