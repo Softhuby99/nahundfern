@@ -544,30 +544,57 @@ export function StationEditor({
               type="button"
               disabled={busy}
               onClick={() => {
-                const lat = Number(manualLat.replace(",", "."));
-                const lon = Number(manualLon.replace(",", "."));
-                if (!manualName.trim()) {
-                  setError("Bitte einen Namen für die Station eintragen");
-                  return;
-                }
-                if (!Number.isFinite(lat) || lat < -90 || lat > 90) {
-                  setError("Breite muss zwischen -90 und 90 liegen");
-                  return;
-                }
-                if (!Number.isFinite(lon) || lon < -180 || lon > 180) {
-                  setError("Länge muss zwischen -180 und 180 liegen");
-                  return;
-                }
-                void createStation({ name: manualName.trim(), latitude: lat, longitude: lon });
-                setManualName("");
-                setManualLat("");
-                setManualLon("");
+                void (async () => {
+                  const name = manualName.trim();
+                  if (!name) {
+                    setError("Bitte einen Namen für die Station eintragen");
+                    return;
+                  }
+                  const latRaw = manualLat.trim().replace(",", ".");
+                  const lonRaw = manualLon.trim().replace(",", ".");
+                  let lat = Number(latRaw);
+                  let lon = Number(lonRaw);
+                  let countryCode: string | null | undefined;
+
+                  // Leere Koordinatenfelder dürfen NIE als 0/0 im Golf von
+                  // Guinea landen: dann wird der Ort über die Ortssuche
+                  // bestimmt.
+                  if (latRaw === "" || lonRaw === "") {
+                    setError(null);
+                    setStatus(`Suche Position für „${name}“ …`);
+                    const hit = await forwardLookup(name);
+                    if (!hit) {
+                      setStatus(null);
+                      setError(
+                        `Für „${name}“ wurde keine Position gefunden. Bitte auf die Karte klicken oder Breite und Länge eintragen.`,
+                      );
+                      return;
+                    }
+                    lat = hit.latitude;
+                    lon = hit.longitude;
+                    countryCode = hit.countryCode;
+                  }
+
+                  if (!Number.isFinite(lat) || lat < -90 || lat > 90) {
+                    setError("Breite muss zwischen -90 und 90 liegen");
+                    return;
+                  }
+                  if (!Number.isFinite(lon) || lon < -180 || lon > 180) {
+                    setError("Länge muss zwischen -180 und 180 liegen");
+                    return;
+                  }
+                  await createStation({ name, latitude: lat, longitude: lon, countryCode });
+                  setManualName("");
+                  setManualLat("");
+                  setManualLon("");
+                })();
               }}
             >
               Station hinzufügen
             </button>
             <p className="station-hint">
-              Tipp: Ein Klick auf die Karte füllt diese Felder automatisch.
+              Tipp: Ein Klick auf die Karte füllt diese Felder automatisch. Bleiben Breite und Länge
+              leer, wird die Position über den Ortsnamen gesucht.
             </p>
           </fieldset>
 
