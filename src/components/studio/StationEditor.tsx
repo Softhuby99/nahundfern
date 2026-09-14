@@ -90,7 +90,15 @@ export function StationEditor({
   const [routeStatus, setRouteStatus] = useState<string | null>(null);
   /** Ergebnis der Ortsnamenprüfung pro Station. */
   const [nameChecks, setNameChecks] = useState<
-    Record<string, { state: "checking" | "ok" | "differs" | "failed"; suggested?: string }>
+    Record<
+      string,
+      {
+        state: "checking" | "ok" | "differs" | "coords" | "failed";
+        suggested?: string;
+        latitude?: number;
+        longitude?: number;
+      }
+    >
   >({});
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prefilled = useRef(false);
