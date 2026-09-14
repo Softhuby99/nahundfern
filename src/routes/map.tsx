@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { RouteMapLazy, type MapStation } from "@/components/map/RouteMapLazy";
@@ -30,6 +30,7 @@ export const Route = createFileRoute("/map")({
 
 function MapPage() {
   const { trips } = Route.useLoaderData();
+  const navigate = useNavigate();
 
   // Ein Marker pro Reise; keine Route zwischen verschiedenen Reisen.
   const markers: MapStation[] = trips.map((t) => ({
@@ -60,6 +61,8 @@ function MapPage() {
           <>
             <RouteMapLazy
               stations={markers}
+              showRoute={false}
+              onSelectStation={(slug) => navigate({ to: "/stories/$slug", params: { slug } })}
               className="route-map-canvas route-map-canvas--tall"
               ariaLabel="Weltkarte mit allen veröffentlichten Reisen"
             />
