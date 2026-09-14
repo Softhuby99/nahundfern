@@ -82,11 +82,26 @@ function normalizeCountryCode(raw: unknown): string | null {
 
 function shortName(entry: Record<string, unknown>): string {
   const address = (entry.address ?? {}) as Record<string, unknown>;
-  const candidates = ["city", "town", "village", "hamlet", "municipality", "county", "state"];
+  const candidates = [
+    "city",
+    "town",
+    "village",
+    "hamlet",
+    "municipality",
+    "city_district",
+    "suburb",
+    "borough",
+    "district",
+    "county",
+    "state",
+    "region",
+  ];
   for (const key of candidates) {
     const v = address[key];
     if (typeof v === "string" && v.trim()) return v.trim();
   }
+  const own = entry.name;
+  if (typeof own === "string" && own.trim()) return own.trim();
   const display = entry.display_name;
   if (typeof display === "string") return display.split(",")[0]!.trim();
   return "";
@@ -148,9 +163,9 @@ export async function geocodeReverse(lat: number, lon: number): Promise<GeocodeR
 }
 
 // --------------------------------------------------------------- routing ----
-export type LegMode = "drive" | "cycle" | "walk" | "air";
+export type LegMode = "drive" | "train" | "cycle" | "walk" | "air";
 
-const OSRM_PROFILE: Record<Exclude<LegMode, "air">, string> = {
+const OSRM_PROFILE: Record<Exclude<LegMode, "air" | "train">, string> = {
   drive: "driving",
   cycle: "cycling",
   walk: "walking",
@@ -212,7 +227,7 @@ function perpendicularDistance(p: number[], a: number[], b: number[]): number {
 
 export type RouteLegResult =
   | { ok: true; geometry: number[][][]; distanceMeters: number }
-  | { ok: false; reason: "air" | "no_route" | "upstream" };
+  | { ok: false; reason: "air" | "train" | "no_route" | "upstream" };
 
 /**
  * Holt die Straßengeometrie zwischen zwei Punkten. Fehlerfälle sind erwartbar
@@ -224,7 +239,8 @@ export async function routeBetween(
   to: { latitude: number; longitude: number },
   mode: LegMode,
 ): Promise<RouteLegResult> {
-  if (mode === "air") return { ok: false, reason: "air" };
+  // Flug und Zug: kein Straßen-Routing — die Linie wird als Bogen gezeichnet.
+  if (mode === "air" || mode === "train") return { ok: false, reason: mode };
   const profile = OSRM_PROFILE[mode];
   const coords = `${from.longitude},${from.latitude};${to.longitude},${to.latitude}`;
   const url = `${ROUTING_BASE_URL()}/route/v1/${profile}/${coords}?overview=full&geometries=geojson&alternatives=false&steps=false`;

@@ -16,7 +16,7 @@ export async function recomputeTripRoute(tripId: string): Promise<RouteRecompute
       id: string;
       latitude: string;
       longitude: string;
-      leg_mode: "drive" | "cycle" | "walk" | "air";
+      leg_mode: "drive" | "train" | "cycle" | "walk" | "air";
     }[]
   >`
     SELECT id, latitude, longitude, leg_mode FROM trip_stations

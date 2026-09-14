@@ -39,6 +39,7 @@ type GeocodeHit = {
 
 const LEG_LABEL: Record<LegMode, string> = {
   drive: "Auto",
+  train: "Zug",
   cycle: "Fahrrad",
   walk: "Zu Fuß",
   air: "Flug",

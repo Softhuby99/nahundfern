@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS trip_stations (
   CONSTRAINT trip_stations_destination_published
     CHECK (is_destination = false OR published = true),
   CONSTRAINT trip_stations_leg_mode
-    CHECK (leg_mode IN ('drive', 'cycle', 'walk', 'air')),
+    CHECK (leg_mode IN ('drive', 'train', 'cycle', 'walk', 'air')),
   CONSTRAINT trip_stations_lat_range CHECK (latitude BETWEEN -90 AND 90),
   CONSTRAINT trip_stations_lon_range CHECK (longitude BETWEEN -180 AND 180)
 );
