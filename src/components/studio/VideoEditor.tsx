@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useConfirm } from "@/components/studio/ConfirmDialog";
 
 export type StudioVideo = {
   id: string;
@@ -88,6 +89,7 @@ export function VideoEditor({ tripId }: { tripId: string }) {
   const [videos, setVideos] = useState<StudioVideo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const [uploadStatus, setUploadStatus] = useState<{
     phase: "upload" | "processing";
     pct: number;
@@ -120,7 +122,11 @@ export function VideoEditor({ tripId }: { tripId: string }) {
   };
 
   const deleteVideo = async (id: string) => {
-    if (!confirm("Video wirklich löschen?")) return;
+    const ok = await confirm({
+      title: "Video wirklich löschen?",
+      description: "Das Video wird endgültig entfernt und verschwindet aus dem Reisebericht.",
+    });
+    if (!ok) return;
     const res = await fetch(`/api/studio/videos?id=${id}`, {
       method: "DELETE",
       credentials: "same-origin",
@@ -138,6 +144,7 @@ export function VideoEditor({ tripId }: { tripId: string }) {
 
   return (
     <div>
+      {confirmDialog}
       <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
         Videos
       </label>

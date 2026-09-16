@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { VideoEditor } from "@/components/studio/VideoEditor";
 import { StationEditor } from "@/components/studio/StationEditor";
 import { useConfirm } from "@/components/studio/ConfirmDialog";
+import { RichTextEditor } from "@/components/studio/RichTextEditor";
 
 export const Route = createFileRoute("/admin/studio/$slug")({
   head: () => ({
@@ -358,6 +359,11 @@ function EditorPage() {
   };
 
   const deleteImage = async (id: string) => {
+    const ok = await confirm({
+      title: "Foto wirklich löschen?",
+      description: "Das Foto wird endgültig entfernt und verschwindet aus dem Reisebericht.",
+    });
+    if (!ok) return;
     const res = await fetch(`/api/studio/images?id=${id}`, {
       method: "DELETE",
       credentials: "same-origin",
@@ -580,15 +586,15 @@ function EditorPage() {
               <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
                 Reisebericht<span className="text-destructive ml-1">*</span>{" "}
                 <span className="normal-case tracking-normal text-muted-foreground">
-                  (Absätze mit Leerzeile trennen)
+                  (Fett, Kursiv, Schrift, Größe und Farbe über die Leiste)
                 </span>
               </label>
-              <textarea
+              <RichTextEditor
+                key={`trip-body-${trip.id ?? "neu"}`}
                 value={trip.body}
-                onChange={(e) => setField("body", e.target.value)}
-                rows={16}
-                aria-required
-                className={`w-full bg-card border ${!trip.body ? "border-destructive/50" : "border-border"} focus:border-primary p-3 font-mono text-sm rounded-sm`}
+                ariaLabel="Reisebericht"
+                minHeight={320}
+                onChange={(html) => setField("body", html)}
               />
             </div>
 
@@ -609,7 +615,7 @@ function EditorPage() {
 
             <div className="flex gap-3 pt-2">
               <button
-                onClick={save}
+                onClick={() => void save()}
                 disabled={saving}
                 className="px-6 py-3 bg-primary text-primary-foreground font-mono text-[10px] tracking-widest uppercase hover:bg-primary/90 disabled:opacity-50 rounded-sm"
               >
@@ -730,11 +736,13 @@ function EditorPage() {
                 longitude: trip.longitude,
                 whereText: trip.where,
               }}
+              onSaveTrip={() => save()}
             />
           </div>
         )}
       </main>
       <SiteFooter />
+      {confirmDialog}
     </div>
   );
 }
