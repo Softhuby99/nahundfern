@@ -213,6 +213,12 @@ export const Route = createFileRoute("/api/studio/stations")({
             published       = ${willPublish},
             is_destination  = ${destination},
             marker_image_id = ${d.markerImageId !== undefined ? d.markerImageId : current.marker_image_id},
+            daily_enabled   = ${d.dailyEnabled !== undefined ? d.dailyEnabled : current.daily_enabled},
+            day_entries     = ${
+              d.dayEntries !== undefined
+                ? JSON.stringify(d.dayEntries)
+                : JSON.stringify(current.day_entries ?? [])
+            }::jsonb,
             -- Koordinaten- oder Modusänderung macht gespeicherte Straßengeometrie ungültig.
             leg_geometry    = ${
               d.latitude !== undefined || d.longitude !== undefined || d.legMode !== undefined
