@@ -33,7 +33,10 @@ export type AuditAction =
   | "station.publish"
   | "station.unpublish"
   | "station.route"
-  | "station.media.assign";
+  | "station.media.assign"
+  | "place.create"
+  | "place.update"
+  | "place.delete";
 
 export type AuditContext = {
   request: Request;
