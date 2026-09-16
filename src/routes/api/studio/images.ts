@@ -135,7 +135,7 @@ export const Route = createFileRoute("/api/studio/images")({
         if (!parsed.success) {
           return Response.json({ error: "Invalid input" }, { status: 400 });
         }
-        const { id, alt, sortOrder, stationId } = parsed.data;
+        const { id, alt, sortOrder, stationId, dayDate } = parsed.data;
 
         // Stationszuordnung nur, wenn Bild und Station zur selben Reise gehören.
         if (stationId !== undefined) {
@@ -152,7 +152,13 @@ export const Route = createFileRoute("/api/studio/images")({
               return Response.json({ error: "Station not found for this trip" }, { status: 404 });
             }
           }
-          await sql`UPDATE images SET station_id = ${stationId} WHERE id = ${id}`;
+          // Ohne Station gibt es auch keinen Aufenthaltstag mehr.
+          await sql`
+            UPDATE images
+            SET station_id = ${stationId},
+                day_date = ${stationId === null ? null : sql`day_date`}
+            WHERE id = ${id}
+          `;
           await auditLog({
             request,
             userId: session.userId,
@@ -160,6 +166,36 @@ export const Route = createFileRoute("/api/studio/images")({
             targetId: id,
             meta: { stationId, kind: "image" },
           });
+        }
+
+        // Tageszuordnung: nur bei aktivierter Tagesoption und Datum im Aufenthalt.
+        if (dayDate !== undefined) {
+          const [row] = await sql`
+            SELECT i.station_id, s.daily_enabled, s.arrival_date, s.departure_date
+            FROM images i
+            LEFT JOIN trip_stations s ON s.id = i.station_id
+            WHERE i.id = ${id}
+          `;
+          if (!row) return Response.json({ error: "Image not found" }, { status: 404 });
+          if (dayDate !== null) {
+            if (!row.station_id || !row.daily_enabled) {
+              return Response.json(
+                { error: "Tageszuordnung nur bei Stationen mit Tagesoption" },
+                { status: 400 },
+              );
+            }
+            const iso = (v: unknown) =>
+              v instanceof Date ? v.toISOString().slice(0, 10) : v ? String(v).slice(0, 10) : null;
+            const from = iso(row.arrival_date);
+            const to = iso(row.departure_date) ?? from;
+            if (from && to && (dayDate < from || dayDate > to)) {
+              return Response.json(
+                { error: "Datum liegt außerhalb des Aufenthalts" },
+                { status: 400 },
+              );
+            }
+          }
+          await sql`UPDATE images SET day_date = ${dayDate} WHERE id = ${id}`;
         }
 
         const [image] = await sql`
