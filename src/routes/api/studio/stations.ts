@@ -170,8 +170,8 @@ export const Route = createFileRoute("/api/studio/stations")({
 
         const arrival = d.arrivalDate !== undefined ? d.arrivalDate : current.arrival_date;
         const departure = d.departureDate !== undefined ? d.departureDate : current.departure_date;
-        const arrivalIso = arrival ? String(arrival).slice(0, 10) : null;
-        const departureIso = departure ? String(departure).slice(0, 10) : null;
+        const arrivalIso = toIsoDate(arrival);
+        const departureIso = toIsoDate(departure);
         if (arrivalIso && departureIso && departureIso < arrivalIso) {
           return badRequest("Abreise darf nicht vor der Ankunft liegen");
         }
