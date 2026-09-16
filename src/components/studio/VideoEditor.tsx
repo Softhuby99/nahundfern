@@ -144,6 +144,7 @@ export function VideoEditor({ tripId }: { tripId: string }) {
 
   return (
     <div>
+      {confirmDialog}
       <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
         Videos
       </label>
