@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { VideoEditor } from "@/components/studio/VideoEditor";
 import { StationEditor } from "@/components/studio/StationEditor";
 import { useConfirm } from "@/components/studio/ConfirmDialog";
+import { RichTextEditor } from "@/components/studio/RichTextEditor";
 
 export const Route = createFileRoute("/admin/studio/$slug")({
   head: () => ({
@@ -585,15 +586,15 @@ function EditorPage() {
               <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
                 Reisebericht<span className="text-destructive ml-1">*</span>{" "}
                 <span className="normal-case tracking-normal text-muted-foreground">
-                  (Absätze mit Leerzeile trennen)
+                  (Fett, Kursiv, Schrift, Größe und Farbe über die Leiste)
                 </span>
               </label>
-              <textarea
+              <RichTextEditor
+                key={`trip-body-${trip.id ?? "neu"}`}
                 value={trip.body}
-                onChange={(e) => setField("body", e.target.value)}
-                rows={16}
-                aria-required
-                className={`w-full bg-card border ${!trip.body ? "border-destructive/50" : "border-border"} focus:border-primary p-3 font-mono text-sm rounded-sm`}
+                ariaLabel="Reisebericht"
+                minHeight={320}
+                onChange={(html) => setField("body", html)}
               />
             </div>
 
