@@ -358,6 +358,11 @@ function EditorPage() {
   };
 
   const deleteImage = async (id: string) => {
+    const ok = await confirm({
+      title: "Foto wirklich löschen?",
+      description: "Das Foto wird endgültig entfernt und verschwindet aus dem Reisebericht.",
+    });
+    if (!ok) return;
     const res = await fetch(`/api/studio/images?id=${id}`, {
       method: "DELETE",
       credentials: "same-origin",
