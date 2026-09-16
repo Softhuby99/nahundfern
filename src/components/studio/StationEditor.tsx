@@ -49,6 +49,15 @@ function daysInRange(arrival: string, departure: string): string[] {
   return days;
 }
 
+/** Tage einer Station aus Ankunft und Abreise. */
+function stationDays(station: { arrival_date: string | null; departure_date: string | null }) {
+  const arrival = station.arrival_date ? String(station.arrival_date).slice(0, 10) : "";
+  const departure = station.departure_date ? String(station.departure_date).slice(0, 10) : "";
+  if (arrival && departure) return daysInRange(arrival, departure);
+  const single = arrival || departure;
+  return single ? [single] : [];
+}
+
 function formatDay(iso: string): string {
   return new Date(`${iso}T00:00:00Z`).toLocaleDateString("de-DE", {
     weekday: "long",
