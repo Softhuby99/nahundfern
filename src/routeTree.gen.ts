@@ -31,6 +31,7 @@ import { Route as ApiStudioUsersRouteImport } from './routes/api/studio/users'
 import { Route as ApiStudioTripsRouteImport } from './routes/api/studio/trips'
 import { Route as ApiStudioSystemStatusRouteImport } from './routes/api/studio/system-status'
 import { Route as ApiStudioStationsRouteImport } from './routes/api/studio/stations'
+import { Route as ApiStudioPlacesRouteImport } from './routes/api/studio/places'
 import { Route as ApiStudioImagesRouteImport } from './routes/api/studio/images'
 import { Route as ApiStudioGeocodeRouteImport } from './routes/api/studio/geocode'
 import { Route as ApiStudioAuditRouteImport } from './routes/api/studio/audit'
@@ -155,6 +156,11 @@ const ApiStudioStationsRoute = ApiStudioStationsRouteImport.update({
   path: '/stations',
   getParentRoute: () => ApiStudioRouteRoute,
 } as any)
+const ApiStudioPlacesRoute = ApiStudioPlacesRouteImport.update({
+  id: '/places',
+  path: '/places',
+  getParentRoute: () => ApiStudioRouteRoute,
+} as any)
 const ApiStudioImagesRoute = ApiStudioImagesRouteImport.update({
   id: '/images',
   path: '/images',
@@ -249,6 +255,7 @@ export interface FileRoutesByFullPath {
   '/api/studio/audit': typeof ApiStudioAuditRoute
   '/api/studio/geocode': typeof ApiStudioGeocodeRoute
   '/api/studio/images': typeof ApiStudioImagesRoute
+  '/api/studio/places': typeof ApiStudioPlacesRoute
   '/api/studio/stations': typeof ApiStudioStationsRoute
   '/api/studio/system-status': typeof ApiStudioSystemStatusRoute
   '/api/studio/trips': typeof ApiStudioTripsRoute
@@ -285,6 +292,7 @@ export interface FileRoutesByTo {
   '/api/studio/audit': typeof ApiStudioAuditRoute
   '/api/studio/geocode': typeof ApiStudioGeocodeRoute
   '/api/studio/images': typeof ApiStudioImagesRoute
+  '/api/studio/places': typeof ApiStudioPlacesRoute
   '/api/studio/stations': typeof ApiStudioStationsRoute
   '/api/studio/system-status': typeof ApiStudioSystemStatusRoute
   '/api/studio/trips': typeof ApiStudioTripsRoute
@@ -323,6 +331,7 @@ export interface FileRoutesById {
   '/api/studio/audit': typeof ApiStudioAuditRoute
   '/api/studio/geocode': typeof ApiStudioGeocodeRoute
   '/api/studio/images': typeof ApiStudioImagesRoute
+  '/api/studio/places': typeof ApiStudioPlacesRoute
   '/api/studio/stations': typeof ApiStudioStationsRoute
   '/api/studio/system-status': typeof ApiStudioSystemStatusRoute
   '/api/studio/trips': typeof ApiStudioTripsRoute
@@ -362,6 +371,7 @@ export interface FileRouteTypes {
     | '/api/studio/audit'
     | '/api/studio/geocode'
     | '/api/studio/images'
+    | '/api/studio/places'
     | '/api/studio/stations'
     | '/api/studio/system-status'
     | '/api/studio/trips'
@@ -398,6 +408,7 @@ export interface FileRouteTypes {
     | '/api/studio/audit'
     | '/api/studio/geocode'
     | '/api/studio/images'
+    | '/api/studio/places'
     | '/api/studio/stations'
     | '/api/studio/system-status'
     | '/api/studio/trips'
@@ -435,6 +446,7 @@ export interface FileRouteTypes {
     | '/api/studio/audit'
     | '/api/studio/geocode'
     | '/api/studio/images'
+    | '/api/studio/places'
     | '/api/studio/stations'
     | '/api/studio/system-status'
     | '/api/studio/trips'
@@ -620,6 +632,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStudioStationsRouteImport
       parentRoute: typeof ApiStudioRouteRoute
     }
+    '/api/studio/places': {
+      id: '/api/studio/places'
+      path: '/places'
+      fullPath: '/api/studio/places'
+      preLoaderRoute: typeof ApiStudioPlacesRouteImport
+      parentRoute: typeof ApiStudioRouteRoute
+    }
     '/api/studio/images': {
       id: '/api/studio/images'
       path: '/images'
@@ -767,6 +786,7 @@ interface ApiStudioRouteRouteChildren {
   ApiStudioAuditRoute: typeof ApiStudioAuditRoute
   ApiStudioGeocodeRoute: typeof ApiStudioGeocodeRoute
   ApiStudioImagesRoute: typeof ApiStudioImagesRoute
+  ApiStudioPlacesRoute: typeof ApiStudioPlacesRoute
   ApiStudioStationsRoute: typeof ApiStudioStationsRoute
   ApiStudioSystemStatusRoute: typeof ApiStudioSystemStatusRoute
   ApiStudioTripsRoute: typeof ApiStudioTripsRoute
@@ -778,6 +798,7 @@ const ApiStudioRouteRouteChildren: ApiStudioRouteRouteChildren = {
   ApiStudioAuditRoute: ApiStudioAuditRoute,
   ApiStudioGeocodeRoute: ApiStudioGeocodeRoute,
   ApiStudioImagesRoute: ApiStudioImagesRoute,
+  ApiStudioPlacesRoute: ApiStudioPlacesRoute,
   ApiStudioStationsRoute: ApiStudioStationsRoute,
   ApiStudioSystemStatusRoute: ApiStudioSystemStatusRoute,
   ApiStudioTripsRoute: ApiStudioTripsRoute,
