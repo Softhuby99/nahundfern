@@ -9,6 +9,14 @@ const PatchInput = z.object({
   id: z.string().uuid(),
   alt: z.string().max(500).optional(),
   sortOrder: z.number().int().min(0).optional(),
+  // null = zurück zur allgemeinen Videoliste, undefined = unverändert.
+  stationId: z.string().uuid().nullable().optional(),
+  // Einzelner Aufenthaltstag (ISO) oder null = gehört zur ganzen Station.
+  dayDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .nullable()
+    .optional(),
 });
 
 export const Route = createFileRoute("/api/studio/videos")({
@@ -108,7 +116,57 @@ export const Route = createFileRoute("/api/studio/videos")({
         const body = await request.json();
         const parsed = PatchInput.safeParse(body);
         if (!parsed.success) return Response.json({ error: "Invalid input" }, { status: 400 });
-        const { id, alt, sortOrder } = parsed.data;
+        const { id, alt, sortOrder, stationId, dayDate } = parsed.data;
+
+        // Stationszuordnung nur innerhalb derselben Reise.
+        if (stationId !== undefined) {
+          const [current] = await sql`SELECT trip_id FROM videos WHERE id = ${id}`;
+          if (!current) return Response.json({ error: "Video not found" }, { status: 404 });
+          if (stationId !== null) {
+            const [station] = await sql`
+              SELECT id FROM trip_stations
+              WHERE id = ${stationId} AND trip_id = ${current.trip_id}
+            `;
+            if (!station) {
+              return Response.json({ error: "Station not found for this trip" }, { status: 404 });
+            }
+          }
+          await sql`UPDATE videos SET station_id = ${stationId} WHERE id = ${id}`;
+          if (stationId === null) {
+            await sql`UPDATE videos SET day_date = NULL WHERE id = ${id}`;
+          }
+        }
+
+        // Tageszuordnung nur bei aktivierter Tagesoption und Datum im Aufenthalt.
+        if (dayDate !== undefined) {
+          const [row] = await sql`
+            SELECT v.station_id, s.daily_enabled, s.arrival_date, s.departure_date
+            FROM videos v
+            LEFT JOIN trip_stations s ON s.id = v.station_id
+            WHERE v.id = ${id}
+          `;
+          if (!row) return Response.json({ error: "Video not found" }, { status: 404 });
+          if (dayDate !== null) {
+            if (!row.station_id || !row.daily_enabled) {
+              return Response.json(
+                { error: "Tageszuordnung nur bei Stationen mit Tagesoption" },
+                { status: 400 },
+              );
+            }
+            const iso = (v: unknown) =>
+              v instanceof Date ? v.toISOString().slice(0, 10) : v ? String(v).slice(0, 10) : null;
+            const from = iso(row.arrival_date);
+            const to = iso(row.departure_date) ?? from;
+            if (from && to && (dayDate < from || dayDate > to)) {
+              return Response.json(
+                { error: "Datum liegt außerhalb des Aufenthalts" },
+                { status: 400 },
+              );
+            }
+          }
+          await sql`UPDATE videos SET day_date = ${dayDate} WHERE id = ${id}`;
+        }
+
         const [video] = await sql`
           UPDATE videos SET
             alt = COALESCE(${alt ?? null}, alt),
