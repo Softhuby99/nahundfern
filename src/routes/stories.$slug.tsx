@@ -143,9 +143,7 @@ function StoryPage() {
                           [&_blockquote]:border-l-4 [&_blockquote]:border-primary/50 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-foreground/70
                           [&_code]:font-mono [&_code]:text-sm [&_code]:bg-card [&_code]:px-1 [&_code]:rounded"
           >
-            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSanitize]}>
-              {trip.bodyMd}
-            </ReactMarkdown>
+            <RichText content={trip.bodyMd} />
           </div>
         </div>
 
