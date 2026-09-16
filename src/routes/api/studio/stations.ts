@@ -16,6 +16,25 @@ const IsoDate = z
 
 const LegMode = z.enum(["drive", "train", "cycle", "walk", "air"]);
 
+/** Tageseinträge: pro Aufenthaltstag ein eigener Text. */
+const DayEntries = z
+  .array(z.object({ date: IsoDate, bodyMd: z.string().max(20000) }))
+  .max(120);
+
+/**
+ * Datumswerte kommen aus Postgres als Date-Objekt zurück. `String(date)` würde
+ * „Wed Sep 16 …“ ergeben und beim Zurückschreiben das Datum zerstören — deshalb
+ * hier immer normalisieren.
+ */
+function toIsoDate(value: unknown): string | null {
+  if (!value) return null;
+  if (value instanceof Date) {
+    const utc = new Date(Date.UTC(value.getFullYear(), value.getMonth(), value.getDate()));
+    return utc.toISOString().slice(0, 10);
+  }
+  return String(value).slice(0, 10);
+}
+
 const CreateInput = z.object({
   tripId: z.string().uuid(),
   name: z.string().trim().min(1).max(120),
