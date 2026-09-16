@@ -823,12 +823,30 @@ export function StationEditor({
                     {index + 1}. {station.name}
                   </button>
                   <span className="station-badges">
+                    {isoDate(station.arrival_date) || isoDate(station.departure_date)
+                      ? `${isoDate(station.arrival_date) || "…"} – ${isoDate(station.departure_date) || "…"} · `
+                      : ""}
+                    {images.filter((i) => i.station_id === station.id).length} Bilder
+                    {" · "}
                     {station.published ? "öffentlich" : "Entwurf"}
                     {station.is_destination ? " · Zielort" : ""}
                   </span>
                 </header>
 
                 <div className="station-item-row">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveId(station.id);
+                      setEditingId(station.id);
+                      setPlaceQuery("");
+                      setPlaceHits([]);
+                    }}
+                    aria-label={`Station ${station.name} bearbeiten`}
+                    title="Station bearbeiten"
+                  >
+                    <Pencil aria-hidden="true" size={14} />
+                  </button>
                   <button
                     type="button"
                     onClick={() => move(index, -1)}
@@ -845,12 +863,26 @@ export function StationEditor({
                   >
                     ↓
                   </button>
-                  <button type="button" onClick={() => void deleteStation(station.id)}>
+                  <button
+                    type="button"
+                    onClick={() => void deleteStation(station.id, station.name)}
+                  >
                     Löschen
                   </button>
                 </div>
 
-                {station.id === activeId && (
+                <Dialog
+                  open={editingId === station.id}
+                  onOpenChange={(open) => {
+                    if (!open) setEditingId(null);
+                  }}
+                >
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {index + 1}. {station.name}
+                      </DialogTitle>
+                    </DialogHeader>
                   <div className="station-item-form">
                     <label className="field">
                       <span>Name</span>
