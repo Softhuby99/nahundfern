@@ -1,8 +1,18 @@
 // Stationseditor: Ortssuche, Kartenklick, Marker verschieben, manuelle
 // Koordinaten, Text, Reihenfolge, Zielort und Medienzuordnung.
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Pencil } from "lucide-react";
 import { RouteMapLazy, type MapStation } from "@/components/map/RouteMapLazy";
 import { distanceKm, sortByArrival, type LegMode } from "@/components/map/route-geometry";
+import { RichTextEditor } from "@/components/studio/RichTextEditor";
+import { useConfirm } from "@/components/studio/ConfirmDialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type StationRow = {
   id: string;
@@ -54,6 +64,17 @@ type StudioImage = {
   webp_400: string;
   alt: string | null;
   station_id: string | null;
+  day_date?: string | null;
+};
+
+/** Ort, Restaurant oder Café als Punkt auf der Karte. */
+type StationPlaceRow = {
+  id: string;
+  station_id: string;
+  name: string;
+  category: string | null;
+  latitude: string;
+  longitude: string;
 };
 
 type GeocodeHit = {
