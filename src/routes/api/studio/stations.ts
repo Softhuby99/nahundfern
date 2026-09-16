@@ -16,6 +16,25 @@ const IsoDate = z
 
 const LegMode = z.enum(["drive", "train", "cycle", "walk", "air"]);
 
+/** Tageseinträge: pro Aufenthaltstag ein eigener Text. */
+const DayEntries = z
+  .array(z.object({ date: IsoDate, bodyMd: z.string().max(20000) }))
+  .max(120);
+
+/**
+ * Datumswerte kommen aus Postgres als Date-Objekt zurück. `String(date)` würde
+ * „Wed Sep 16 …“ ergeben und beim Zurückschreiben das Datum zerstören — deshalb
+ * hier immer normalisieren.
+ */
+function toIsoDate(value: unknown): string | null {
+  if (!value) return null;
+  if (value instanceof Date) {
+    const utc = new Date(Date.UTC(value.getFullYear(), value.getMonth(), value.getDate()));
+    return utc.toISOString().slice(0, 10);
+  }
+  return String(value).slice(0, 10);
+}
+
 const CreateInput = z.object({
   tripId: z.string().uuid(),
   name: z.string().trim().min(1).max(120),
@@ -53,6 +72,8 @@ const UpdateInput = z.object({
   published: z.boolean().optional(),
   isDestination: z.boolean().optional(),
   markerImageId: z.string().uuid().nullable().optional(),
+  dailyEnabled: z.boolean().optional(),
+  dayEntries: DayEntries.optional(),
 });
 
 const ReorderInput = z.object({
@@ -149,8 +170,8 @@ export const Route = createFileRoute("/api/studio/stations")({
 
         const arrival = d.arrivalDate !== undefined ? d.arrivalDate : current.arrival_date;
         const departure = d.departureDate !== undefined ? d.departureDate : current.departure_date;
-        const arrivalIso = arrival ? String(arrival).slice(0, 10) : null;
-        const departureIso = departure ? String(departure).slice(0, 10) : null;
+        const arrivalIso = toIsoDate(arrival);
+        const departureIso = toIsoDate(departure);
         if (arrivalIso && departureIso && departureIso < arrivalIso) {
           return badRequest("Abreise darf nicht vor der Ankunft liegen");
         }
@@ -192,6 +213,12 @@ export const Route = createFileRoute("/api/studio/stations")({
             published       = ${willPublish},
             is_destination  = ${destination},
             marker_image_id = ${d.markerImageId !== undefined ? d.markerImageId : current.marker_image_id},
+            daily_enabled   = ${d.dailyEnabled !== undefined ? d.dailyEnabled : current.daily_enabled},
+            day_entries     = ${
+              d.dayEntries !== undefined
+                ? JSON.stringify(d.dayEntries)
+                : JSON.stringify(current.day_entries ?? [])
+            }::jsonb,
             -- Koordinaten- oder Modusänderung macht gespeicherte Straßengeometrie ungültig.
             leg_geometry    = ${
               d.latitude !== undefined || d.longitude !== undefined || d.legMode !== undefined

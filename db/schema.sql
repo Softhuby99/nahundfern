@@ -76,6 +76,8 @@ CREATE TABLE IF NOT EXISTS trip_stations (
   marker_image_id uuid REFERENCES images(id) ON DELETE SET NULL,
   leg_mode        text NOT NULL DEFAULT 'drive',
   leg_geometry    jsonb,
+  daily_enabled   boolean NOT NULL DEFAULT false,
+  day_entries     jsonb   NOT NULL DEFAULT '[]'::jsonb,
   created_at      timestamptz NOT NULL DEFAULT now(),
   updated_at      timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT trip_stations_dates_ordered

@@ -20,8 +20,34 @@ type StationRow = {
   marker_image_id: string | null;
   leg_mode: LegMode;
   leg_geometry: number[][][] | null;
+  daily_enabled?: boolean;
+  day_entries?: DayEntry[] | null;
   updated_at: string;
 };
+
+type DayEntry = { date: string; bodyMd: string };
+
+/** Alle Tage von Ankunft bis Abreise (einschließlich) als ISO-Datum. */
+function daysInRange(arrival: string, departure: string): string[] {
+  const start = Date.parse(`${arrival}T00:00:00Z`);
+  const end = Date.parse(`${departure}T00:00:00Z`);
+  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return [];
+  const days: string[] = [];
+  for (let t = start; t <= end && days.length < 120; t += 86400000) {
+    days.push(new Date(t).toISOString().slice(0, 10));
+  }
+  return days;
+}
+
+function formatDay(iso: string): string {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString("de-DE", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
 
 type StudioImage = {
   id: string;
@@ -742,6 +768,7 @@ export function StationEditor({
                         <label className="field">
                           <span>Ankunft</span>
                           <input
+                            key={`arrival-${station.id}-${isoDate(station.arrival_date)}`}
                             type="date"
                             defaultValue={isoDate(station.arrival_date)}
                             onChange={(e) =>
@@ -760,6 +787,7 @@ export function StationEditor({
                         <label className="field">
                           <span>Abreise</span>
                           <input
+                            key={`departure-${station.id}-${isoDate(station.departure_date)}`}
                             type="date"
                             defaultValue={isoDate(station.departure_date)}
                             onChange={(e) =>
@@ -795,6 +823,64 @@ export function StationEditor({
                         onBlur={(e) => void patchStation(station.id, { bodyMd: e.target.value })}
                       />
                     </label>
+
+                    <label className="station-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(station.daily_enabled)}
+                        onChange={(e) =>
+                          void patchStation(station.id, { dailyEnabled: e.target.checked })
+                        }
+                      />
+                      <span>Pro Tag einen eigenen Eintrag</span>
+                    </label>
+                    {station.daily_enabled &&
+                      (() => {
+                        const arrival = isoDate(station.arrival_date);
+                        const departure = isoDate(station.departure_date);
+                        const days =
+                          arrival && departure
+                            ? daysInRange(arrival, departure)
+                            : arrival || departure
+                              ? [arrival || departure]
+                              : [];
+                        if (days.length === 0) {
+                          return (
+                            <p className="station-hint">
+                              Bitte erst Ankunft und Abreise eintragen — daraus entstehen die
+                              Tagesfelder.
+                            </p>
+                          );
+                        }
+                        const saved = station.day_entries ?? [];
+                        return (
+                          <div className="station-days">
+                            <p className="station-hint">
+                              {days.length} {days.length === 1 ? "Tag" : "Tage"} — pro Tag ein
+                              eigener Text (Markdown).
+                            </p>
+                            {days.map((day) => (
+                              <label className="field" key={`${station.id}-${day}`}>
+                                <span>{formatDay(day)}</span>
+                                <textarea
+                                  rows={4}
+                                  defaultValue={saved.find((d) => d.date === day)?.bodyMd ?? ""}
+                                  onBlur={(e) => {
+                                    const next: DayEntry[] = days.map((d) => ({
+                                      date: d,
+                                      bodyMd:
+                                        d === day
+                                          ? e.target.value
+                                          : (saved.find((s) => s.date === d)?.bodyMd ?? ""),
+                                    }));
+                                    void patchStation(station.id, { dayEntries: next });
+                                  }}
+                                />
+                              </label>
+                            ))}
+                          </div>
+                        );
+                      })()}
                     <label className="station-checkbox">
                       <input
                         type="checkbox"

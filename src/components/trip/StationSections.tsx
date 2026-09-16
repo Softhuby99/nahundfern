@@ -103,6 +103,26 @@ export function StationSections({
                   </div>
                 )}
 
+                {station.dayEntries.length > 0 && (
+                  <div className="mt-8 space-y-8 border-l border-border pl-6">
+                    {station.dayEntries.map((day) => (
+                      <div key={day.date}>
+                        <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
+                          {formatRange(day.date, null)}
+                        </p>
+                        <div className="prose-story text-lg leading-relaxed text-foreground/90 space-y-4">
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            rehypePlugins={[rehypeSanitize]}
+                          >
+                            {day.bodyMd}
+                          </ReactMarkdown>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {station.images.length > 0 && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
                     {station.images.map((img) => (
