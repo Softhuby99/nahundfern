@@ -58,6 +58,8 @@ export type PublicStation = {
   images: GalleryImage[];
   videos: TripVideo[];
   markerImage: GalleryImage | null;
+  /** Orte/Restaurants/Cafés dieser Station. */
+  places: StationPlace[];
 };
 
 export type GalleryImage = {
@@ -67,6 +69,8 @@ export type GalleryImage = {
   width: number;
   height: number;
   alt: string | null;
+  /** Aufenthaltstag (ISO) oder null = gehört zur ganzen Station/Reise. */
+  dayDate?: string | null;
 };
 
 export type TripVideo = {
@@ -76,6 +80,16 @@ export type TripVideo = {
   width: number;
   height: number;
   alt: string | null;
+  dayDate?: string | null;
+};
+
+/** Ort, Restaurant oder Café als kleiner Punkt auf der Karte. */
+export type StationPlace = {
+  id: string;
+  name: string;
+  category: string | null;
+  latitude: number;
+  longitude: number;
 };
 
 function splitBody(bodyMd: string): string[] {
