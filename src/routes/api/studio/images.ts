@@ -11,6 +11,12 @@ const PatchInput = z.object({
   sortOrder: z.number().int().min(0).optional(),
   // null = zurück in die allgemeine Galerie, undefined = unverändert.
   stationId: z.string().uuid().nullable().optional(),
+  // Einzelner Aufenthaltstag (ISO) oder null = gehört zur ganzen Station.
+  dayDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .nullable()
+    .optional(),
 });
 
 export const Route = createFileRoute("/api/studio/images")({
