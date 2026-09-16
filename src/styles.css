@@ -376,6 +376,12 @@
 .station-name-check .station-hint {
   margin: 0;
 }
+.station-days {
+  display: grid;
+  gap: 0.75rem;
+  border-left: 2px solid var(--border, #ddd);
+  padding-left: 0.75rem;
+}
 .station-status {
   font-size: 0.85rem;
   color: #4ade80;

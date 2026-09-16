@@ -50,6 +50,8 @@ export type PublicStation = {
   arrivalDate: string | null;
   departureDate: string | null;
   bodyMd: string;
+  /** Optionale Tagebuch-Einträge pro Aufenthaltstag. */
+  dayEntries: { date: string; bodyMd: string }[];
   legMode: LegMode;
   /** Gespeicherte Straßengeometrie; null → Großkreis-Bogen zeichnen. */
   legGeometry: number[][][] | null;
