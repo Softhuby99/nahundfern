@@ -768,6 +768,7 @@ export function StationEditor({
                         <label className="field">
                           <span>Ankunft</span>
                           <input
+                            key={`arrival-${station.id}-${isoDate(station.arrival_date)}`}
                             type="date"
                             defaultValue={isoDate(station.arrival_date)}
                             onChange={(e) =>
@@ -786,6 +787,7 @@ export function StationEditor({
                         <label className="field">
                           <span>Abreise</span>
                           <input
+                            key={`departure-${station.id}-${isoDate(station.departure_date)}`}
                             type="date"
                             defaultValue={isoDate(station.departure_date)}
                             onChange={(e) =>
