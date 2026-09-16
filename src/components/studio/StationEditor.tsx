@@ -510,6 +510,15 @@ export function StationEditor({
       images.find((i) => i.id === s.marker_image_id)?.webp_400 ??
       images.find((i) => i.station_id === s.id)?.webp_400 ??
       null,
+    places: places
+      .filter((p) => p.station_id === s.id)
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        latitude: Number(p.latitude),
+        longitude: Number(p.longitude),
+      })),
   }));
 
   async function reverseLookup(coords: { latitude: number; longitude: number }) {
