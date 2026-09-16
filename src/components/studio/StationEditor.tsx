@@ -275,10 +275,12 @@ export function StationEditor({
     setStatus("Gespeichert.");
   }
 
-  async function deleteStation(id: string) {
-    if (!window.confirm("Station löschen? Bilder und Videos bleiben in der Galerie erhalten.")) {
-      return;
-    }
+  async function deleteStation(id: string, name: string) {
+    const ok = await confirm({
+      title: `Station „${name}“ löschen?`,
+      description: "Bilder und Videos bleiben in der Galerie erhalten.",
+    });
+    if (!ok) return;
     const res = await fetch(`/api/studio/stations?id=${id}`, { method: "DELETE" });
     if (!res.ok) {
       setError("Station konnte nicht gelöscht werden");
@@ -286,8 +288,115 @@ export function StationEditor({
     }
     setStations((prev) => prev.filter((s) => s.id !== id));
     if (activeId === id) setActiveId(null);
+    if (editingId === id) setEditingId(null);
     await load();
     setStatus("Station gelöscht.");
+  }
+
+  /**
+   * Speichert den aktuellen Stand der Station und der Reise, ohne die Seite zu
+   * verlassen. Die Felder schreiben beim Verlassen; darum wird das aktive Feld
+   * zuerst abgeschlossen.
+   */
+  async function saveStation() {
+    (document.activeElement as HTMLElement | null)?.blur?.();
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    await onSaveTrip?.();
+    await load();
+    setStatus("Station gespeichert.");
+  }
+
+  /** Bild oder Video einem einzelnen Tag der Station zuordnen. */
+  async function assignImageDay(imageId: string, dayDate: string | null) {
+    const res = await fetch("/api/studio/images", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: imageId, dayDate }),
+    });
+    if (!res.ok) {
+      setError("Bild konnte dem Tag nicht zugeordnet werden");
+      return;
+    }
+    setImages((prev) =>
+      prev.map((img) => (img.id === imageId ? { ...img, day_date: dayDate } : img)),
+    );
+    setStatus(dayDate ? "Bild dem Tag zugeordnet." : "Bild gilt für die ganze Station.");
+  }
+
+  /** Ortssuche für Restaurants, Cafés und Sehenswürdigkeiten. */
+  async function searchPlaces(station: StationRow) {
+    const q = placeQuery.trim();
+    if (q.length < 2) return;
+    setPlaceState("loading");
+    try {
+      const res = await fetch("/api/studio/geocode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          q,
+          poi: true,
+          limit: 8,
+          near: { latitude: Number(station.latitude), longitude: Number(station.longitude) },
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? "Suche fehlgeschlagen");
+      setPlaceHits(data.results ?? []);
+      setPlaceState("idle");
+    } catch {
+      setPlaceHits([]);
+      setPlaceState("failed");
+    }
+  }
+
+  async function addPlace(station: StationRow, hit: GeocodeHit & { category?: string | null }) {
+    const res = await fetch("/api/studio/places", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        stationId: station.id,
+        name: hit.name,
+        category: hit.category ?? null,
+        latitude: hit.latitude,
+        longitude: hit.longitude,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data?.error ?? "Ort konnte nicht gespeichert werden");
+      return;
+    }
+    setPlaces((prev) => [...prev, data.place]);
+    setPlaceQuery("");
+    setPlaceHits([]);
+    setStatus(`„${hit.name}“ als Punkt auf der Karte gesetzt.`);
+  }
+
+  async function renamePlace(id: string, name: string) {
+    const res = await fetch("/api/studio/places", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, name }),
+    });
+    if (!res.ok) {
+      setError("Name des Ortes konnte nicht geändert werden");
+      return;
+    }
+    setPlaces((prev) => prev.map((p) => (p.id === id ? { ...p, name } : p)));
+  }
+
+  async function deletePlace(id: string, name: string) {
+    const ok = await confirm({
+      title: `Punkt „${name}“ entfernen?`,
+      description: "Der Punkt verschwindet damit von der Karte.",
+    });
+    if (!ok) return;
+    const res = await fetch(`/api/studio/places?id=${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      setError("Ort konnte nicht entfernt werden");
+      return;
+    }
+    setPlaces((prev) => prev.filter((p) => p.id !== id));
   }
 
   async function reorder(nextOrder: StationRow[]) {
