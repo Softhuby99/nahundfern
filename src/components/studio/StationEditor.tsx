@@ -1107,6 +1107,22 @@ export function StationEditor({
                                   ? "Kartenbild ✓"
                                   : "Als Kartenbild"}
                               </button>
+                              {station.daily_enabled && (
+                                <select
+                                  aria-label={`Tag für dieses Bild in ${station.name}`}
+                                  value={isoDate(img.day_date ?? null)}
+                                  onChange={(e) =>
+                                    void assignImageDay(img.id, e.target.value || null)
+                                  }
+                                >
+                                  <option value="">Ganze Station</option>
+                                  {stationDays(station).map((day) => (
+                                    <option key={day} value={day}>
+                                      {formatDay(day)}
+                                    </option>
+                                  ))}
+                                </select>
+                              )}
                               <button type="button" onClick={() => void assignImage(img.id, null)}>
                                 Aus Station entfernen
                               </button>
@@ -1132,8 +1148,78 @@ export function StationEditor({
                         </>
                       )}
                     </div>
+
+                    <div className="station-places">
+                      <p className="station-hint">
+                        Orte, Restaurants und Cafés — erscheinen als kleiner Punkt auf der Karte.
+                      </p>
+                      <label className="field">
+                        <span>Ort in der Nähe suchen</span>
+                        <input
+                          type="search"
+                          value={placeQuery}
+                          onChange={(e) => setPlaceQuery(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              void searchPlaces(station);
+                            }
+                          }}
+                          placeholder="z. B. Café Central"
+                        />
+                      </label>
+                      <button type="button" onClick={() => void searchPlaces(station)}>
+                        Suchen
+                      </button>
+                      {placeState === "loading" && <p className="station-hint">Suche läuft …</p>}
+                      {placeState === "failed" && (
+                        <p className="station-hint">Ortssuche gerade nicht erreichbar.</p>
+                      )}
+                      {placeHits.length > 0 && (
+                        <ul className="station-hits">
+                          {placeHits.map((hit) => (
+                            <li key={`${hit.latitude},${hit.longitude}-${hit.name}`}>
+                              <button type="button" onClick={() => void addPlace(station, hit)}>
+                                {hit.name}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <ul className="station-place-list">
+                        {places
+                          .filter((p) => p.station_id === station.id)
+                          .map((place) => (
+                            <li key={place.id}>
+                              <input
+                                aria-label="Name des Ortes"
+                                defaultValue={place.name}
+                                onBlur={(e) => {
+                                  const next = e.target.value.trim();
+                                  if (next && next !== place.name) void renamePlace(place.id, next);
+                                }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => void deletePlace(place.id, place.name)}
+                              >
+                                Entfernen
+                              </button>
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
                   </div>
-                )}
+                    <DialogFooter>
+                      <button type="button" onClick={() => void saveStation()}>
+                        Station speichern
+                      </button>
+                      <button type="button" onClick={() => setEditingId(null)}>
+                        Fenster schließen
+                      </button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </li>
             ))}
           </ol>
