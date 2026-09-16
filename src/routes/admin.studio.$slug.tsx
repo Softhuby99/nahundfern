@@ -303,8 +303,10 @@ function EditorPage() {
           params: { slug: data.trip.slug },
           replace: true,
         });
-      } else {
+      } else if (exit) {
         await navigate({ to: "/admin/studio" });
+      } else {
+        setSavedAt(new Date().toLocaleTimeString("de-DE"));
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
