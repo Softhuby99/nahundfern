@@ -245,7 +245,11 @@ function EditorPage() {
   const setField = <K extends keyof StudioTrip>(k: K, v: StudioTrip[K]) =>
     setTrip((t) => ({ ...t, [k]: v }));
 
-  const save = async () => {
+  /**
+   * Speichert die Reise. `exit` führt zurück zur Übersicht; ohne `exit` bleibt
+   * der Editor geöffnet, damit man weiterarbeiten kann.
+   */
+  const save = async ({ exit = false }: { exit?: boolean } = {}) => {
     setSaving(true);
     setError("");
     try {
