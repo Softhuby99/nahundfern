@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { VideoEditor } from "@/components/studio/VideoEditor";
 import { StationEditor } from "@/components/studio/StationEditor";
+import { useConfirm } from "@/components/studio/ConfirmDialog";
 
 export const Route = createFileRoute("/admin/studio/$slug")({
   head: () => ({
@@ -80,6 +81,9 @@ function EditorPage() {
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  /** Uhrzeit des letzten Speicherns — Rückmeldung ohne Seitenwechsel. */
+  const [savedAt, setSavedAt] = useState<string | null>(null);
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const [coverProgress, setCoverProgress] = useState<number | null>(null);
   const [galleryProgress, setGalleryProgress] = useState<{
     done: number;
