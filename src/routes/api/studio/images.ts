@@ -152,13 +152,11 @@ export const Route = createFileRoute("/api/studio/images")({
               return Response.json({ error: "Station not found for this trip" }, { status: 404 });
             }
           }
+          await sql`UPDATE images SET station_id = ${stationId} WHERE id = ${id}`;
           // Ohne Station gibt es auch keinen Aufenthaltstag mehr.
-          await sql`
-            UPDATE images
-            SET station_id = ${stationId},
-                day_date = ${stationId === null ? null : sql`day_date`}
-            WHERE id = ${id}
-          `;
+          if (stationId === null) {
+            await sql`UPDATE images SET day_date = NULL WHERE id = ${id}`;
+          }
           await auditLog({
             request,
             userId: session.userId,
