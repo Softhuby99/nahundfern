@@ -62,6 +62,7 @@ export function StationSections({
     legMode: s.legMode,
     legGeometry: s.legGeometry,
     markerImageSrc: s.markerImage?.webp[400] ?? null,
+    places: s.places ?? [],
   }));
 
   return (
