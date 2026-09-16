@@ -120,7 +120,11 @@ export function VideoEditor({ tripId }: { tripId: string }) {
   };
 
   const deleteVideo = async (id: string) => {
-    if (!confirm("Video wirklich löschen?")) return;
+    const ok = await confirm({
+      title: "Video wirklich löschen?",
+      description: "Das Video wird endgültig entfernt und verschwindet aus dem Reisebericht.",
+    });
+    if (!ok) return;
     const res = await fetch(`/api/studio/videos?id=${id}`, {
       method: "DELETE",
       credentials: "same-origin",
