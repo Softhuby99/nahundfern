@@ -197,6 +197,11 @@ export async function geocodeReverse(lat: number, lon: number): Promise<GeocodeR
         countryCode: normalizeCountryCode(address.country_code),
         latitude: lat,
         longitude: lon,
+        category: typeof (raw ?? {}).type === "string" ? ((raw ?? {}).type as string) : null,
+        label:
+          typeof (raw ?? {}).display_name === "string"
+            ? String((raw ?? {}).display_name).slice(0, 200)
+            : null,
       }
     : null;
   cacheSet(key, result);
