@@ -1010,14 +1010,15 @@ export function StationEditor({
                         ))}
                       </select>
                     </label>
-                    <label className="field">
-                      <span>Text zur Station (Markdown)</span>
-                      <textarea
-                        rows={6}
-                        defaultValue={station.body_md}
-                        onBlur={(e) => void patchStation(station.id, { bodyMd: e.target.value })}
+                    <div className="field">
+                      <span>Text zur Station</span>
+                      <RichTextEditor
+                        key={`body-${station.id}`}
+                        value={station.body_md}
+                        ariaLabel={`Text zur Station ${station.name}`}
+                        onBlur={(html) => void patchStation(station.id, { bodyMd: html })}
                       />
-                    </label>
+                    </div>
 
                     <label className="station-checkbox">
                       <input
@@ -1052,26 +1053,27 @@ export function StationEditor({
                           <div className="station-days">
                             <p className="station-hint">
                               {days.length} {days.length === 1 ? "Tag" : "Tage"} — pro Tag ein
-                              eigener Text (Markdown).
+                              eigener Text.
                             </p>
                             {days.map((day) => (
-                              <label className="field" key={`${station.id}-${day}`}>
+                              <div className="field" key={`${station.id}-${day}`}>
                                 <span>{formatDay(day)}</span>
-                                <textarea
-                                  rows={4}
-                                  defaultValue={saved.find((d) => d.date === day)?.bodyMd ?? ""}
-                                  onBlur={(e) => {
+                                <RichTextEditor
+                                  value={saved.find((d) => d.date === day)?.bodyMd ?? ""}
+                                  ariaLabel={`Text für ${formatDay(day)}`}
+                                  minHeight={120}
+                                  onBlur={(html) => {
                                     const next: DayEntry[] = days.map((d) => ({
                                       date: d,
                                       bodyMd:
                                         d === day
-                                          ? e.target.value
+                                          ? html
                                           : (saved.find((s) => s.date === d)?.bodyMd ?? ""),
                                     }));
                                     void patchStation(station.id, { dayEntries: next });
                                   }}
                                 />
-                              </label>
+                              </div>
                             ))}
                           </div>
                         );
