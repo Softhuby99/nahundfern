@@ -13,12 +13,22 @@ import {
   type RoutePoint,
 } from "./route-geometry";
 
+export type MapPlace = {
+  id: string;
+  name: string;
+  category?: string | null;
+  latitude: number;
+  longitude: number;
+};
+
 export type MapStation = RoutePoint & {
   id: string;
   name: string;
   arrivalDate: string | null;
   /** Kleines Vorschaubild (400px-Variante) für den Marker. */
   markerImageSrc?: string | null;
+  /** Orte, Restaurants, Cafés als kleine Punkte. */
+  places?: MapPlace[];
 };
 
 export type RouteMapProps = {
@@ -51,6 +61,9 @@ maplibregl.setWorkerUrl(mapWorkerUrl);
 const ROUTE_SOURCE = "trip-route";
 const DASHED_LAYER = "trip-route-dashed";
 const SOLID_LAYER = "trip-route-solid";
+const PLACE_SOURCE = "trip-places";
+const PLACE_LAYER = "trip-places-dots";
+const PLACE_LABEL_LAYER = "trip-places-labels";
 
 function prefersReducedMotion(): boolean {
   return (
