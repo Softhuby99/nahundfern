@@ -20,8 +20,34 @@ type StationRow = {
   marker_image_id: string | null;
   leg_mode: LegMode;
   leg_geometry: number[][][] | null;
+  daily_enabled?: boolean;
+  day_entries?: DayEntry[] | null;
   updated_at: string;
 };
+
+type DayEntry = { date: string; bodyMd: string };
+
+/** Alle Tage von Ankunft bis Abreise (einschließlich) als ISO-Datum. */
+function daysInRange(arrival: string, departure: string): string[] {
+  const start = Date.parse(`${arrival}T00:00:00Z`);
+  const end = Date.parse(`${departure}T00:00:00Z`);
+  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return [];
+  const days: string[] = [];
+  for (let t = start; t <= end && days.length < 120; t += 86400000) {
+    days.push(new Date(t).toISOString().slice(0, 10));
+  }
+  return days;
+}
+
+function formatDay(iso: string): string {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString("de-DE", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
 
 type StudioImage = {
   id: string;
