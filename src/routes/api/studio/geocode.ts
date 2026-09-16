@@ -46,7 +46,11 @@ export const Route = createFileRoute("/api/studio/geocode")({
           if (!asSearch.success) {
             return Response.json({ error: "Invalid input" }, { status: 400 });
           }
-          const results = await geocodeSearch(asSearch.data.q);
+          const results = await geocodeSearch(asSearch.data.q, {
+            poi: asSearch.data.poi === true,
+            limit: asSearch.data.limit,
+            near: asSearch.data.near,
+          });
           return Response.json({ results });
         } catch (err) {
           console.warn("geocode failed", (err as Error).message);
