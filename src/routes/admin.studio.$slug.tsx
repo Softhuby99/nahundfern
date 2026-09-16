@@ -397,19 +397,25 @@ function EditorPage() {
             Studio · {isNew ? "Neue Reise" : "Bearbeiten"}
           </p>
           <div className="flex items-center gap-3">
+            {savedAt && (
+              <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                Gespeichert {savedAt}
+              </span>
+            )}
             <button
-              onClick={save}
+              onClick={() => void save()}
               disabled={saving}
-              className="px-5 py-2 bg-primary text-primary-foreground font-mono text-[10px] tracking-widest uppercase hover:bg-primary/90 disabled:opacity-50 rounded-sm"
+              className="px-5 py-2 border border-primary text-primary font-mono text-[10px] tracking-widest uppercase hover:bg-primary/10 disabled:opacity-50 rounded-sm"
             >
               {saving ? "Speichere …" : "Speichern"}
             </button>
-            <Link
-              to="/admin/studio"
-              className="font-mono text-[10px] uppercase tracking-widest hover:text-primary"
+            <button
+              onClick={() => void save({ exit: true })}
+              disabled={saving}
+              className="px-5 py-2 bg-primary text-primary-foreground font-mono text-[10px] tracking-widest uppercase hover:bg-primary/90 disabled:opacity-50 rounded-sm"
             >
-              ← Zurück
-            </Link>
+              Speichern &amp; beenden
+            </button>
           </div>
         </div>
 
