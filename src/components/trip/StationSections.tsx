@@ -2,13 +2,52 @@
 // mitfliegende Karte. Die Karte ist Zusatzinformation — alle Angaben stehen
 // auch in der Textliste.
 import { useEffect, useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeSanitize from "rehype-sanitize";
 import { RouteMapLazy, type MapStation } from "@/components/map/RouteMapLazy";
 import { ResponsivePicture } from "@/components/HorizontalTimeline";
 import { VideoPlayer } from "@/components/trip/VideoPlayer";
-import type { PublicStation } from "@/lib/trips.functions";
+import { RichText } from "@/components/RichText";
+import type { GalleryImage, PublicStation, TripVideo } from "@/lib/trips.functions";
+
+/** Bilder und Videos einer Station oder eines einzelnen Tages. */
+function StationMedia({
+  images,
+  videos,
+  altBase,
+  title,
+}: {
+  images: GalleryImage[];
+  videos: TripVideo[];
+  altBase: string;
+  title: string;
+}) {
+  if (images.length === 0 && videos.length === 0) return null;
+  return (
+    <>
+      {images.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+          {images.map((img) => (
+            <ResponsivePicture
+              key={img.id}
+              webp={img.webp}
+              avif={img.avif}
+              alt={img.alt ?? altBase}
+              width={img.width}
+              height={img.height}
+              className="w-full h-full object-cover aspect-[4/3] rounded-sm bg-card"
+            />
+          ))}
+        </div>
+      )}
+      {videos.length > 0 && (
+        <div className="grid grid-cols-1 gap-4 mt-6">
+          {videos.map((v) => (
+            <VideoPlayer key={v.id} video={v} title={title} />
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
 
 function formatRange(arrival: string | null, departure: string | null): string | null {
   const fmt = (v: string) =>
