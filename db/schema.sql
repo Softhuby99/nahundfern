@@ -125,3 +125,22 @@ CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at DESC
 CREATE INDEX IF NOT EXISTS idx_audit_log_action     ON audit_log(action, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_log_user       ON audit_log(user_id, created_at DESC);
 
+-- Medien einem einzelnen Aufenthaltstag zuordnen (siehe migration 011).
+ALTER TABLE images ADD COLUMN IF NOT EXISTS day_date date;
+CREATE INDEX IF NOT EXISTS idx_images_station_day ON images(station_id, day_date);
+
+-- Orte/Restaurants/Cafés als kleine Punkte auf der Karte (siehe migration 011).
+CREATE TABLE IF NOT EXISTS station_places (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  station_id  uuid NOT NULL REFERENCES trip_stations(id) ON DELETE CASCADE,
+  name        text NOT NULL,
+  category    text,
+  latitude    numeric(9,6) NOT NULL,
+  longitude   numeric(9,6) NOT NULL,
+  sort_order  int NOT NULL DEFAULT 0,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT station_places_lat_range CHECK (latitude BETWEEN -90 AND 90),
+  CONSTRAINT station_places_lon_range CHECK (longitude BETWEEN -180 AND 180)
+);
+CREATE INDEX IF NOT EXISTS idx_station_places_station ON station_places(station_id, sort_order);
+
