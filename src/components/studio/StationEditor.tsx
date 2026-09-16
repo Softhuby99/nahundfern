@@ -1254,6 +1254,7 @@ export function StationEditor({
           />
         </div>
       </div>
+      {confirmDialog}
     </section>
   );
 }
