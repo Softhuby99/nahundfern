@@ -118,9 +118,12 @@ function normalizePlace(value: string): string {
 export function StationEditor({
   tripId,
   suggestion,
+  onSaveTrip,
 }: {
   tripId: string;
   suggestion?: StationSuggestion;
+  /** Speichert auch die Reisedaten mit, ohne die Seite zu verlassen. */
+  onSaveTrip?: () => Promise<void> | void;
 }) {
   const [stations, setStations] = useState<StationRow[]>([]);
   const [images, setImages] = useState<StudioImage[]>([]);
@@ -147,13 +150,21 @@ export function StationEditor({
       }
     >
   >({});
+  /** Station, die im großen Bearbeitungsfenster geöffnet ist. */
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [places, setPlaces] = useState<StationPlaceRow[]>([]);
+  const [placeQuery, setPlaceQuery] = useState("");
+  const [placeHits, setPlaceHits] = useState<GeocodeHit[]>([]);
+  const [placeState, setPlaceState] = useState<"idle" | "loading" | "failed">("idle");
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prefilled = useRef(false);
 
   const load = useCallback(async () => {
-    const [stationRes, imageRes] = await Promise.all([
+    const [stationRes, imageRes, placeRes] = await Promise.all([
       fetch(`/api/studio/stations?tripId=${tripId}`),
       fetch(`/api/studio/images?tripId=${tripId}`),
+      fetch(`/api/studio/places?tripId=${tripId}`),
     ]);
     if (stationRes.ok) {
       const data = await stationRes.json();
@@ -162,6 +173,10 @@ export function StationEditor({
     if (imageRes.ok) {
       const data = await imageRes.json();
       setImages(data.images ?? []);
+    }
+    if (placeRes.ok) {
+      const data = await placeRes.json();
+      setPlaces(data.places ?? []);
     }
   }, [tripId]);
 
