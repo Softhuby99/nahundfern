@@ -609,7 +609,7 @@ function EditorPage() {
 
             <div className="flex gap-3 pt-2">
               <button
-                onClick={save}
+                onClick={() => void save()}
                 disabled={saving}
                 className="px-6 py-3 bg-primary text-primary-foreground font-mono text-[10px] tracking-widest uppercase hover:bg-primary/90 disabled:opacity-50 rounded-sm"
               >
