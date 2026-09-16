@@ -736,11 +736,13 @@ function EditorPage() {
                 longitude: trip.longitude,
                 whereText: trip.where,
               }}
+              onSaveTrip={() => save()}
             />
           </div>
         )}
       </main>
       <SiteFooter />
+      {confirmDialog}
     </div>
   );
 }
