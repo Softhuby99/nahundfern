@@ -159,6 +159,7 @@ function mapGalleryRow(r: any): GalleryImage {
     width: Number(r.width),
     height: Number(r.height),
     alt: r.alt ?? null,
+    dayDate: toIsoDate(r.day_date),
   };
 }
 
@@ -171,6 +172,7 @@ function mapVideoRow(r: any): TripVideo {
     width: Number(r.width),
     height: Number(r.height),
     alt: r.alt ?? null,
+    dayDate: toIsoDate(r.day_date),
   };
 }
 
@@ -274,6 +276,15 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
         images: stationImages,
         videos: videoRows.filter((v) => v.station_id === s.id).map(mapVideoRow),
         markerImage: marker && marker.webp[400] ? marker : null,
+        places: placeRows
+          .filter((p) => p.station_id === s.id)
+          .map((p) => ({
+            id: p.id,
+            name: p.name,
+            category: p.category ?? null,
+            latitude: Number(p.latitude),
+            longitude: Number(p.longitude),
+          })),
       };
     });
     const destinationStationId = stationRows.find((s) => s.is_destination)?.id ?? null;
