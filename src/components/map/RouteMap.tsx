@@ -201,6 +201,73 @@ export default function RouteMap({
     }
   }, [stations, ready, showRoute]);
 
+  // --- Orte/Restaurants/Cafés als kleine Punkte ----------------------------
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+
+    const features = stations.flatMap((station) =>
+      (station.places ?? [])
+        .filter((p) => isValidLatLon(p.latitude, p.longitude))
+        .map((p) => ({
+          type: "Feature" as const,
+          properties: { name: p.name, category: p.category ?? "" },
+          geometry: { type: "Point" as const, coordinates: [p.longitude, p.latitude] },
+        })),
+    );
+    const data = { type: "FeatureCollection" as const, features };
+
+    const existing = map.getSource(PLACE_SOURCE) as maplibregl.GeoJSONSource | undefined;
+    if (existing) {
+      existing.setData(data);
+      return;
+    }
+    map.addSource(PLACE_SOURCE, { type: "geojson", data });
+    map.addLayer({
+      id: PLACE_LAYER,
+      type: "circle",
+      source: PLACE_SOURCE,
+      paint: {
+        "circle-radius": 5,
+        "circle-color": "#0f172a",
+        "circle-stroke-color": "#ffffff",
+        "circle-stroke-width": 2,
+        "circle-opacity": 0.9,
+      },
+    });
+    map.addLayer({
+      id: PLACE_LABEL_LAYER,
+      type: "symbol",
+      source: PLACE_SOURCE,
+      minzoom: 10,
+      layout: {
+        "text-field": ["get", "name"],
+        "text-size": 11,
+        "text-offset": [0, 1.1],
+        "text-anchor": "top",
+      },
+      paint: { "text-halo-color": "#ffffff", "text-halo-width": 1.4 },
+    });
+
+    // Antippen zeigt den Namen des Ortes.
+    map.on("click", PLACE_LAYER, (e) => {
+      const feature = e.features?.[0];
+      if (!feature) return;
+      const name = String(feature.properties?.name ?? "");
+      if (!name) return;
+      new maplibregl.Popup({ closeButton: false, offset: 10 })
+        .setLngLat(e.lngLat)
+        .setText(name)
+        .addTo(map);
+    });
+    map.on("mouseenter", PLACE_LAYER, () => {
+      map.getCanvas().style.cursor = "pointer";
+    });
+    map.on("mouseleave", PLACE_LAYER, () => {
+      map.getCanvas().style.cursor = "";
+    });
+  }, [stations, ready]);
+
   // --- Marker ---------------------------------------------------------------
   useEffect(() => {
     const map = mapRef.current;
