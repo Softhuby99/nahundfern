@@ -222,7 +222,8 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
     const stationRows = await sql`
       SELECT id, name, country_code, latitude, longitude,
              arrival_date, departure_date, body_md,
-             leg_mode, leg_geometry, marker_image_id, is_destination
+             leg_mode, leg_geometry, marker_image_id, is_destination,
+             daily_enabled, day_entries
       FROM trip_stations
       WHERE trip_id = ${row.id} AND published = true
       ORDER BY sort_order, created_at
@@ -241,6 +242,12 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
         departureDate: toIsoDate(s.departure_date),
         bodyMd: s.body_md ?? "",
         legMode: (s.leg_mode ?? "drive") as LegMode,
+        dayEntries:
+          s.daily_enabled && Array.isArray(s.day_entries)
+            ? (s.day_entries as { date: string; bodyMd: string }[]).filter(
+                (d) => d && typeof d.date === "string" && String(d.bodyMd ?? "").trim().length > 0,
+              )
+            : [],
         legGeometry: Array.isArray(s.leg_geometry) ? (s.leg_geometry as number[][][]) : null,
         images: stationImages,
         videos: videoRows.filter((v) => v.station_id === s.id).map(mapVideoRow),
