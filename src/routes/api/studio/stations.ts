@@ -72,6 +72,8 @@ const UpdateInput = z.object({
   published: z.boolean().optional(),
   isDestination: z.boolean().optional(),
   markerImageId: z.string().uuid().nullable().optional(),
+  dailyEnabled: z.boolean().optional(),
+  dayEntries: DayEntries.optional(),
 });
 
 const ReorderInput = z.object({
