@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useConfirm } from "@/components/studio/ConfirmDialog";
 
 export type StudioVideo = {
   id: string;
@@ -88,6 +89,7 @@ export function VideoEditor({ tripId }: { tripId: string }) {
   const [videos, setVideos] = useState<StudioVideo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const [uploadStatus, setUploadStatus] = useState<{
     phase: "upload" | "processing";
     pct: number;
