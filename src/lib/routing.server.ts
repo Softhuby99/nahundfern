@@ -72,6 +72,10 @@ export type GeocodeResult = {
   countryCode: string | null;
   latitude: number;
   longitude: number;
+  /** Grobe Art des Treffers (z. B. "restaurant", "cafe", "attraction"). */
+  category?: string | null;
+  /** Vollständige Adresszeile für die Trefferliste. */
+  label?: string | null;
 };
 
 function normalizeCountryCode(raw: unknown): string | null {
