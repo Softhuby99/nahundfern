@@ -1,8 +1,18 @@
 // Stationseditor: Ortssuche, Kartenklick, Marker verschieben, manuelle
 // Koordinaten, Text, Reihenfolge, Zielort und Medienzuordnung.
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Pencil } from "lucide-react";
 import { RouteMapLazy, type MapStation } from "@/components/map/RouteMapLazy";
 import { distanceKm, sortByArrival, type LegMode } from "@/components/map/route-geometry";
+import { RichTextEditor } from "@/components/studio/RichTextEditor";
+import { useConfirm } from "@/components/studio/ConfirmDialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type StationRow = {
   id: string;
@@ -39,6 +49,15 @@ function daysInRange(arrival: string, departure: string): string[] {
   return days;
 }
 
+/** Tage einer Station aus Ankunft und Abreise. */
+function stationDays(station: { arrival_date: string | null; departure_date: string | null }) {
+  const arrival = station.arrival_date ? String(station.arrival_date).slice(0, 10) : "";
+  const departure = station.departure_date ? String(station.departure_date).slice(0, 10) : "";
+  if (arrival && departure) return daysInRange(arrival, departure);
+  const single = arrival || departure;
+  return single ? [single] : [];
+}
+
 function formatDay(iso: string): string {
   return new Date(`${iso}T00:00:00Z`).toLocaleDateString("de-DE", {
     weekday: "long",
@@ -54,6 +73,17 @@ type StudioImage = {
   webp_400: string;
   alt: string | null;
   station_id: string | null;
+  day_date?: string | null;
+};
+
+/** Ort, Restaurant oder Café als Punkt auf der Karte. */
+type StationPlaceRow = {
+  id: string;
+  station_id: string;
+  name: string;
+  category: string | null;
+  latitude: string;
+  longitude: string;
 };
 
 type GeocodeHit = {
@@ -97,9 +127,12 @@ function normalizePlace(value: string): string {
 export function StationEditor({
   tripId,
   suggestion,
+  onSaveTrip,
 }: {
   tripId: string;
   suggestion?: StationSuggestion;
+  /** Speichert auch die Reisedaten mit, ohne die Seite zu verlassen. */
+  onSaveTrip?: () => Promise<void> | void;
 }) {
   const [stations, setStations] = useState<StationRow[]>([]);
   const [images, setImages] = useState<StudioImage[]>([]);
@@ -126,13 +159,21 @@ export function StationEditor({
       }
     >
   >({});
+  /** Station, die im großen Bearbeitungsfenster geöffnet ist. */
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [places, setPlaces] = useState<StationPlaceRow[]>([]);
+  const [placeQuery, setPlaceQuery] = useState("");
+  const [placeHits, setPlaceHits] = useState<GeocodeHit[]>([]);
+  const [placeState, setPlaceState] = useState<"idle" | "loading" | "failed">("idle");
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prefilled = useRef(false);
 
   const load = useCallback(async () => {
-    const [stationRes, imageRes] = await Promise.all([
+    const [stationRes, imageRes, placeRes] = await Promise.all([
       fetch(`/api/studio/stations?tripId=${tripId}`),
       fetch(`/api/studio/images?tripId=${tripId}`),
+      fetch(`/api/studio/places?tripId=${tripId}`),
     ]);
     if (stationRes.ok) {
       const data = await stationRes.json();
@@ -141,6 +182,10 @@ export function StationEditor({
     if (imageRes.ok) {
       const data = await imageRes.json();
       setImages(data.images ?? []);
+    }
+    if (placeRes.ok) {
+      const data = await placeRes.json();
+      setPlaces(data.places ?? []);
     }
   }, [tripId]);
 
@@ -239,10 +284,12 @@ export function StationEditor({
     setStatus("Gespeichert.");
   }
 
-  async function deleteStation(id: string) {
-    if (!window.confirm("Station löschen? Bilder und Videos bleiben in der Galerie erhalten.")) {
-      return;
-    }
+  async function deleteStation(id: string, name: string) {
+    const ok = await confirm({
+      title: `Station „${name}“ löschen?`,
+      description: "Bilder und Videos bleiben in der Galerie erhalten.",
+    });
+    if (!ok) return;
     const res = await fetch(`/api/studio/stations?id=${id}`, { method: "DELETE" });
     if (!res.ok) {
       setError("Station konnte nicht gelöscht werden");
@@ -250,8 +297,115 @@ export function StationEditor({
     }
     setStations((prev) => prev.filter((s) => s.id !== id));
     if (activeId === id) setActiveId(null);
+    if (editingId === id) setEditingId(null);
     await load();
     setStatus("Station gelöscht.");
+  }
+
+  /**
+   * Speichert den aktuellen Stand der Station und der Reise, ohne die Seite zu
+   * verlassen. Die Felder schreiben beim Verlassen; darum wird das aktive Feld
+   * zuerst abgeschlossen.
+   */
+  async function saveStation() {
+    (document.activeElement as HTMLElement | null)?.blur?.();
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    await onSaveTrip?.();
+    await load();
+    setStatus("Station gespeichert.");
+  }
+
+  /** Bild oder Video einem einzelnen Tag der Station zuordnen. */
+  async function assignImageDay(imageId: string, dayDate: string | null) {
+    const res = await fetch("/api/studio/images", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: imageId, dayDate }),
+    });
+    if (!res.ok) {
+      setError("Bild konnte dem Tag nicht zugeordnet werden");
+      return;
+    }
+    setImages((prev) =>
+      prev.map((img) => (img.id === imageId ? { ...img, day_date: dayDate } : img)),
+    );
+    setStatus(dayDate ? "Bild dem Tag zugeordnet." : "Bild gilt für die ganze Station.");
+  }
+
+  /** Ortssuche für Restaurants, Cafés und Sehenswürdigkeiten. */
+  async function searchPlaces(station: StationRow) {
+    const q = placeQuery.trim();
+    if (q.length < 2) return;
+    setPlaceState("loading");
+    try {
+      const res = await fetch("/api/studio/geocode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          q,
+          poi: true,
+          limit: 8,
+          near: { latitude: Number(station.latitude), longitude: Number(station.longitude) },
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? "Suche fehlgeschlagen");
+      setPlaceHits(data.results ?? []);
+      setPlaceState("idle");
+    } catch {
+      setPlaceHits([]);
+      setPlaceState("failed");
+    }
+  }
+
+  async function addPlace(station: StationRow, hit: GeocodeHit & { category?: string | null }) {
+    const res = await fetch("/api/studio/places", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        stationId: station.id,
+        name: hit.name,
+        category: hit.category ?? null,
+        latitude: hit.latitude,
+        longitude: hit.longitude,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data?.error ?? "Ort konnte nicht gespeichert werden");
+      return;
+    }
+    setPlaces((prev) => [...prev, data.place]);
+    setPlaceQuery("");
+    setPlaceHits([]);
+    setStatus(`„${hit.name}“ als Punkt auf der Karte gesetzt.`);
+  }
+
+  async function renamePlace(id: string, name: string) {
+    const res = await fetch("/api/studio/places", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, name }),
+    });
+    if (!res.ok) {
+      setError("Name des Ortes konnte nicht geändert werden");
+      return;
+    }
+    setPlaces((prev) => prev.map((p) => (p.id === id ? { ...p, name } : p)));
+  }
+
+  async function deletePlace(id: string, name: string) {
+    const ok = await confirm({
+      title: `Punkt „${name}“ entfernen?`,
+      description: "Der Punkt verschwindet damit von der Karte.",
+    });
+    if (!ok) return;
+    const res = await fetch(`/api/studio/places?id=${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      setError("Ort konnte nicht entfernt werden");
+      return;
+    }
+    setPlaces((prev) => prev.filter((p) => p.id !== id));
   }
 
   async function reorder(nextOrder: StationRow[]) {
@@ -365,6 +519,15 @@ export function StationEditor({
       images.find((i) => i.id === s.marker_image_id)?.webp_400 ??
       images.find((i) => i.station_id === s.id)?.webp_400 ??
       null,
+    places: places
+      .filter((p) => p.station_id === s.id)
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        latitude: Number(p.latitude),
+        longitude: Number(p.longitude),
+      })),
   }));
 
   async function reverseLookup(coords: { latitude: number; longitude: number }) {
@@ -669,12 +832,30 @@ export function StationEditor({
                     {index + 1}. {station.name}
                   </button>
                   <span className="station-badges">
+                    {isoDate(station.arrival_date) || isoDate(station.departure_date)
+                      ? `${isoDate(station.arrival_date) || "…"} – ${isoDate(station.departure_date) || "…"} · `
+                      : ""}
+                    {images.filter((i) => i.station_id === station.id).length} Bilder
+                    {" · "}
                     {station.published ? "öffentlich" : "Entwurf"}
                     {station.is_destination ? " · Zielort" : ""}
                   </span>
                 </header>
 
                 <div className="station-item-row">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveId(station.id);
+                      setEditingId(station.id);
+                      setPlaceQuery("");
+                      setPlaceHits([]);
+                    }}
+                    aria-label={`Station ${station.name} bearbeiten`}
+                    title="Station bearbeiten"
+                  >
+                    <Pencil aria-hidden="true" size={14} />
+                  </button>
                   <button
                     type="button"
                     onClick={() => move(index, -1)}
@@ -691,12 +872,26 @@ export function StationEditor({
                   >
                     ↓
                   </button>
-                  <button type="button" onClick={() => void deleteStation(station.id)}>
+                  <button
+                    type="button"
+                    onClick={() => void deleteStation(station.id, station.name)}
+                  >
                     Löschen
                   </button>
                 </div>
 
-                {station.id === activeId && (
+                <Dialog
+                  open={editingId === station.id}
+                  onOpenChange={(open) => {
+                    if (!open) setEditingId(null);
+                  }}
+                >
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {index + 1}. {station.name}
+                      </DialogTitle>
+                    </DialogHeader>
                   <div className="station-item-form">
                     <label className="field">
                       <span>Name</span>
@@ -815,14 +1010,15 @@ export function StationEditor({
                         ))}
                       </select>
                     </label>
-                    <label className="field">
-                      <span>Text zur Station (Markdown)</span>
-                      <textarea
-                        rows={6}
-                        defaultValue={station.body_md}
-                        onBlur={(e) => void patchStation(station.id, { bodyMd: e.target.value })}
+                    <div className="field">
+                      <span>Text zur Station</span>
+                      <RichTextEditor
+                        key={`body-${station.id}`}
+                        value={station.body_md}
+                        ariaLabel={`Text zur Station ${station.name}`}
+                        onBlur={(html) => void patchStation(station.id, { bodyMd: html })}
                       />
-                    </label>
+                    </div>
 
                     <label className="station-checkbox">
                       <input
@@ -857,26 +1053,27 @@ export function StationEditor({
                           <div className="station-days">
                             <p className="station-hint">
                               {days.length} {days.length === 1 ? "Tag" : "Tage"} — pro Tag ein
-                              eigener Text (Markdown).
+                              eigener Text.
                             </p>
                             {days.map((day) => (
-                              <label className="field" key={`${station.id}-${day}`}>
+                              <div className="field" key={`${station.id}-${day}`}>
                                 <span>{formatDay(day)}</span>
-                                <textarea
-                                  rows={4}
-                                  defaultValue={saved.find((d) => d.date === day)?.bodyMd ?? ""}
-                                  onBlur={(e) => {
+                                <RichTextEditor
+                                  value={saved.find((d) => d.date === day)?.bodyMd ?? ""}
+                                  ariaLabel={`Text für ${formatDay(day)}`}
+                                  minHeight={120}
+                                  onBlur={(html) => {
                                     const next: DayEntry[] = days.map((d) => ({
                                       date: d,
                                       bodyMd:
                                         d === day
-                                          ? e.target.value
+                                          ? html
                                           : (saved.find((s) => s.date === d)?.bodyMd ?? ""),
                                     }));
                                     void patchStation(station.id, { dayEntries: next });
                                   }}
                                 />
-                              </label>
+                              </div>
                             ))}
                           </div>
                         );
@@ -921,6 +1118,22 @@ export function StationEditor({
                                   ? "Kartenbild ✓"
                                   : "Als Kartenbild"}
                               </button>
+                              {station.daily_enabled && (
+                                <select
+                                  aria-label={`Tag für dieses Bild in ${station.name}`}
+                                  value={isoDate(img.day_date ?? null)}
+                                  onChange={(e) =>
+                                    void assignImageDay(img.id, e.target.value || null)
+                                  }
+                                >
+                                  <option value="">Ganze Station</option>
+                                  {stationDays(station).map((day) => (
+                                    <option key={day} value={day}>
+                                      {formatDay(day)}
+                                    </option>
+                                  ))}
+                                </select>
+                              )}
                               <button type="button" onClick={() => void assignImage(img.id, null)}>
                                 Aus Station entfernen
                               </button>
@@ -946,8 +1159,78 @@ export function StationEditor({
                         </>
                       )}
                     </div>
+
+                    <div className="station-places">
+                      <p className="station-hint">
+                        Orte, Restaurants und Cafés — erscheinen als kleiner Punkt auf der Karte.
+                      </p>
+                      <label className="field">
+                        <span>Ort in der Nähe suchen</span>
+                        <input
+                          type="search"
+                          value={placeQuery}
+                          onChange={(e) => setPlaceQuery(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              void searchPlaces(station);
+                            }
+                          }}
+                          placeholder="z. B. Café Central"
+                        />
+                      </label>
+                      <button type="button" onClick={() => void searchPlaces(station)}>
+                        Suchen
+                      </button>
+                      {placeState === "loading" && <p className="station-hint">Suche läuft …</p>}
+                      {placeState === "failed" && (
+                        <p className="station-hint">Ortssuche gerade nicht erreichbar.</p>
+                      )}
+                      {placeHits.length > 0 && (
+                        <ul className="station-hits">
+                          {placeHits.map((hit) => (
+                            <li key={`${hit.latitude},${hit.longitude}-${hit.name}`}>
+                              <button type="button" onClick={() => void addPlace(station, hit)}>
+                                {hit.name}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <ul className="station-place-list">
+                        {places
+                          .filter((p) => p.station_id === station.id)
+                          .map((place) => (
+                            <li key={place.id}>
+                              <input
+                                aria-label="Name des Ortes"
+                                defaultValue={place.name}
+                                onBlur={(e) => {
+                                  const next = e.target.value.trim();
+                                  if (next && next !== place.name) void renamePlace(place.id, next);
+                                }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => void deletePlace(place.id, place.name)}
+                              >
+                                Entfernen
+                              </button>
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
                   </div>
-                )}
+                    <DialogFooter>
+                      <button type="button" onClick={() => void saveStation()}>
+                        Station speichern
+                      </button>
+                      <button type="button" onClick={() => setEditingId(null)}>
+                        Fenster schließen
+                      </button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </li>
             ))}
           </ol>
@@ -971,6 +1254,7 @@ export function StationEditor({
           />
         </div>
       </div>
+      {confirmDialog}
     </section>
   );
 }

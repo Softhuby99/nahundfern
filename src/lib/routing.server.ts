@@ -72,6 +72,10 @@ export type GeocodeResult = {
   countryCode: string | null;
   latitude: number;
   longitude: number;
+  /** Grobe Art des Treffers (z. B. "restaurant", "cafe", "attraction"). */
+  category: string | null;
+  /** Vollständige Adresszeile für die Trefferliste. */
+  label: string | null;
 };
 
 function normalizeCountryCode(raw: unknown): string | null {
@@ -107,29 +111,66 @@ function shortName(entry: Record<string, unknown>): string {
   return "";
 }
 
-export async function geocodeSearch(query: string): Promise<GeocodeResult[]> {
-  const key = `search:${query.toLowerCase()}`;
+/** Eigenname eines Treffers (für Restaurants, Cafés, Sehenswürdigkeiten). */
+function ownName(entry: Record<string, unknown>): string {
+  const own = entry.name;
+  if (typeof own === "string" && own.trim()) return own.trim();
+  const display = entry.display_name;
+  if (typeof display === "string") return display.split(",")[0]!.trim();
+  return "";
+}
+
+export type GeocodeSearchOptions = {
+  limit?: number;
+  /** true = Eigennamen und Kategorien behalten (Orte, Restaurants, Cafés). */
+  poi?: boolean;
+  /** Suche im Umkreis dieses Punktes bevorzugen. */
+  near?: { latitude: number; longitude: number };
+};
+
+export async function geocodeSearch(
+  query: string,
+  options: GeocodeSearchOptions = {},
+): Promise<GeocodeResult[]> {
+  const limit = Math.min(Math.max(options.limit ?? 5, 1), 10);
+  const poi = options.poi === true;
+  const near = options.near;
+  const key = `search:${poi ? "poi:" : ""}${limit}:${
+    near ? `${near.latitude.toFixed(2)},${near.longitude.toFixed(2)}:` : ""
+  }${query.toLowerCase()}`;
   const cached = cacheGet(key);
   if (cached) return cached as GeocodeResult[];
 
+  // Bei einem Bezugspunkt einen groben Kasten (~1°) als Suchvorzug mitgeben.
+  const viewbox = near
+    ? `&viewbox=${(near.longitude - 1).toFixed(4)},${(near.latitude + 1).toFixed(4)},` +
+      `${(near.longitude + 1).toFixed(4)},${(near.latitude - 1).toFixed(4)}&bounded=0`
+    : "";
   const url =
-    `${NOMINATIM_BASE_URL()}/search?format=jsonv2&addressdetails=1&limit=5` +
-    `&accept-language=de&q=${encodeURIComponent(query)}`;
+    `${NOMINATIM_BASE_URL()}/search?format=jsonv2&addressdetails=1&limit=${limit}` +
+    `&accept-language=de${viewbox}&q=${encodeURIComponent(query)}`;
   const raw = (await throttled(() => fetchJson(url))) as unknown;
   const list = Array.isArray(raw) ? raw : [];
   const results: GeocodeResult[] = list
-    .slice(0, 5)
+    .slice(0, limit)
     .map((entry) => {
       const e = entry as Record<string, unknown>;
       const lat = Number(e.lat);
       const lon = Number(e.lon);
       if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
       const address = (e.address ?? {}) as Record<string, unknown>;
+      const category = typeof e.type === "string" ? e.type : null;
+      const label = typeof e.display_name === "string" ? e.display_name.slice(0, 200) : null;
+      const name = poi
+        ? ownName(e) || shortName(e)
+        : shortName(e) || String(e.display_name ?? "").slice(0, 120);
       return {
-        name: shortName(e) || String(e.display_name ?? "").slice(0, 120),
+        name,
         countryCode: normalizeCountryCode(address.country_code),
         latitude: lat,
         longitude: lon,
+        category,
+        label,
       } satisfies GeocodeResult;
     })
     .filter((x): x is GeocodeResult => x !== null);
@@ -156,6 +197,11 @@ export async function geocodeReverse(lat: number, lon: number): Promise<GeocodeR
         countryCode: normalizeCountryCode(address.country_code),
         latitude: lat,
         longitude: lon,
+        category: typeof (raw ?? {}).type === "string" ? ((raw ?? {}).type as string) : null,
+        label:
+          typeof (raw ?? {}).display_name === "string"
+            ? String((raw ?? {}).display_name).slice(0, 200)
+            : null,
       }
     : null;
   cacheSet(key, result);

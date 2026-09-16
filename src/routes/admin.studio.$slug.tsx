@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { VideoEditor } from "@/components/studio/VideoEditor";
 import { StationEditor } from "@/components/studio/StationEditor";
+import { useConfirm } from "@/components/studio/ConfirmDialog";
 
 export const Route = createFileRoute("/admin/studio/$slug")({
   head: () => ({
@@ -80,6 +81,9 @@ function EditorPage() {
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  /** Uhrzeit des letzten Speicherns — Rückmeldung ohne Seitenwechsel. */
+  const [savedAt, setSavedAt] = useState<string | null>(null);
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const [coverProgress, setCoverProgress] = useState<number | null>(null);
   const [galleryProgress, setGalleryProgress] = useState<{
     done: number;
@@ -245,7 +249,11 @@ function EditorPage() {
   const setField = <K extends keyof StudioTrip>(k: K, v: StudioTrip[K]) =>
     setTrip((t) => ({ ...t, [k]: v }));
 
-  const save = async () => {
+  /**
+   * Speichert die Reise. `exit` führt zurück zur Übersicht; ohne `exit` bleibt
+   * der Editor geöffnet, damit man weiterarbeiten kann.
+   */
+  const save = async ({ exit = false }: { exit?: boolean } = {}) => {
     setSaving(true);
     setError("");
     try {
@@ -299,8 +307,10 @@ function EditorPage() {
           params: { slug: data.trip.slug },
           replace: true,
         });
-      } else {
+      } else if (exit) {
         await navigate({ to: "/admin/studio" });
+      } else {
+        setSavedAt(new Date().toLocaleTimeString("de-DE"));
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
@@ -387,19 +397,25 @@ function EditorPage() {
             Studio · {isNew ? "Neue Reise" : "Bearbeiten"}
           </p>
           <div className="flex items-center gap-3">
+            {savedAt && (
+              <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                Gespeichert {savedAt}
+              </span>
+            )}
             <button
-              onClick={save}
+              onClick={() => void save()}
               disabled={saving}
-              className="px-5 py-2 bg-primary text-primary-foreground font-mono text-[10px] tracking-widest uppercase hover:bg-primary/90 disabled:opacity-50 rounded-sm"
+              className="px-5 py-2 border border-primary text-primary font-mono text-[10px] tracking-widest uppercase hover:bg-primary/10 disabled:opacity-50 rounded-sm"
             >
               {saving ? "Speichere …" : "Speichern"}
             </button>
-            <Link
-              to="/admin/studio"
-              className="font-mono text-[10px] uppercase tracking-widest hover:text-primary"
+            <button
+              onClick={() => void save({ exit: true })}
+              disabled={saving}
+              className="px-5 py-2 bg-primary text-primary-foreground font-mono text-[10px] tracking-widest uppercase hover:bg-primary/90 disabled:opacity-50 rounded-sm"
             >
-              ← Zurück
-            </Link>
+              Speichern &amp; beenden
+            </button>
           </div>
         </div>
 

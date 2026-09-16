@@ -8,6 +8,15 @@ import { geocodeSearch, geocodeReverse } from "@/lib/routing.server";
 
 const SearchInput = z.object({
   q: z.string().trim().min(2).max(200),
+  /** true = Eigennamen/Kategorien behalten (Restaurants, Cafés, Orte). */
+  poi: z.boolean().optional(),
+  limit: z.number().int().min(1).max(10).optional(),
+  near: z
+    .object({
+      latitude: z.number().min(-90).max(90),
+      longitude: z.number().min(-180).max(180),
+    })
+    .optional(),
 });
 
 const ReverseInput = z.object({
@@ -37,7 +46,11 @@ export const Route = createFileRoute("/api/studio/geocode")({
           if (!asSearch.success) {
             return Response.json({ error: "Invalid input" }, { status: 400 });
           }
-          const results = await geocodeSearch(asSearch.data.q);
+          const results = await geocodeSearch(asSearch.data.q, {
+            poi: asSearch.data.poi === true,
+            limit: asSearch.data.limit,
+            near: asSearch.data.near,
+          });
           return Response.json({ results });
         } catch (err) {
           console.warn("geocode failed", (err as Error).message);

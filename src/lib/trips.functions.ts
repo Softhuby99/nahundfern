@@ -58,6 +58,8 @@ export type PublicStation = {
   images: GalleryImage[];
   videos: TripVideo[];
   markerImage: GalleryImage | null;
+  /** Orte/Restaurants/Cafés dieser Station. */
+  places: StationPlace[];
 };
 
 export type GalleryImage = {
@@ -67,6 +69,8 @@ export type GalleryImage = {
   width: number;
   height: number;
   alt: string | null;
+  /** Aufenthaltstag (ISO) oder null = gehört zur ganzen Station/Reise. */
+  dayDate?: string | null;
 };
 
 export type TripVideo = {
@@ -76,6 +80,16 @@ export type TripVideo = {
   width: number;
   height: number;
   alt: string | null;
+  dayDate?: string | null;
+};
+
+/** Ort, Restaurant oder Café als kleiner Punkt auf der Karte. */
+export type StationPlace = {
+  id: string;
+  name: string;
+  category: string | null;
+  latitude: number;
+  longitude: number;
 };
 
 function splitBody(bodyMd: string): string[] {
@@ -145,6 +159,7 @@ function mapGalleryRow(r: any): GalleryImage {
     width: Number(r.width),
     height: Number(r.height),
     alt: r.alt ?? null,
+    dayDate: toIsoDate(r.day_date),
   };
 }
 
@@ -157,6 +172,7 @@ function mapVideoRow(r: any): TripVideo {
     width: Number(r.width),
     height: Number(r.height),
     alt: r.alt ?? null,
+    dayDate: toIsoDate(r.day_date),
   };
 }
 
@@ -203,7 +219,7 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
     const galleryRows = await sql`
       SELECT id, webp_400, webp_1200, webp_2000,
              avif_400, avif_1200, avif_2000,
-             width, height, alt, station_id
+             width, height, alt, station_id, day_date
       FROM images
       WHERE trip_id = ${row.id}
       ORDER BY sort_order, created_at
@@ -212,10 +228,18 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
       ? galleryRows.filter((g) => g.id !== row.cover_image_id)
       : galleryRows;
     const videoRows = await sql`
-      SELECT id, mp4_720_path, poster_path, width, height, alt, station_id
+      SELECT id, mp4_720_path, poster_path, width, height, alt, station_id, day_date
       FROM videos
       WHERE trip_id = ${row.id}
       ORDER BY sort_order, created_at
+    `;
+    // Orte/Restaurants/Cafés — nur von veröffentlichten Stationen.
+    const placeRows = await sql`
+      SELECT p.id, p.station_id, p.name, p.category, p.latitude, p.longitude
+      FROM station_places p
+      JOIN trip_stations s ON s.id = p.station_id
+      WHERE s.trip_id = ${row.id} AND s.published = true
+      ORDER BY p.sort_order, p.created_at
     `;
     // Nur veröffentlichte Stationen verlassen den Server — keine ID, kein Name,
     // keine Koordinate und keine Zählung unveröffentlichter Stationen.
@@ -252,6 +276,15 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
         images: stationImages,
         videos: videoRows.filter((v) => v.station_id === s.id).map(mapVideoRow),
         markerImage: marker && marker.webp[400] ? marker : null,
+        places: placeRows
+          .filter((p) => p.station_id === s.id)
+          .map((p) => ({
+            id: p.id,
+            name: p.name,
+            category: p.category ?? null,
+            latitude: Number(p.latitude),
+            longitude: Number(p.longitude),
+          })),
       };
     });
     const destinationStationId = stationRows.find((s) => s.is_destination)?.id ?? null;

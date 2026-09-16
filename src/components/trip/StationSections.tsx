@@ -2,13 +2,52 @@
 // mitfliegende Karte. Die Karte ist Zusatzinformation — alle Angaben stehen
 // auch in der Textliste.
 import { useEffect, useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeSanitize from "rehype-sanitize";
 import { RouteMapLazy, type MapStation } from "@/components/map/RouteMapLazy";
 import { ResponsivePicture } from "@/components/HorizontalTimeline";
 import { VideoPlayer } from "@/components/trip/VideoPlayer";
-import type { PublicStation } from "@/lib/trips.functions";
+import { RichText } from "@/components/RichText";
+import type { GalleryImage, PublicStation, TripVideo } from "@/lib/trips.functions";
+
+/** Bilder und Videos einer Station oder eines einzelnen Tages. */
+function StationMedia({
+  images,
+  videos,
+  altBase,
+  title,
+}: {
+  images: GalleryImage[];
+  videos: TripVideo[];
+  altBase: string;
+  title: string;
+}) {
+  if (images.length === 0 && videos.length === 0) return null;
+  return (
+    <>
+      {images.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+          {images.map((img) => (
+            <ResponsivePicture
+              key={img.id}
+              webp={img.webp}
+              avif={img.avif}
+              alt={img.alt ?? altBase}
+              width={img.width}
+              height={img.height}
+              className="w-full h-full object-cover aspect-[4/3] rounded-sm bg-card"
+            />
+          ))}
+        </div>
+      )}
+      {videos.length > 0 && (
+        <div className="grid grid-cols-1 gap-4 mt-6">
+          {videos.map((v) => (
+            <VideoPlayer key={v.id} video={v} title={title} />
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
 
 function formatRange(arrival: string | null, departure: string | null): string | null {
   const fmt = (v: string) =>
@@ -62,6 +101,7 @@ export function StationSections({
     legMode: s.legMode,
     legGeometry: s.legGeometry,
     markerImageSrc: s.markerImage?.webp[400] ?? null,
+    places: s.places ?? [],
   }));
 
   return (
@@ -95,13 +135,18 @@ export function StationSections({
                 >
                   {station.name}
                 </h2>
-                {station.bodyMd && (
-                  <div className="prose-story text-lg leading-relaxed text-foreground/90 space-y-4">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSanitize]}>
-                      {station.bodyMd}
-                    </ReactMarkdown>
-                  </div>
-                )}
+                <RichText
+                  content={station.bodyMd}
+                  className="prose-story text-lg leading-relaxed text-foreground/90 space-y-4"
+                />
+
+                {/* Medien ohne Tagesangabe gehören zur ganzen Station. */}
+                <StationMedia
+                  images={station.images.filter((img) => !img.dayDate)}
+                  videos={station.videos.filter((v) => !v.dayDate)}
+                  altBase={`${station.name} — ${tripTitle}`}
+                  title={station.name}
+                />
 
                 {station.dayEntries.length > 0 && (
                   <div className="mt-8 space-y-8 border-l border-border pl-6">
@@ -110,39 +155,17 @@ export function StationSections({
                         <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
                           {formatRange(day.date, null)}
                         </p>
-                        <div className="prose-story text-lg leading-relaxed text-foreground/90 space-y-4">
-                          <ReactMarkdown
-                            remarkPlugins={[remarkGfm]}
-                            rehypePlugins={[rehypeSanitize]}
-                          >
-                            {day.bodyMd}
-                          </ReactMarkdown>
-                        </div>
+                        <RichText
+                          content={day.bodyMd}
+                          className="prose-story text-lg leading-relaxed text-foreground/90 space-y-4"
+                        />
+                        <StationMedia
+                          images={station.images.filter((img) => img.dayDate === day.date)}
+                          videos={station.videos.filter((v) => v.dayDate === day.date)}
+                          altBase={`${station.name} — ${tripTitle}`}
+                          title={station.name}
+                        />
                       </div>
-                    ))}
-                  </div>
-                )}
-
-                {station.images.length > 0 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-                    {station.images.map((img) => (
-                      <ResponsivePicture
-                        key={img.id}
-                        webp={img.webp}
-                        avif={img.avif}
-                        alt={img.alt ?? `${station.name} — ${tripTitle}`}
-                        width={img.width}
-                        height={img.height}
-                        className="w-full h-full object-cover aspect-[4/3] rounded-sm bg-card"
-                      />
-                    ))}
-                  </div>
-                )}
-
-                {station.videos.length > 0 && (
-                  <div className="grid grid-cols-1 gap-4 mt-6">
-                    {station.videos.map((v) => (
-                      <VideoPlayer key={v.id} video={v} title={station.name} />
                     ))}
                   </div>
                 )}
