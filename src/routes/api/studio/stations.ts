@@ -200,8 +200,9 @@ export const Route = createFileRoute("/api/studio/stations")({
           d.isDestination !== undefined ? d.isDestination : current.is_destination;
         const destination = willPublish ? nextDestination : false;
 
-        const [station] = await sql`
-          UPDATE trip_stations SET
+        const [station] = await sql.begin(async (tx) => {
+          const [updated] = await tx`
+            UPDATE trip_stations SET
             name            = COALESCE(${d.name ?? null}, name),
             country_code    = ${d.countryCode !== undefined ? d.countryCode : current.country_code},
             latitude        = COALESCE(${d.latitude ?? null}, latitude),
@@ -226,9 +227,36 @@ export const Route = createFileRoute("/api/studio/stations")({
                 : current.leg_geometry
             },
             updated_at      = now()
-          WHERE id = ${d.id}
-          RETURNING *
-        `;
+            WHERE id = ${d.id}
+            RETURNING *
+          `;
+
+          // Medien bleiben erhalten, verlieren aber eine Tageszuordnung, wenn
+          // der Tagesmodus aus ist oder das Datum nicht mehr zum Aufenthalt passt.
+          await tx`
+            UPDATE images SET day_date = NULL
+            WHERE station_id = ${d.id}
+              AND day_date IS NOT NULL
+              AND (
+                ${!updated.daily_enabled}
+                OR ${toIsoDate(updated.arrival_date)} IS NULL
+                OR day_date < ${toIsoDate(updated.arrival_date)}::date
+                OR day_date > COALESCE(${toIsoDate(updated.departure_date)}::date, ${toIsoDate(updated.arrival_date)}::date)
+              )
+          `;
+          await tx`
+            UPDATE videos SET day_date = NULL
+            WHERE station_id = ${d.id}
+              AND day_date IS NOT NULL
+              AND (
+                ${!updated.daily_enabled}
+                OR ${toIsoDate(updated.arrival_date)} IS NULL
+                OR day_date < ${toIsoDate(updated.arrival_date)}::date
+                OR day_date > COALESCE(${toIsoDate(updated.departure_date)}::date, ${toIsoDate(updated.arrival_date)}::date)
+              )
+          `;
+          return [updated];
+        });
         await auditLog({
           request,
           userId: session.userId,
