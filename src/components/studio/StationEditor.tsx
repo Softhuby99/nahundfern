@@ -438,10 +438,8 @@ export function StationEditor({
       setStations((current) =>
         current.map((station) => (station.id === stationDraft.id ? data.station : station)),
       );
-      setStationDraft({
-        ...data.station,
-        day_entries: (data.station.day_entries ?? []).map((entry: DayEntry) => ({ ...entry })),
-      });
+      setStationDraft(draftFrom(data.station as StationRow));
+
       await onSaveTrip?.();
       setStatus("Station gespeichert.");
     } catch (err) {
