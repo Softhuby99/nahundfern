@@ -32,6 +32,9 @@ RUN if [ -f bun.lock ]; then \
 COPY . .
 ENV NODE_ENV=production
 ENV NITRO_PRESET=node-server
+# Node bekommt mehr Heap (Standard ~1 GB reicht bei diesem Build nicht).
+# Bei Servern mit wenig RAM ggf. auf 2048 senken und Swap einrichten.
+ENV NODE_OPTIONS=--max-old-space-size=3072
 RUN if [ -f bun.lock ]; then bun run build ; else npm run build ; fi
 
 # ---------- runtime stage ----------
