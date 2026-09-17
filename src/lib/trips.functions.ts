@@ -266,12 +266,7 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
         departureDate: toIsoDate(s.departure_date),
         bodyMd: s.body_md ?? "",
         legMode: (s.leg_mode ?? "drive") as LegMode,
-        dayEntries:
-          s.daily_enabled && Array.isArray(s.day_entries)
-            ? (s.day_entries as { date: string; bodyMd: string }[]).filter(
-                (d) => d && typeof d.date === "string" && String(d.bodyMd ?? "").trim().length > 0,
-              )
-            : [],
+        dayEntries: parseDayEntries(s.day_entries),
         legGeometry: Array.isArray(s.leg_geometry) ? (s.leg_geometry as number[][][]) : null,
         images: stationImages,
         videos: videoRows.filter((v) => v.station_id === s.id).map(mapVideoRow),
