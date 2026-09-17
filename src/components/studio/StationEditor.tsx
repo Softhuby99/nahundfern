@@ -166,6 +166,8 @@ export function StationEditor({
   const [editingId, setEditingId] = useState<string | null>(null);
   /** Änderungen im Fenster bleiben lokal, bis „Station speichern“ gewählt wird. */
   const [stationDraft, setStationDraft] = useState<StationRow | null>(null);
+  /** Letzter nachweislich gespeicherter Stand des geöffneten Fensters. */
+  const [savedStationDraft, setSavedStationDraft] = useState<StationRow | null>(null);
   const [places, setPlaces] = useState<StationPlaceRow[]>([]);
   const [placeQuery, setPlaceQuery] = useState("");
   const [placeHits, setPlaceHits] = useState<GeocodeHit[]>([]);
@@ -354,9 +356,13 @@ export function StationEditor({
   }
 
   function openStation(station: StationRow) {
+    const draft = draftFrom(station);
     setActiveId(station.id);
-    setStationDraft(draftFrom(station));
+    setStationDraft(draft);
+    setSavedStationDraft(draft);
     setEditingId(station.id);
+    setError(null);
+    setStatus(null);
     setPlaceQuery("");
     setPlaceHits([]);
   }
@@ -367,7 +373,11 @@ export function StationEditor({
     if (!editingId) return;
     if (stationDraft?.id === editingId) return;
     const saved = stations.find((s) => s.id === editingId);
-    if (saved) setStationDraft(draftFrom(saved));
+    if (saved) {
+      const draft = draftFrom(saved);
+      setStationDraft(draft);
+      setSavedStationDraft(draft);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingId, stations, stationDraft]);
 
@@ -395,9 +405,8 @@ export function StationEditor({
     });
   }
 
-  const savedEditingStation = stations.find((station) => station.id === editingId) ?? null;
   const hasUnsavedStationChanges =
-    stationDraft !== null && comparableStation(stationDraft) !== comparableStation(savedEditingStation);
+    stationDraft !== null && comparableStation(stationDraft) !== comparableStation(savedStationDraft);
 
   async function closeStationEditor() {
     if (hasUnsavedStationChanges) {
@@ -412,6 +421,7 @@ export function StationEditor({
     }
     setEditingId(null);
     setStationDraft(null);
+    setSavedStationDraft(null);
   }
 
   async function saveStation() {
@@ -444,11 +454,13 @@ export function StationEditor({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error ?? "Station konnte nicht gespeichert werden");
+      if (!data?.station?.id) throw new Error("Der Server hat keinen gespeicherten Stand bestätigt");
       const savedStation = draftFrom(data.station as StationRow);
       setStations((current) =>
         current.map((station) => (station.id === stationDraft.id ? savedStation : station)),
       );
       setStationDraft(savedStation);
+      setSavedStationDraft(savedStation);
 
       await onSaveTrip?.();
       setStatus("Station gespeichert.");
@@ -1057,6 +1069,17 @@ export function StationEditor({
                         Beenden
                       </button>
                     </div>
+
+                    {error && (
+                      <p className="station-error" role="alert">
+                        {error}
+                      </p>
+                    )}
+                    {status && (
+                      <p className="station-status" role="status">
+                        {status}
+                      </p>
+                    )}
 
                   {stationDraft?.id === station.id && <div className="station-item-form">
                     <label className="field">
