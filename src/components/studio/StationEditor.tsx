@@ -284,6 +284,25 @@ export function StationEditor({
     setStatus("Gespeichert.");
   }
 
+  // Beim Abreiseort gibt es keine Ankunft, beim letzten Ort keine Abreise.
+  // Alte Werte aus früheren Reihenfolgen werden hier still entfernt, damit in
+  // der Liste kein längst überholtes Datum stehen bleibt.
+  useEffect(() => {
+    if (stations.length === 0) return;
+    const first = stations[0]!;
+    if (first.arrival_date) {
+      void patchStation(first.id, { arrivalDate: null });
+      return;
+    }
+    if (stations.length > 1) {
+      const last = stations[stations.length - 1]!;
+      if (last.departure_date) void patchStation(last.id, { departureDate: null });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stations]);
+
+
+
   async function deleteStation(id: string, name: string) {
     const ok = await confirm({
       title: `Station „${name}“ löschen?`,
@@ -832,9 +851,16 @@ export function StationEditor({
                     {index + 1}. {station.name}
                   </button>
                   <span className="station-badges">
-                    {isoDate(station.arrival_date) || isoDate(station.departure_date)
-                      ? `${isoDate(station.arrival_date) || "…"} – ${isoDate(station.departure_date) || "…"} · `
-                      : ""}
+                    {(() => {
+                      const arrival = index === 0 ? "" : isoDate(station.arrival_date);
+                      const departure =
+                        index === stations.length - 1 && stations.length > 1
+                          ? ""
+                          : isoDate(station.departure_date);
+                      if (!arrival && !departure) return "";
+                      return `${arrival || "…"} – ${departure || "…"} · `;
+                    })()}
+
                     {images.filter((i) => i.station_id === station.id).length} Bilder
                     {" · "}
                     {station.published ? "öffentlich" : "Entwurf"}
@@ -892,6 +918,23 @@ export function StationEditor({
                         {index + 1}. {station.name}
                       </DialogTitle>
                     </DialogHeader>
+                    <div className="station-dialog-actions">
+                      <button
+                        type="button"
+                        className="station-action-primary"
+                        onClick={() => void saveStation()}
+                      >
+                        Station speichern
+                      </button>
+                      <button
+                        type="button"
+                        className="station-action-secondary"
+                        onClick={() => setEditingId(null)}
+                      >
+                        Fenster schließen
+                      </button>
+                    </div>
+
                   <div className="station-item-form">
                     <label className="field">
                       <span>Name</span>
@@ -1222,13 +1265,22 @@ export function StationEditor({
                     </div>
                   </div>
                     <DialogFooter>
-                      <button type="button" onClick={() => void saveStation()}>
+                      <button
+                        type="button"
+                        className="station-action-primary"
+                        onClick={() => void saveStation()}
+                      >
                         Station speichern
                       </button>
-                      <button type="button" onClick={() => setEditingId(null)}>
+                      <button
+                        type="button"
+                        className="station-action-secondary"
+                        onClick={() => setEditingId(null)}
+                      >
                         Fenster schließen
                       </button>
                     </DialogFooter>
+
                   </DialogContent>
                 </Dialog>
               </li>
