@@ -37,6 +37,9 @@ type StationRow = {
 
 type DayEntry = { date: string; bodyMd: string };
 
+/** Mehr Editorfelder auf einmal belasten kleine Server und Browser unnötig. */
+const MAX_EDITABLE_DAYS = 31;
+
 /** Alle Tage von Ankunft bis Abreise (einschließlich) als ISO-Datum. */
 function daysInRange(arrival: string, departure: string): string[] {
   const start = Date.parse(`${arrival}T00:00:00Z`);
@@ -161,6 +164,8 @@ export function StationEditor({
   >({});
   /** Station, die im großen Bearbeitungsfenster geöffnet ist. */
   const [editingId, setEditingId] = useState<string | null>(null);
+  /** Änderungen im Fenster bleiben lokal, bis „Station speichern“ gewählt wird. */
+  const [stationDraft, setStationDraft] = useState<StationRow | null>(null);
   const [places, setPlaces] = useState<StationPlaceRow[]>([]);
   const [placeQuery, setPlaceQuery] = useState("");
   const [placeHits, setPlaceHits] = useState<GeocodeHit[]>([]);
@@ -326,12 +331,94 @@ export function StationEditor({
    * verlassen. Die Felder schreiben beim Verlassen; darum wird das aktive Feld
    * zuerst abgeschlossen.
    */
+  function openStation(station: StationRow) {
+    setActiveId(station.id);
+    setEditingId(station.id);
+    setStationDraft({
+      ...station,
+      day_entries: (station.day_entries ?? []).map((entry) => ({ ...entry })),
+    });
+    setPlaceQuery("");
+    setPlaceHits([]);
+  }
+
+  function updateDraft(patch: Partial<StationRow>) {
+    setStationDraft((current) => (current ? { ...current, ...patch } : current));
+  }
+
+  function comparableStation(station: StationRow | null) {
+    if (!station) return "";
+    return JSON.stringify({
+      name: station.name,
+      arrival: isoDate(station.arrival_date),
+      departure: isoDate(station.departure_date),
+      body: station.body_md,
+      legMode: station.leg_mode,
+      published: station.published,
+      destination: station.is_destination,
+      markerImageId: station.marker_image_id,
+      dailyEnabled: Boolean(station.daily_enabled),
+      dayEntries: station.day_entries ?? [],
+    });
+  }
+
+  const savedEditingStation = stations.find((station) => station.id === editingId) ?? null;
+  const hasUnsavedStationChanges =
+    stationDraft !== null && comparableStation(stationDraft) !== comparableStation(savedEditingStation);
+
+  async function closeStationEditor() {
+    if (hasUnsavedStationChanges) {
+      const discard = await confirm({
+        title: "Änderungen verwerfen?",
+        description:
+          "Diese Station wurde geändert, aber noch nicht gespeichert. Beim Beenden gehen diese Änderungen verloren.",
+        confirmLabel: "Änderungen verwerfen",
+        cancelLabel: "Weiter bearbeiten",
+      });
+      if (!discard) return;
+    }
+    setEditingId(null);
+    setStationDraft(null);
+  }
+
   async function saveStation() {
-    (document.activeElement as HTMLElement | null)?.blur?.();
-    await new Promise((resolve) => setTimeout(resolve, 60));
-    await onSaveTrip?.();
-    await load();
-    setStatus("Station gespeichert.");
+    if (!stationDraft) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/studio/stations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: stationDraft.id,
+          name: stationDraft.name.trim(),
+          arrivalDate: isoDate(stationDraft.arrival_date) || null,
+          departureDate: isoDate(stationDraft.departure_date) || null,
+          bodyMd: stationDraft.body_md,
+          legMode: stationDraft.leg_mode,
+          published: stationDraft.published,
+          isDestination: stationDraft.is_destination,
+          markerImageId: stationDraft.marker_image_id,
+          dailyEnabled: Boolean(stationDraft.daily_enabled),
+          dayEntries: stationDraft.day_entries ?? [],
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? "Station konnte nicht gespeichert werden");
+      setStations((current) =>
+        current.map((station) => (station.id === stationDraft.id ? data.station : station)),
+      );
+      setStationDraft({
+        ...data.station,
+        day_entries: (data.station.day_entries ?? []).map((entry: DayEntry) => ({ ...entry })),
+      });
+      await onSaveTrip?.();
+      setStatus("Station gespeichert.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Station konnte nicht gespeichert werden");
+    } finally {
+      setBusy(false);
+    }
   }
 
   /** Bild oder Video einem einzelnen Tag der Station zuordnen. */
@@ -872,10 +959,7 @@ export function StationEditor({
                   <button
                     type="button"
                     onClick={() => {
-                      setActiveId(station.id);
-                      setEditingId(station.id);
-                      setPlaceQuery("");
-                      setPlaceHits([]);
+                      openStation(station);
                     }}
                     aria-label={`Station ${station.name} bearbeiten`}
                     title="Station bearbeiten"
@@ -909,7 +993,7 @@ export function StationEditor({
                 <Dialog
                   open={editingId === station.id}
                   onOpenChange={(open) => {
-                    if (!open) setEditingId(null);
+                    if (!open) void closeStationEditor();
                   }}
                 >
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -923,28 +1007,25 @@ export function StationEditor({
                         type="button"
                         className="station-action-primary"
                         onClick={() => void saveStation()}
+                        disabled={busy || !hasUnsavedStationChanges}
                       >
                         Station speichern
                       </button>
                       <button
                         type="button"
                         className="station-action-secondary"
-                        onClick={() => setEditingId(null)}
+                        onClick={() => void closeStationEditor()}
                       >
-                        Fenster schließen
+                        Beenden
                       </button>
                     </div>
 
-                  <div className="station-item-form">
+                  {stationDraft?.id === station.id && <div className="station-item-form">
                     <label className="field">
                       <span>Name</span>
                       <input
-                        defaultValue={station.name}
-                        onBlur={(e) =>
-                          e.target.value.trim() &&
-                          e.target.value !== station.name &&
-                          void patchStation(station.id, { name: e.target.value.trim() })
-                        }
+                        value={stationDraft.name}
+                        onChange={(e) => updateDraft({ name: e.target.value })}
                       />
                     </label>
                     <div className="station-name-check">
@@ -966,9 +1047,9 @@ export function StationEditor({
                             onClick={() => {
                               const check = nameChecks[station.id];
                               if (check?.latitude == null || check?.longitude == null) return;
-                              void patchStation(station.id, {
-                                latitude: check.latitude,
-                                longitude: check.longitude,
+                              updateDraft({
+                                latitude: String(check.latitude),
+                                longitude: String(check.longitude),
                               });
                               setRouteStatus("Koordinate geändert — Route neu berechnen.");
                             }}
@@ -989,7 +1070,7 @@ export function StationEditor({
                             type="button"
                             onClick={() => {
                               const suggested = nameChecks[station.id]?.suggested;
-                              if (suggested) void patchStation(station.id, { name: suggested });
+                              if (suggested) updateDraft({ name: suggested });
                             }}
                           >
                             Namen übernehmen
@@ -1008,12 +1089,8 @@ export function StationEditor({
                           <input
                             key={`arrival-${station.id}-${isoDate(station.arrival_date)}`}
                             type="date"
-                            defaultValue={isoDate(station.arrival_date)}
-                            onChange={(e) =>
-                              void patchStation(station.id, {
-                                arrivalDate: e.target.value || null,
-                              })
-                            }
+                            value={isoDate(stationDraft.arrival_date)}
+                            onChange={(e) => updateDraft({ arrival_date: e.target.value || null })}
                           />
                         </label>
                       )}
@@ -1027,12 +1104,8 @@ export function StationEditor({
                           <input
                             key={`departure-${station.id}-${isoDate(station.departure_date)}`}
                             type="date"
-                            defaultValue={isoDate(station.departure_date)}
-                            onChange={(e) =>
-                              void patchStation(station.id, {
-                                departureDate: e.target.value || null,
-                              })
-                            }
+                            value={isoDate(stationDraft.departure_date)}
+                            onChange={(e) => updateDraft({ departure_date: e.target.value || null })}
                           />
                         </label>
                       )}
@@ -1040,9 +1113,9 @@ export function StationEditor({
                     <label className="field">
                       <span>Anreise zu dieser Station</span>
                       <select
-                        defaultValue={station.leg_mode}
+                        value={stationDraft.leg_mode}
                         onChange={(e) => {
-                          void patchStation(station.id, { legMode: e.target.value });
+                          updateDraft({ leg_mode: e.target.value as LegMode });
                           setRouteStatus("Verkehrsmittel geändert — Route neu berechnen.");
                         }}
                       >
@@ -1057,26 +1130,24 @@ export function StationEditor({
                       <span>Text zur Station</span>
                       <RichTextEditor
                         key={`body-${station.id}`}
-                        value={station.body_md}
+                        value={stationDraft.body_md}
                         ariaLabel={`Text zur Station ${station.name}`}
-                        onBlur={(html) => void patchStation(station.id, { bodyMd: html })}
+                        onChange={(html) => updateDraft({ body_md: html })}
                       />
                     </div>
 
                     <label className="station-checkbox">
                       <input
                         type="checkbox"
-                        checked={Boolean(station.daily_enabled)}
-                        onChange={(e) =>
-                          void patchStation(station.id, { dailyEnabled: e.target.checked })
-                        }
+                        checked={Boolean(stationDraft.daily_enabled)}
+                        onChange={(e) => updateDraft({ daily_enabled: e.target.checked })}
                       />
                       <span>Pro Tag einen eigenen Eintrag</span>
                     </label>
-                    {station.daily_enabled &&
+                    {stationDraft.daily_enabled &&
                       (() => {
-                        const arrival = isoDate(station.arrival_date);
-                        const departure = isoDate(station.departure_date);
+                        const arrival = isoDate(stationDraft.arrival_date);
+                        const departure = isoDate(stationDraft.departure_date);
                         const days =
                           arrival && departure
                             ? daysInRange(arrival, departure)
@@ -1091,7 +1162,15 @@ export function StationEditor({
                             </p>
                           );
                         }
-                        const saved = station.day_entries ?? [];
+                        if (days.length > MAX_EDITABLE_DAYS) {
+                          return (
+                            <p className="station-error" role="alert">
+                              Der Aufenthalt umfasst mehr als {MAX_EDITABLE_DAYS} Tage. Bitte die
+                              Datumsangaben prüfen, bevor Tagesfelder angelegt werden.
+                            </p>
+                          );
+                        }
+                        const saved = stationDraft.day_entries ?? [];
                         return (
                           <div className="station-days">
                             <p className="station-hint">
@@ -1105,7 +1184,7 @@ export function StationEditor({
                                   value={saved.find((d) => d.date === day)?.bodyMd ?? ""}
                                   ariaLabel={`Text für ${formatDay(day)}`}
                                   minHeight={120}
-                                  onBlur={(html) => {
+                                  onChange={(html) => {
                                     const next: DayEntry[] = days.map((d) => ({
                                       date: d,
                                       bodyMd:
@@ -1113,7 +1192,7 @@ export function StationEditor({
                                           ? html
                                           : (saved.find((s) => s.date === d)?.bodyMd ?? ""),
                                     }));
-                                    void patchStation(station.id, { dayEntries: next });
+                                    updateDraft({ day_entries: next });
                                   }}
                                 />
                               </div>
@@ -1124,21 +1203,17 @@ export function StationEditor({
                     <label className="station-checkbox">
                       <input
                         type="checkbox"
-                        checked={station.published}
-                        onChange={(e) =>
-                          void patchStation(station.id, { published: e.target.checked })
-                        }
+                        checked={stationDraft.published}
+                        onChange={(e) => updateDraft({ published: e.target.checked })}
                       />
                       <span>Station veröffentlichen</span>
                     </label>
                     <label className="station-checkbox">
                       <input
                         type="checkbox"
-                        checked={station.is_destination}
-                        disabled={!station.published}
-                        onChange={(e) =>
-                          void patchStation(station.id, { isDestination: e.target.checked })
-                        }
+                        checked={stationDraft.is_destination}
+                        disabled={!stationDraft.published}
+                        onChange={(e) => updateDraft({ is_destination: e.target.checked })}
                       />
                       <span>Als Zielort auf der Kartenübersicht zeigen</span>
                     </label>
@@ -1154,14 +1229,14 @@ export function StationEditor({
                               <button
                                 type="button"
                                 onClick={() =>
-                                  void patchStation(station.id, { markerImageId: img.id })
+                                  updateDraft({ marker_image_id: img.id })
                                 }
                               >
-                                {station.marker_image_id === img.id
+                                {stationDraft.marker_image_id === img.id
                                   ? "Kartenbild ✓"
                                   : "Als Kartenbild"}
                               </button>
-                              {station.daily_enabled && (
+                              {stationDraft.daily_enabled && (
                                 <select
                                   aria-label={`Tag für dieses Bild in ${station.name}`}
                                   value={isoDate(img.day_date ?? null)}
@@ -1170,7 +1245,7 @@ export function StationEditor({
                                   }
                                 >
                                   <option value="">Ganze Station</option>
-                                  {stationDays(station).map((day) => (
+                                  {stationDays(stationDraft).map((day) => (
                                     <option key={day} value={day}>
                                       {formatDay(day)}
                                     </option>
@@ -1263,21 +1338,22 @@ export function StationEditor({
                           ))}
                       </ul>
                     </div>
-                  </div>
+                  </div>}
                     <DialogFooter>
                       <button
                         type="button"
                         className="station-action-primary"
                         onClick={() => void saveStation()}
+                        disabled={busy || !hasUnsavedStationChanges}
                       >
                         Station speichern
                       </button>
                       <button
                         type="button"
                         className="station-action-secondary"
-                        onClick={() => setEditingId(null)}
+                        onClick={() => void closeStationEditor()}
                       >
-                        Fenster schließen
+                        Beenden
                       </button>
                     </DialogFooter>
 
