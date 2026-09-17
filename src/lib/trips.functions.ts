@@ -108,6 +108,41 @@ function toNumber(value: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+/**
+ * Tagesberichte robust lesen: jsonb kommt normalerweise als Array zurück, ältere
+ * Datensätze können den Wert aber als JSON-Text enthalten. Leere Texte werden
+ * ausgefiltert; ein gesetzter Tagestext wird immer gezeigt (auch wenn das
+ * Kennzeichen `daily_enabled` fehlt), damit im Bericht nichts verloren geht.
+ */
+function parseDayEntries(value: unknown): { date: string; bodyMd: string }[] {
+  let raw = value;
+  if (typeof raw === "string") {
+    try {
+      raw = JSON.parse(raw);
+    } catch {
+      return [];
+    }
+  }
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter(
+      (d): d is { date: string; bodyMd: string } =>
+        !!d &&
+        typeof d === "object" &&
+        typeof (d as { date?: unknown }).date === "string" &&
+        stripHtml(String((d as { bodyMd?: unknown }).bodyMd ?? "")).length > 0,
+    )
+    .map((d) => ({ date: String(d.date).slice(0, 10), bodyMd: String(d.bodyMd) }));
+}
+
+/** Entfernt Tags/Whitespace, um "leere" Rich-Text-Werte wie <p></p> zu erkennen. */
+function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
 function mapRow(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   r: any,
