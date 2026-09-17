@@ -239,7 +239,7 @@ export const Route = createFileRoute("/api/studio/stations")({
               AND day_date IS NOT NULL
               AND (
                 ${!updated.daily_enabled}
-                OR ${toIsoDate(updated.arrival_date)} IS NULL
+                OR ${toIsoDate(updated.arrival_date)}::date IS NULL
                 OR day_date < ${toIsoDate(updated.arrival_date)}::date
                 OR day_date > COALESCE(${toIsoDate(updated.departure_date)}::date, ${toIsoDate(updated.arrival_date)}::date)
               )
@@ -250,7 +250,7 @@ export const Route = createFileRoute("/api/studio/stations")({
               AND day_date IS NOT NULL
               AND (
                 ${!updated.daily_enabled}
-                OR ${toIsoDate(updated.arrival_date)} IS NULL
+                OR ${toIsoDate(updated.arrival_date)}::date IS NULL
                 OR day_date < ${toIsoDate(updated.arrival_date)}::date
                 OR day_date > COALESCE(${toIsoDate(updated.departure_date)}::date, ${toIsoDate(updated.arrival_date)}::date)
               )
