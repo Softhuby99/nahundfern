@@ -142,6 +142,8 @@ function stripHtml(html: string): string {
     .replace(/&nbsp;/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
 
 function mapRow(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
