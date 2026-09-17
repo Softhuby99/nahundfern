@@ -378,17 +378,20 @@ export function StationEditor({
 
   function comparableStation(station: StationRow | null) {
     if (!station) return "";
+    const normalized = draftFrom(station);
     return JSON.stringify({
-      name: station.name,
-      arrival: isoDate(station.arrival_date),
-      departure: isoDate(station.departure_date),
-      body: station.body_md,
-      legMode: station.leg_mode,
-      published: station.published,
-      destination: station.is_destination,
-      markerImageId: station.marker_image_id,
-      dailyEnabled: Boolean(station.daily_enabled),
-      dayEntries: station.day_entries ?? [],
+      name: normalized.name,
+      latitude: Number(normalized.latitude),
+      longitude: Number(normalized.longitude),
+      arrival: isoDate(normalized.arrival_date),
+      departure: isoDate(normalized.departure_date),
+      body: normalized.body_md,
+      legMode: normalized.leg_mode,
+      published: normalized.published,
+      destination: normalized.is_destination,
+      markerImageId: normalized.marker_image_id,
+      dailyEnabled: Boolean(normalized.daily_enabled),
+      dayEntries: normalized.day_entries,
     });
   }
 
@@ -413,17 +416,23 @@ export function StationEditor({
 
   async function saveStation() {
     if (!stationDraft) return;
+    const stationIndex = stations.findIndex((station) => station.id === stationDraft.id);
+    const isFirst = stationIndex === 0;
+    const isLast = stationIndex === stations.length - 1 && stations.length > 1;
     setBusy(true);
     setError(null);
     try {
       const res = await fetch("/api/studio/stations", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({
           id: stationDraft.id,
           name: stationDraft.name.trim(),
-          arrivalDate: isoDate(stationDraft.arrival_date) || null,
-          departureDate: isoDate(stationDraft.departure_date) || null,
+          latitude: Number(stationDraft.latitude),
+          longitude: Number(stationDraft.longitude),
+          arrivalDate: isFirst ? null : isoDate(stationDraft.arrival_date) || null,
+          departureDate: isLast ? null : isoDate(stationDraft.departure_date) || null,
           bodyMd: stationDraft.body_md,
           legMode: stationDraft.leg_mode,
           published: stationDraft.published,
@@ -435,10 +444,11 @@ export function StationEditor({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error ?? "Station konnte nicht gespeichert werden");
+      const savedStation = draftFrom(data.station as StationRow);
       setStations((current) =>
-        current.map((station) => (station.id === stationDraft.id ? data.station : station)),
+        current.map((station) => (station.id === stationDraft.id ? savedStation : station)),
       );
-      setStationDraft(draftFrom(data.station as StationRow));
+      setStationDraft(savedStation);
 
       await onSaveTrip?.();
       setStatus("Station gespeichert.");
