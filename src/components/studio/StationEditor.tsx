@@ -918,6 +918,23 @@ export function StationEditor({
                         {index + 1}. {station.name}
                       </DialogTitle>
                     </DialogHeader>
+                    <div className="station-dialog-actions">
+                      <button
+                        type="button"
+                        className="station-action-primary"
+                        onClick={() => void saveStation()}
+                      >
+                        Station speichern
+                      </button>
+                      <button
+                        type="button"
+                        className="station-action-secondary"
+                        onClick={() => setEditingId(null)}
+                      >
+                        Fenster schließen
+                      </button>
+                    </div>
+
                   <div className="station-item-form">
                     <label className="field">
                       <span>Name</span>
