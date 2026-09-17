@@ -455,7 +455,17 @@ export function StationEditor({
           dayEntries: stationDraft.day_entries ?? [],
         }),
       });
-      const data = await res.json();
+      const responseText = await res.text();
+      let data: { error?: string; station?: StationRow } | null = null;
+      try {
+        data = responseText ? (JSON.parse(responseText) as typeof data) : null;
+      } catch {
+        throw new Error(
+          res.ok
+            ? "Der Server hat keine gültige Speicherbestätigung gesendet"
+            : `Station konnte nicht gespeichert werden (Serverfehler ${res.status})`,
+        );
+      }
       if (!res.ok) throw new Error(data?.error ?? "Station konnte nicht gespeichert werden");
       if (!data?.station?.id) throw new Error("Der Server hat keinen gespeicherten Stand bestätigt");
       const savedStation = draftFrom(data.station as StationRow);
