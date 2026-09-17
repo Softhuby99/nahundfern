@@ -1047,9 +1047,9 @@ export function StationEditor({
                             onClick={() => {
                               const check = nameChecks[station.id];
                               if (check?.latitude == null || check?.longitude == null) return;
-                              void patchStation(station.id, {
-                                latitude: check.latitude,
-                                longitude: check.longitude,
+                              updateDraft({
+                                latitude: String(check.latitude),
+                                longitude: String(check.longitude),
                               });
                               setRouteStatus("Koordinate geändert — Route neu berechnen.");
                             }}
@@ -1070,7 +1070,7 @@ export function StationEditor({
                             type="button"
                             onClick={() => {
                               const suggested = nameChecks[station.id]?.suggested;
-                              if (suggested) void patchStation(station.id, { name: suggested });
+                              if (suggested) updateDraft({ name: suggested });
                             }}
                           >
                             Namen übernehmen
