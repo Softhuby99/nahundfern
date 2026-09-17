@@ -1265,13 +1265,22 @@ export function StationEditor({
                     </div>
                   </div>
                     <DialogFooter>
-                      <button type="button" onClick={() => void saveStation()}>
+                      <button
+                        type="button"
+                        className="station-action-primary"
+                        onClick={() => void saveStation()}
+                      >
                         Station speichern
                       </button>
-                      <button type="button" onClick={() => setEditingId(null)}>
+                      <button
+                        type="button"
+                        className="station-action-secondary"
+                        onClick={() => setEditingId(null)}
+                      >
                         Fenster schließen
                       </button>
                     </DialogFooter>
+
                   </DialogContent>
                 </Dialog>
               </li>
