@@ -331,16 +331,46 @@ export function StationEditor({
    * verlassen. Die Felder schreiben beim Verlassen; darum wird das aktive Feld
    * zuerst abgeschlossen.
    */
+  /**
+   * Erzeugt die lokale Arbeitskopie einer Station. Tageseinträge kommen je nach
+   * Datenstand als Liste, als Text oder gar nicht — hier immer als Liste.
+   */
+  function draftFrom(station: StationRow): StationRow {
+    const raw: unknown = station.day_entries;
+    let entries: unknown = raw;
+    if (typeof raw === "string") {
+      try {
+        entries = JSON.parse(raw);
+      } catch {
+        entries = [];
+      }
+    }
+    return {
+      ...station,
+      day_entries: Array.isArray(entries)
+        ? (entries as DayEntry[]).map((entry) => ({ ...entry }))
+        : [],
+    };
+  }
+
   function openStation(station: StationRow) {
     setActiveId(station.id);
+    setStationDraft(draftFrom(station));
     setEditingId(station.id);
-    setStationDraft({
-      ...station,
-      day_entries: (station.day_entries ?? []).map((entry) => ({ ...entry })),
-    });
     setPlaceQuery("");
     setPlaceHits([]);
   }
+
+  // Sicherheitsnetz: Ist das Fenster offen, aber keine Arbeitskopie vorhanden,
+  // wird sie aus dem gespeicherten Stand nachgezogen — sonst bliebe das Fenster leer.
+  useEffect(() => {
+    if (!editingId) return;
+    if (stationDraft?.id === editingId) return;
+    const saved = stations.find((s) => s.id === editingId);
+    if (saved) setStationDraft(draftFrom(saved));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingId, stations, stationDraft]);
+
 
   function updateDraft(patch: Partial<StationRow>) {
     setStationDraft((current) => (current ? { ...current, ...patch } : current));
