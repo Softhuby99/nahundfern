@@ -456,9 +456,10 @@ export function StationEditor({
         }),
       });
       const responseText = await res.text();
-      let data: { error?: string; station?: StationRow } | null = null;
+      type SaveStationResponse = { error?: string; station?: StationRow };
+      let data: SaveStationResponse | null;
       try {
-        data = responseText ? (JSON.parse(responseText) as typeof data) : null;
+        data = responseText ? (JSON.parse(responseText) as SaveStationResponse) : null;
       } catch {
         throw new Error(
           res.ok
