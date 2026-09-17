@@ -409,6 +409,7 @@ export function StationEditor({
     stationDraft !== null && comparableStation(stationDraft) !== comparableStation(savedStationDraft);
 
   async function closeStationEditor() {
+    if (busy) return;
     if (hasUnsavedStationChanges) {
       const discard = await confirm({
         title: "Änderungen verwerfen?",
@@ -1065,6 +1066,7 @@ export function StationEditor({
                         type="button"
                         className="station-action-secondary"
                         onClick={() => void closeStationEditor()}
+                        disabled={busy}
                       >
                         Beenden
                       </button>
@@ -1413,6 +1415,7 @@ export function StationEditor({
                         type="button"
                         className="station-action-secondary"
                         onClick={() => void closeStationEditor()}
+                        disabled={busy}
                       >
                         Beenden
                       </button>
