@@ -851,9 +851,16 @@ export function StationEditor({
                     {index + 1}. {station.name}
                   </button>
                   <span className="station-badges">
-                    {isoDate(station.arrival_date) || isoDate(station.departure_date)
-                      ? `${isoDate(station.arrival_date) || "…"} – ${isoDate(station.departure_date) || "…"} · `
-                      : ""}
+                    {(() => {
+                      const arrival = index === 0 ? "" : isoDate(station.arrival_date);
+                      const departure =
+                        index === stations.length - 1 && stations.length > 1
+                          ? ""
+                          : isoDate(station.departure_date);
+                      if (!arrival && !departure) return "";
+                      return `${arrival || "…"} – ${departure || "…"} · `;
+                    })()}
+
                     {images.filter((i) => i.station_id === station.id).length} Bilder
                     {" · "}
                     {station.published ? "öffentlich" : "Entwurf"}
