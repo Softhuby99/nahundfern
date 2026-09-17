@@ -296,17 +296,19 @@ export function StationEditor({
   // der Liste kein längst überholtes Datum stehen bleibt.
   useEffect(() => {
     if (stations.length === 0) return;
-    const first = stations[0]!;
-    if (first.arrival_date) {
+    const first = stations[0];
+    if (first?.arrival_date && first.id !== editingId) {
       void patchStation(first.id, { arrivalDate: null });
       return;
     }
     if (stations.length > 1) {
-      const last = stations[stations.length - 1]!;
-      if (last.departure_date) void patchStation(last.id, { departureDate: null });
+      const last = stations[stations.length - 1];
+      if (last?.departure_date && last.id !== editingId) {
+        void patchStation(last.id, { departureDate: null });
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stations]);
+  }, [stations, editingId]);
 
 
 
