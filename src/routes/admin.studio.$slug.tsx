@@ -578,6 +578,8 @@ function EditorPage() {
                 onChange={(e) => setField("excerpt", e.target.value)}
                 rows={3}
                 aria-required
+                spellCheck
+                lang="de"
                 className={`w-full bg-card border ${!trip.excerpt ? "border-destructive/50" : "border-border"} focus:border-primary p-3 rounded-sm`}
               />
             </div>
