@@ -493,9 +493,19 @@ export function StationEditor({
       body: JSON.stringify({ id: imageId, dayDate }),
     });
     if (!res.ok) {
-      setError("Bild konnte dem Tag nicht zugeordnet werden");
+      // Klartext vom Server zeigen, damit die Ursache erkennbar ist.
+      let detail = "";
+      try {
+        const body = (await res.json()) as { error?: string };
+        detail = body?.error ? ` (${body.error})` : "";
+      } catch {
+        detail = "";
+      }
+      setStatus(null);
+      setError(`Bild konnte dem Tag nicht zugeordnet werden${detail}`);
       return;
     }
+    setError(null);
     setImages((prev) =>
       prev.map((img) => (img.id === imageId ? { ...img, day_date: dayDate } : img)),
     );
