@@ -478,8 +478,10 @@ export function StationEditor({
 
       await onSaveTrip?.();
       setStatus("Station gespeichert.");
+      return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Station konnte nicht gespeichert werden");
+      return false;
     } finally {
       setBusy(false);
     }
