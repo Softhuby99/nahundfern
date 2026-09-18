@@ -489,9 +489,16 @@ export function StationEditor({
 
   /** Bild oder Video einem einzelnen Tag der Station zuordnen. */
   async function assignImageDay(imageId: string, dayDate: string | null) {
+    // Die Tagesoption muss serverseitig gespeichert sein, sonst lehnt der Server
+    // die Tageszuordnung ab. Darum offene Stationsänderungen zuerst speichern.
+    if (dayDate && hasUnsavedStationChanges) {
+      const saved = await saveStation();
+      if (!saved) return;
+    }
     const res = await fetch("/api/studio/images", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
       body: JSON.stringify({ id: imageId, dayDate }),
     });
     if (!res.ok) {
