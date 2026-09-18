@@ -144,6 +144,14 @@ export function StationEditor({
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Meldungen zusätzlich als Hinweisfenster zeigen, damit sie auch beim
+  // Scrollen im Stationsfenster sichtbar sind.
+  useEffect(() => {
+    if (error) toast.error(error, { duration: 8000 });
+  }, [error]);
+  useEffect(() => {
+    if (status) toast.success(status);
+  }, [status]);
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<GeocodeHit[]>([]);
   const [searchState, setSearchState] = useState<"idle" | "loading" | "failed">("idle");
