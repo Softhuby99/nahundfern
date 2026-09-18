@@ -318,6 +318,13 @@
   gap: 0.4rem;
   margin-top: 0.5rem;
 }
+/* Stationsfenster in der Größe frei verstellbar (Griff unten rechts). */
+.station-dialog-resizable {
+  resize: both;
+  overflow: auto;
+  min-width: 20rem;
+  min-height: 16rem;
+}
 .station-dialog-actions {
   display: flex;
   gap: 0.5rem;

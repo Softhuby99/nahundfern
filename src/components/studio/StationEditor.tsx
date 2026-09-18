@@ -2,6 +2,7 @@
 // Koordinaten, Text, Reihenfolge, Zielort und Medienzuordnung.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Pencil } from "lucide-react";
+import { toast } from "sonner";
 import { RouteMapLazy, type MapStation } from "@/components/map/RouteMapLazy";
 import { distanceKm, sortByArrival, type LegMode } from "@/components/map/route-geometry";
 import { RichTextEditor } from "@/components/studio/RichTextEditor";
@@ -143,6 +144,14 @@ export function StationEditor({
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Meldungen zusätzlich als Hinweisfenster zeigen, damit sie auch beim
+  // Scrollen im Stationsfenster sichtbar sind.
+  useEffect(() => {
+    if (error) toast.error(error, { duration: 8000 });
+  }, [error]);
+  useEffect(() => {
+    if (status) toast.success(status);
+  }, [status]);
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<GeocodeHit[]>([]);
   const [searchState, setSearchState] = useState<"idle" | "loading" | "failed">("idle");
@@ -1079,7 +1088,10 @@ export function StationEditor({
                     if (!open) void closeStationEditor();
                   }}
                 >
-                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <DialogContent
+                    className="station-dialog-resizable max-h-[95vh] overflow-auto"
+                    style={{ width: "min(96vw, 64rem)", maxWidth: "96vw", height: "80vh" }}
+                  >
                     <DialogHeader>
                       <DialogTitle>
                         {index + 1}. {station.name}
