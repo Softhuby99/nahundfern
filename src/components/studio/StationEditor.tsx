@@ -427,8 +427,8 @@ export function StationEditor({
     setSavedStationDraft(null);
   }
 
-  async function saveStation() {
-    if (!stationDraft) return;
+  async function saveStation(): Promise<boolean> {
+    if (!stationDraft) return false;
     const stationIndex = stations.findIndex((station) => station.id === stationDraft.id);
     const isFirst = stationIndex === 0;
     const isLast = stationIndex === stations.length - 1 && stations.length > 1;
@@ -478,8 +478,10 @@ export function StationEditor({
 
       await onSaveTrip?.();
       setStatus("Station gespeichert.");
+      return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Station konnte nicht gespeichert werden");
+      return false;
     } finally {
       setBusy(false);
     }
@@ -487,9 +489,16 @@ export function StationEditor({
 
   /** Bild oder Video einem einzelnen Tag der Station zuordnen. */
   async function assignImageDay(imageId: string, dayDate: string | null) {
+    // Die Tagesoption muss serverseitig gespeichert sein, sonst lehnt der Server
+    // die Tageszuordnung ab. Darum offene Stationsänderungen zuerst speichern.
+    if (dayDate && hasUnsavedStationChanges) {
+      const saved = await saveStation();
+      if (!saved) return;
+    }
     const res = await fetch("/api/studio/images", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
       body: JSON.stringify({ id: imageId, dayDate }),
     });
     if (!res.ok) {
