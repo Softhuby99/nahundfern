@@ -72,6 +72,29 @@ function formatDay(iso: string): string {
   });
 }
 
+/** Wochentagname (z. B. „Montag") für ein ISO-Datum. */
+function weekdayName(iso: string): string {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString("de-DE", {
+    weekday: "long",
+    timeZone: "UTC",
+  });
+}
+
+/**
+ * Standardtext für ein leeres Tagesfeld: der Wochentag als erstes, fett und
+ * blau. Er erscheint automatisch, sobald noch kein Text eingegeben wurde, und
+ * bleibt beim Tippen als Einleitung erhalten.
+ */
+function weekdayDefaultHtml(iso: string): string {
+  const name = weekdayName(iso);
+  return `<p><strong style="color:#1d4ed8">${name}</strong></p>`;
+}
+
+/** Leerer HTML-Inhalt (nur Leerzeichen, Tags oder Absatzumbrüche). */
+function isEmptyHtml(html: string): boolean {
+  return (html ?? "").replace(/<[^>]*>/g, "").trim().length === 0;
+}
+
 type StudioImage = {
   id: string;
   webp_400: string;
