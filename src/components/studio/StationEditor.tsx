@@ -427,8 +427,8 @@ export function StationEditor({
     setSavedStationDraft(null);
   }
 
-  async function saveStation() {
-    if (!stationDraft) return;
+  async function saveStation(): Promise<boolean> {
+    if (!stationDraft) return false;
     const stationIndex = stations.findIndex((station) => station.id === stationDraft.id);
     const isFirst = stationIndex === 0;
     const isLast = stationIndex === stations.length - 1 && stations.length > 1;
