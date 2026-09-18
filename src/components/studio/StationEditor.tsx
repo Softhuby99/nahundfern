@@ -1088,7 +1088,10 @@ export function StationEditor({
                     if (!open) void closeStationEditor();
                   }}
                 >
-                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <DialogContent
+                    className="station-dialog-resizable max-h-[95vh] overflow-auto"
+                    style={{ width: "min(96vw, 64rem)", maxWidth: "96vw", height: "80vh" }}
+                  >
                     <DialogHeader>
                       <DialogTitle>
                         {index + 1}. {station.name}
