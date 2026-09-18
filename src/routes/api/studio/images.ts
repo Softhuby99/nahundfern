@@ -184,9 +184,10 @@ export const Route = createFileRoute("/api/studio/images")({
             }
             const iso = (v: unknown) =>
               v instanceof Date ? v.toISOString().slice(0, 10) : v ? String(v).slice(0, 10) : null;
+            // Offene Enden (erster Ort ohne Ankunft, letzter ohne Abreise) begrenzen nicht.
             const from = iso(row.arrival_date);
-            const to = iso(row.departure_date) ?? from;
-            if (from && to && (dayDate < from || dayDate > to)) {
+            const to = iso(row.departure_date);
+            if ((from && dayDate < from) || (to && dayDate > to)) {
               return Response.json(
                 { error: "Datum liegt außerhalb des Aufenthalts" },
                 { status: 400 },

@@ -233,15 +233,15 @@ export const Route = createFileRoute("/api/studio/stations")({
 
           // Medien bleiben erhalten, verlieren aber eine Tageszuordnung, wenn
           // der Tagesmodus aus ist oder das Datum nicht mehr zum Aufenthalt passt.
+          // Offene Enden begrenzen nicht — nur vorhandene Datumsgrenzen zählen.
           await tx`
             UPDATE images SET day_date = NULL
             WHERE station_id = ${d.id}
               AND day_date IS NOT NULL
               AND (
                 ${!updated.daily_enabled}
-                OR ${toIsoDate(updated.arrival_date)}::date IS NULL
                 OR day_date < ${toIsoDate(updated.arrival_date)}::date
-                OR day_date > COALESCE(${toIsoDate(updated.departure_date)}::date, ${toIsoDate(updated.arrival_date)}::date)
+                OR day_date > ${toIsoDate(updated.departure_date)}::date
               )
           `;
           await tx`
@@ -250,9 +250,8 @@ export const Route = createFileRoute("/api/studio/stations")({
               AND day_date IS NOT NULL
               AND (
                 ${!updated.daily_enabled}
-                OR ${toIsoDate(updated.arrival_date)}::date IS NULL
                 OR day_date < ${toIsoDate(updated.arrival_date)}::date
-                OR day_date > COALESCE(${toIsoDate(updated.departure_date)}::date, ${toIsoDate(updated.arrival_date)}::date)
+                OR day_date > ${toIsoDate(updated.departure_date)}::date
               )
           `;
           return [updated];
