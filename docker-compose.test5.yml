@@ -1,0 +1,15 @@
+# test5 — Live mode with externally managed TLS certificates.
+# The certificates are maintained outside this stack (OPNsense automation
+# copies them to TLS_CERT_DIR, default /opt/tls-certs/nahundfern) and are
+# mounted read-only into nginx. Certbot stays disabled.
+
+services:
+  nginx:
+    volumes:
+      - ./nginx/conf.d.external:/etc/nginx/conf.d:ro
+      - ./nginx/snippets:/etc/nginx/snippets:ro
+      - ${TLS_CERT_DIR:-/opt/tls-certs/nahundfern}:/etc/nginx/tls:ro
+      - uploads:/var/www/uploads:ro
+
+  certbot:
+    profiles: ["disabled"]
