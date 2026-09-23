@@ -243,6 +243,7 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
     return data;
   })
   .handler(async ({ data: slug }): Promise<PublicTrip | null> => {
+    if (!isDbConfigured()) return null;
     const [row] = await sql`
       SELECT t.*,
              t.id AS id,
@@ -340,6 +341,7 @@ export type TripNavigationEntry = {
 
 export const listTripNavigationEntries = createServerFn({ method: "GET" }).handler(
   async (): Promise<TripNavigationEntry[]> => {
+    if (!isDbConfigured()) return [];
     const rows = await sql<{ slug: string; title: string }[]>`
       SELECT slug, title
       FROM trips
@@ -372,6 +374,7 @@ export type PublicGalleryImage = {
 
 export const listPublishedGalleryImages = createServerFn({ method: "GET" }).handler(
   async (): Promise<PublicGalleryImage[]> => {
+    if (!isDbConfigured()) return [];
     const rows = await sql`
       SELECT i.id,
              i.webp_400, i.webp_1200, i.webp_2000,
@@ -425,6 +428,7 @@ export type MapTrip = {
 
 export const listMapTrips = createServerFn({ method: "GET" }).handler(
   async (): Promise<MapTrip[]> => {
+    if (!isDbConfigured()) return [];
     const rows = await sql`
       SELECT t.slug, t.title, t.month_label, t.region,
              t.latitude AS trip_lat, t.longitude AS trip_lon,
