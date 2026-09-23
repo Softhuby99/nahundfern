@@ -4,6 +4,11 @@ type Sql = ReturnType<typeof postgres>;
 
 let _sql: Sql | null = null;
 
+/** True wenn eine Datenbank konfiguriert ist (in der Vorschau oft nicht). */
+export function isDbConfigured(): boolean {
+  return Boolean(process.env.DATABASE_URL);
+}
+
 function getSql(): Sql {
   if (_sql) return _sql;
   const DATABASE_URL = process.env.DATABASE_URL;

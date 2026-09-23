@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { sql } from "@/lib/db.server";
+import { sql, isDbConfigured } from "@/lib/db.server";
 
 export type PublicTrip = {
   id: string;
@@ -214,6 +214,9 @@ function mapVideoRow(r: any): TripVideo {
 }
 
 export const listPublishedTrips = createServerFn({ method: "GET" }).handler(async () => {
+  // Ohne konfigurierte Datenbank (z. B. Vorschau) eine leere Liste liefern,
+  // damit die Startseite rendert statt mit 500 abzubrechen.
+  if (!isDbConfigured()) return [] as PublicTrip[];
   // Order chronologically by actual travel date (newest first). Fall back to
   // created_at when trip_start_date is not yet set on legacy rows.
   const rows = await sql`
@@ -240,6 +243,7 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
     return data;
   })
   .handler(async ({ data: slug }): Promise<PublicTrip | null> => {
+    if (!isDbConfigured()) return null;
     const [row] = await sql`
       SELECT t.*,
              t.id AS id,
@@ -337,6 +341,7 @@ export type TripNavigationEntry = {
 
 export const listTripNavigationEntries = createServerFn({ method: "GET" }).handler(
   async (): Promise<TripNavigationEntry[]> => {
+    if (!isDbConfigured()) return [];
     const rows = await sql<{ slug: string; title: string }[]>`
       SELECT slug, title
       FROM trips
@@ -369,6 +374,7 @@ export type PublicGalleryImage = {
 
 export const listPublishedGalleryImages = createServerFn({ method: "GET" }).handler(
   async (): Promise<PublicGalleryImage[]> => {
+    if (!isDbConfigured()) return [];
     const rows = await sql`
       SELECT i.id,
              i.webp_400, i.webp_1200, i.webp_2000,
@@ -422,6 +428,7 @@ export type MapTrip = {
 
 export const listMapTrips = createServerFn({ method: "GET" }).handler(
   async (): Promise<MapTrip[]> => {
+    if (!isDbConfigured()) return [];
     const rows = await sql`
       SELECT t.slug, t.title, t.month_label, t.region,
              t.latitude AS trip_lat, t.longitude AS trip_lon,
