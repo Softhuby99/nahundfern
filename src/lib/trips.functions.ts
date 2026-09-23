@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { sql } from "@/lib/db.server";
+import { sql, isDbConfigured } from "@/lib/db.server";
 
 export type PublicTrip = {
   id: string;
@@ -214,6 +214,9 @@ function mapVideoRow(r: any): TripVideo {
 }
 
 export const listPublishedTrips = createServerFn({ method: "GET" }).handler(async () => {
+  // Ohne konfigurierte Datenbank (z. B. Vorschau) eine leere Liste liefern,
+  // damit die Startseite rendert statt mit 500 abzubrechen.
+  if (!isDbConfigured()) return [] as PublicTrip[];
   // Order chronologically by actual travel date (newest first). Fall back to
   // created_at when trip_start_date is not yet set on legacy rows.
   const rows = await sql`
