@@ -12,16 +12,16 @@ export const Route = createFileRoute("/")({
   },
   head: () => ({
     meta: [
-      { title: "Wild Trip Explorer — Meine Reisen. Meine Geschichten." },
+      { title: "Wild Trip Explorer — Unsere Reisen. Unsere Geschichten." },
       {
         name: "description",
         content:
-          "Wild Trip Explorer: Berichte, Tagebuch, Fotogalerie und Timeline aus meinen schönsten Momenten unterwegs.",
+          "Wild Trip Explorer: Berichte, Tagebuch, Fotogalerie und Timeline aus unseren schönsten Momenten unterwegs.",
       },
-      { property: "og:title", content: "Wild Trip Explorer — Mein Weg. Meine Welt." },
+      { property: "og:title", content: "Wild Trip Explorer — Unser Weg. Unsere Welt." },
       {
         property: "og:description",
-        content: "Meine Reisen. Meine Geschichten. Meine schönsten Momente unterwegs.",
+        content: "Unsere Reisen. Unsere Geschichten. Unsere schönsten Momente unterwegs.",
       },
     ],
   }),
@@ -42,7 +42,7 @@ function HomePage() {
         <div className="grid lg:grid-cols-2 gap-10 items-center">
           <div style={{ animation: "revealNode 0.8s var(--ease-cinematic) both" }}>
             <p className="font-script text-2xl md:text-3xl text-foreground/70 mb-3">
-              Willkommen in meinem
+              Willkommen zu …
             </p>
             <h1 className="font-display text-6xl md:text-8xl font-semibold tracking-tight leading-none flex items-start gap-3">
               Wild Trip Explorer
@@ -52,12 +52,12 @@ function HomePage() {
               />
             </h1>
             <p className="font-display text-2xl md:text-3xl text-primary italic mt-6 leading-snug">
-              Meine Reisen. Meine Geschichten.
+              Unsere Reisen. Unsere Geschichten.
               <br />
-              Meine schönsten Momente unterwegs.
+              Unsere schönsten Momente unterwegs.
             </p>
             <p className="mt-6 text-foreground/70 leading-relaxed max-w-xl">
-              Ich nehme dich mit an Orte, die mich berührt haben. Mit ehrlichen Geschichten,
+              Wir nehmen dich mit an Orte, die uns berührt haben. Mit ehrlichen Geschichten,
               persönlichen Eindrücken, Lieblingsplätzen und ganz vielen Fotos.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -65,7 +65,7 @@ function HomePage() {
                 to="/stories"
                 className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-6 py-3 font-medium shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all"
               >
-                Zu meinen Reiseberichten <ArrowRight className="size-4" />
+                Zu unseren Reiseberichten <ArrowRight className="size-4" />
               </Link>
               <Link
                 to="/timeline"
@@ -101,12 +101,12 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Meine letzten Reisen */}
+      {/* Unsere letzten Reisen */}
       <section className="max-w-7xl mx-auto px-6 md:px-8 pb-16">
         <div className="flex items-end justify-between mb-6 flex-wrap gap-3">
           <div>
             <h2 className="font-display text-3xl md:text-4xl font-semibold">
-              Meine letzten Reisen
+              Unsere letzten Reisen
             </h2>
             <p className="font-script text-xl text-primary mt-1">Die Erinnerungen, die bleiben.</p>
           </div>
@@ -159,9 +159,9 @@ function HomePage() {
       {/* Bento: Wo — Lieblingsorte — Über mich */}
       <section className="max-w-7xl mx-auto px-6 md:px-8 pb-24 grid md:grid-cols-3 gap-6">
         <div className="paper-card p-6">
-          <h3 className="font-display text-xl font-semibold">Wo ich schon war</h3>
+          <h3 className="font-display text-xl font-semibold">Wo wir schon waren</h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Meine Reisekarte voller Erinnerungen.
+            Unsere Reisekarte voller Erinnerungen.
           </p>
           <div className="my-5 aspect-[16/10] rounded-lg bg-[radial-gradient(circle_at_30%_40%,hsl(30_30%_82%),hsl(38_46%_92%))] flex items-center justify-center">
             <MapPin className="size-8 text-primary" strokeWidth={1.5} />
@@ -177,7 +177,7 @@ function HomePage() {
         <div className="paper-card p-6">
           <h3 className="font-display text-xl font-semibold">Lieblingsorte</h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Orte, zu denen ich immer wieder zurückkehren möchte.
+            Orte, zu denen wir immer wieder zurückkehren möchten.
           </p>
           <ul className="mt-4 space-y-2 text-sm">
             {trips.slice(0, 4).map((t) => (
@@ -192,17 +192,17 @@ function HomePage() {
         </div>
 
         <div className="paper-card p-6">
-          <h3 className="font-display text-xl font-semibold">Über mich</h3>
-          <p className="font-script text-2xl text-primary mt-1">Hallo, ich bin Laura!</p>
+          <h3 className="font-display text-xl font-semibold">Über uns</h3>
+          <p className="font-script text-2xl text-primary mt-1">Hallo, wir sind Wild Trip Explorer!</p>
           <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
-            Reiseverliebt, neugierig und immer auf der Suche nach echten Momenten. Hier teile ich
-            meine Reisen, Begegnungen und Eindrücke — so, wie ich sie erlebe.
+            Reiseverliebt, neugierig und immer auf der Suche nach echten Momenten. Hier teilen wir
+            unsere Reisen, Begegnungen und Eindrücke — so, wie wir sie erleben.
           </p>
           <Link
             to="/about"
             className="mt-4 inline-block text-primary text-sm font-medium hover:underline underline-offset-4"
           >
-            Mehr über mich →
+            Mehr über uns →
           </Link>
         </div>
       </section>
