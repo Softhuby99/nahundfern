@@ -40,7 +40,7 @@ export function SiteHeader() {
               </span>
               <Heart className="size-4 text-primary fill-primary/40" strokeWidth={1.5} />
             </div>
-            <p className="font-script text-lg text-primary/80 mt-0.5">Mein Weg. Meine Welt.</p>
+            <p className="font-script text-lg text-primary/80 mt-0.5">Unser Weg. Unsere Welt.</p>
           </Link>
 
           <nav className="hidden lg:flex items-center gap-7">

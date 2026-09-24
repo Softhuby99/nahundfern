@@ -13,7 +13,7 @@ export function SiteFooter() {
             <Instagram className="size-5" strokeWidth={1.5} />
           </span>
           <div className="text-sm leading-tight">
-            <p className="opacity-80">Folge mir auf Instagram</p>
+            <p className="opacity-80">Folge uns auf Instagram</p>
             <p className="font-medium">@reisejournal.laura</p>
           </div>
         </div>
@@ -28,7 +28,7 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-white/10 py-4 text-center text-xs opacity-60">
-        © {new Date().getFullYear()} Wild Trip Explorer — Mein Weg. Meine Welt. · v{__APP_VERSION__}
+        © {new Date().getFullYear()} Wild Trip Explorer — Unser Weg. Unsere Welt. · v{__APP_VERSION__}
       </div>
     </footer>
   );

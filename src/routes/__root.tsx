@@ -78,14 +78,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Wild Trip Explorer — Mein Weg. Meine Welt." },
+      { title: "Wild Trip Explorer — Unser Weg. Unsere Welt." },
       {
         name: "description",
         content:
           "Wild Trip Explorer mit Reiseberichten, Reisetagebuch, Fotogalerie und einer horizontalen Timeline.",
       },
       { name: "author", content: "Wild Trip Explorer" },
-      { property: "og:title", content: "Wild Trip Explorer — Mein Weg. Meine Welt." },
+      { property: "og:title", content: "Wild Trip Explorer — Unser Weg. Unsere Welt." },
       {
         property: "og:description",
         content:
