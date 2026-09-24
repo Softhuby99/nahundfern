@@ -167,7 +167,7 @@ function HomePage() {
             <MapPin className="size-8 text-primary" strokeWidth={1.5} />
           </div>
           <Link
-            to="/timeline"
+            to="/map"
             className="text-primary text-sm font-medium hover:underline underline-offset-4"
           >
             Zur Karte →
