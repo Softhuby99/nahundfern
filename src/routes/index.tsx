@@ -12,13 +12,13 @@ export const Route = createFileRoute("/")({
   },
   head: () => ({
     meta: [
-      { title: "Reisejournal — Meine Reisen. Meine Geschichten." },
+      { title: "Wild Trip Explorer — Meine Reisen. Meine Geschichten." },
       {
         name: "description",
         content:
-          "Persönliches Reisejournal: Berichte, Tagebuch, Fotogalerie und Timeline aus meinen schönsten Momenten unterwegs.",
+          "Wild Trip Explorer: Berichte, Tagebuch, Fotogalerie und Timeline aus meinen schönsten Momenten unterwegs.",
       },
-      { property: "og:title", content: "Reisejournal — Mein Weg. Meine Welt." },
+      { property: "og:title", content: "Wild Trip Explorer — Mein Weg. Meine Welt." },
       {
         property: "og:description",
         content: "Meine Reisen. Meine Geschichten. Meine schönsten Momente unterwegs.",
@@ -45,7 +45,7 @@ function HomePage() {
               Willkommen in meinem
             </p>
             <h1 className="font-display text-6xl md:text-8xl font-semibold tracking-tight leading-none flex items-start gap-3">
-              Reisejournal
+              Wild Trip Explorer
               <Heart
                 className="size-8 md:size-10 mt-4 fill-primary/40 text-primary"
                 strokeWidth={1.5}

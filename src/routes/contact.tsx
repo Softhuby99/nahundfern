@@ -7,13 +7,13 @@ import { Heart, Mail, Instagram, Send, Lock, Briefcase } from "lucide-react";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Kontakt — Reisejournal" },
+      { title: "Kontakt — Wild Trip Explorer" },
       {
         name: "description",
         content:
           "Ob Fragen, Feedback oder Reiseinspiration — ich freue mich riesig, von dir zu lesen.",
       },
-      { property: "og:title", content: "Kontakt — Reisejournal" },
+      { property: "og:title", content: "Kontakt — Wild Trip Explorer" },
       { property: "og:description", content: "Lass uns in Kontakt bleiben." },
     ],
   }),

@@ -10,8 +10,6 @@ const nav = [
   { to: "/map", label: "Karte" },
   { to: "/journal", label: "Reisetagebuch" },
   { to: "/gallery", label: "Fotogalerie" },
-  { to: "/about", label: "Über mich" },
-  { to: "/contact", label: "Kontakt" },
 ] as const;
 
 export function SiteHeader() {
@@ -37,8 +35,8 @@ export function SiteHeader() {
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 md:px-8 py-4">
           <Link to="/" className="group" onClick={() => setOpen(false)}>
             <div className="flex items-baseline gap-2 leading-none">
-              <span className="font-display text-3xl md:text-4xl font-semibold tracking-tight">
-                Reisejournal
+              <span className="font-display text-2xl md:text-4xl font-semibold tracking-tight">
+                Wild Trip Explorer
               </span>
               <Heart className="size-4 text-primary fill-primary/40" strokeWidth={1.5} />
             </div>

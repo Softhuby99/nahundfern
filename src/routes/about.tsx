@@ -6,15 +6,15 @@ import aboutDesk from "@/assets/about-desk.jpg";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About — Vagabond" },
+      { title: "Über mich — Wild Trip Explorer" },
       {
         name: "description",
-        content: "Wer hinter Vagabond steckt — Philosophie, Werkzeug, Haltung.",
+        content: "Wer hinter Wild Trip Explorer steckt — Leidenschaft, Reisen und Geschichten.",
       },
-      { property: "og:title", content: "About — Vagabond" },
+      { property: "og:title", content: "Über mich — Wild Trip Explorer" },
       {
         property: "og:description",
-        content: "Wer hinter Vagabond steckt — Philosophie, Werkzeug, Haltung.",
+        content: "Wer hinter Wild Trip Explorer steckt — Leidenschaft, Reisen und Geschichten.",
       },
     ],
   }),
@@ -39,8 +39,8 @@ function AboutPage() {
         <div className="space-y-6 text-lg leading-relaxed text-foreground/90">
           <p>
             Ich heiße Jonas, bin 34, lebe in Berlin und reise seit zehn Jahren mit einer kleinen
-            Filmkamera in der Jackentasche. Vagabond ist mein digitales Archiv — eine Sammlung von
-            Reisen, die langsam genug waren, um sie noch zu erinnern.
+            Filmkamera in der Jackentasche. Wild Trip Explorer ist mein digitales Archiv — eine
+            Sammlung von Reisen, die langsam genug waren, um sie noch zu erinnern.
           </p>
           <p>
             Mich interessiert das Dazwischen: der Geruch eines Bahnhofs um 6 Uhr morgens, das

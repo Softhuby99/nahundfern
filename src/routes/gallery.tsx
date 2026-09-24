@@ -13,12 +13,12 @@ export const Route = createFileRoute("/gallery")({
   },
   head: () => ({
     meta: [
-      { title: "Meine Fotogalerie — Reisejournal" },
+      { title: "Meine Fotogalerie — Wild Trip Explorer" },
       {
         name: "description",
         content: "Bilder, die Geschichten erzählen und Momente für immer bewahren.",
       },
-      { property: "og:title", content: "Meine Fotogalerie — Reisejournal" },
+      { property: "og:title", content: "Meine Fotogalerie — Wild Trip Explorer" },
       {
         property: "og:description",
         content: "Bilder, die Geschichten erzählen und Momente für immer bewahren.",
