@@ -30,11 +30,11 @@ export const Route = createFileRoute("/stories/$slug")({
     const t = loaderData?.trip;
     if (!t) {
       return {
-        meta: [{ title: "Story — Reisejournal" }, { name: "robots", content: "noindex" }],
+        meta: [{ title: "Story — Wild Trip Explorer" }, { name: "robots", content: "noindex" }],
       };
     }
 
-    const title = `${t.title} — Reisejournal`;
+    const title = `${t.title} — Wild Trip Explorer`;
     // Cover is a LEFT JOIN — guard against missing/invalid variants so we
     // never emit og:image=".../null" or a relative path.
     const coverPath = t.cover.webp[1200];

@@ -13,13 +13,13 @@ export const Route = createFileRoute("/stories/")({
   },
   head: () => ({
     meta: [
-      { title: "Meine Reiseberichte — Reisejournal" },
+      { title: "Meine Reiseberichte — Wild Trip Explorer" },
       {
         name: "description",
         content:
           "Alle Reiseberichte: echte Erlebnisse, ehrliche Geschichten und Momente, die mich berührt haben.",
       },
-      { property: "og:title", content: "Meine Reiseberichte — Reisejournal" },
+      { property: "og:title", content: "Meine Reiseberichte — Wild Trip Explorer" },
       {
         property: "og:description",
         content: "Echte Erlebnisse, ehrliche Geschichten und Momente, die mich berührt haben.",

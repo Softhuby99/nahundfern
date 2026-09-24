@@ -6,15 +6,15 @@ import aboutDesk from "@/assets/about-desk.jpg";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About — Vagabond" },
+      { title: "Über mich — Wild Trip Explorer" },
       {
         name: "description",
-        content: "Wer hinter Vagabond steckt — Philosophie, Werkzeug, Haltung.",
+        content: "Wer hinter Wild Trip Explorer steckt — Leidenschaft, Reisen und Geschichten.",
       },
-      { property: "og:title", content: "About — Vagabond" },
+      { property: "og:title", content: "Über mich — Wild Trip Explorer" },
       {
         property: "og:description",
-        content: "Wer hinter Vagabond steckt — Philosophie, Werkzeug, Haltung.",
+        content: "Wer hinter Wild Trip Explorer steckt — Leidenschaft, Reisen und Geschichten.",
       },
     ],
   }),

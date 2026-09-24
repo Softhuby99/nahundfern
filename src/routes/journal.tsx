@@ -12,9 +12,9 @@ export const Route = createFileRoute("/journal")({
   },
   head: () => ({
     meta: [
-      { title: "Mein Reisetagebuch — Reisejournal" },
+      { title: "Mein Reisetagebuch — Wild Trip Explorer" },
       { name: "description", content: "Gedanken, Momente und kleine Geschichten von unterwegs." },
-      { property: "og:title", content: "Mein Reisetagebuch — Reisejournal" },
+      { property: "og:title", content: "Mein Reisetagebuch — Wild Trip Explorer" },
       {
         property: "og:description",
         content: "Gedanken, Momente und kleine Geschichten von unterwegs.",

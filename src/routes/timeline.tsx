@@ -12,13 +12,13 @@ export const Route = createFileRoute("/timeline")({
   },
   head: () => ({
     meta: [
-      { title: "Meine Reise-Timeline — Reisejournal" },
+      { title: "Meine Reise-Timeline — Wild Trip Explorer" },
       {
         name: "description",
         content:
           "Wo ich war, was ich erlebt habe und was mir geblieben ist — meine Reise-Timeline.",
       },
-      { property: "og:title", content: "Meine Reise-Timeline — Reisejournal" },
+      { property: "og:title", content: "Meine Reise-Timeline — Wild Trip Explorer" },
       {
         property: "og:description",
         content: "Wo ich war, was ich erlebt habe und was mir geblieben ist.",
