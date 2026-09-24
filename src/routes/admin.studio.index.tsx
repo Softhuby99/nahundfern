@@ -6,7 +6,7 @@ import { StudioNav } from "./admin.studio.system";
 
 export const Route = createFileRoute("/admin/studio/")({
   head: () => ({
-    meta: [{ title: "Studio — Vagabond" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Studio — Wild Trip Explorer" }, { name: "robots", content: "noindex" }],
   }),
   component: StudioPage,
 });

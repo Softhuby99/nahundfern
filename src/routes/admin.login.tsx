@@ -6,7 +6,7 @@ import { emitAuthChanged } from "@/hooks/useIsAuthenticated";
 
 export const Route = createFileRoute("/admin/login")({
   head: () => ({
-    meta: [{ title: "Admin Login — Vagabond" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Admin Login — Wild Trip Explorer" }, { name: "robots", content: "noindex" }],
   }),
   component: LoginPage,
 });

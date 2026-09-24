@@ -38,12 +38,12 @@ const tips = [
 export const Route = createFileRoute("/tips")({
   head: () => ({
     meta: [
-      { title: "Tips — Vagabond" },
+      { title: "Tips — Wild Trip Explorer" },
       {
         name: "description",
         content: "Sechs Reisetipps, die wirklich helfen — keine Affiliate-Links.",
       },
-      { property: "og:title", content: "Tips — Vagabond" },
+      { property: "og:title", content: "Tips — Wild Trip Explorer" },
       {
         property: "og:description",
         content: "Sechs Reisetipps, die wirklich helfen — keine Affiliate-Links.",

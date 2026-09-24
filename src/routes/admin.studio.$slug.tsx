@@ -9,7 +9,10 @@ import { RichTextEditor } from "@/components/studio/RichTextEditor";
 
 export const Route = createFileRoute("/admin/studio/$slug")({
   head: () => ({
-    meta: [{ title: "Reise-Editor — Vagabond" }, { name: "robots", content: "noindex" }],
+    meta: [
+      { title: "Reise-Editor — Wild Trip Explorer" },
+      { name: "robots", content: "noindex" },
+    ],
   }),
   component: EditorPage,
 });
