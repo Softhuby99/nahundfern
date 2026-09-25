@@ -190,6 +190,7 @@ function HomePage() {
               showControls={false}
               markerVariant="dot"
               hoverLabels
+              collapsedAttribution
               ariaLabel="Übersichtskarte unserer Reiseziele"
               className="my-5 aspect-[16/10] w-full rounded-lg overflow-hidden"
               onSelectStation={(slug) => navigate({ to: "/stories/$slug", params: { slug } })}
