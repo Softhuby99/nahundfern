@@ -11,7 +11,7 @@ export const Route = createFileRoute("/map")({
     const url = new URL("/map", getPublicBaseUrl()).toString();
     const title = "Reisekarte — Alle Reisen auf der Weltkarte";
     const description =
-      "Alle veröffentlichten und laufenden Reisen auf einer Weltkarte: ein Marker pro Reise, direkt zum Reisebericht.";
+      "Veröffentlichte und laufende Reisen auf einer Weltkarte, mit Link zum Bericht sobald er online ist.";
     return {
       meta: [
         { title },
@@ -56,12 +56,12 @@ function MapPage() {
       <main className="px-6 md:px-8 max-w-6xl mx-auto py-16">
         <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-4">Karte</p>
         <h1 className="font-display text-5xl md:text-6xl tracking-tight font-light mb-8">
-          Alle Reisen auf der Weltkarte
+Unsere Reisen auf der Weltkarte
         </h1>
 
         {trips.length === 0 ? (
           <p className="text-lg text-foreground/80">
-            Noch keine Reisen mit Kartenposition veröffentlicht.
+Noch keine Reisen mit Kartenposition vorhanden.
           </p>
         ) : (
           <>
@@ -111,11 +111,13 @@ function TripListCard({ trip }: { trip: MapPageTrip }) {
         {trip.title}
       </p>
       <p className="text-sm text-foreground/70 mt-1">
-        {trip.stationCount > 0
-          ? `${trip.stationCount} ${trip.stationCount === 1 ? "Station" : "Stationen"}`
-          : trip.isOngoing
-            ? "Route läuft noch"
-            : "Route folgt"}
+        {!trip.isPublished
+          ? "Bericht folgt"
+          : trip.stationCount > 0
+            ? `${trip.stationCount} ${trip.stationCount === 1 ? "Station" : "Stationen"}`
+            : trip.isOngoing
+              ? "Route läuft noch"
+              : "Route folgt"}
       </p>
     </>
   );

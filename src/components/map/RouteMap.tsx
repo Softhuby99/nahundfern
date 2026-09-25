@@ -515,6 +515,7 @@ export default function RouteMap({
       el.classList.toggle("is-active", station.id === activeStationId);
       el.classList.toggle("is-dot", isDot);
       el.classList.toggle("is-ongoing", isOngoing);
+      el.classList.remove("no-image");
       el.innerHTML = "";
 
       if (isDot || isOngoing) {
