@@ -366,7 +366,16 @@ export default function RouteMap({
         markersRef.current.delete(id);
       }
     });
-  }, [stations, activeStationId, draggableMarkers, onSelectStation, onMoveStation, ready]);
+  }, [
+    stations,
+    activeStationId,
+    draggableMarkers,
+    onSelectStation,
+    onMoveStation,
+    ready,
+    markerVariant,
+    hoverLabels,
+  ]);
 
   // --- Erstanzeige: Route einpassen, optional animieren --------------------
   const didFitRef = useRef(false);
