@@ -31,6 +31,11 @@ export const Route = createFileRoute("/map")({
 function MapPage() {
   const { trips } = Route.useLoaderData();
   const navigate = useNavigate();
+  const openTrip = (slug: string) => {
+    const trip = trips.find((t) => t.slug === slug);
+    if (!trip?.isPublished) return;
+    void navigate({ to: "/stories/$slug", params: { slug } });
+  };
 
   // Ein Marker pro Reise; keine Route zwischen verschiedenen Reisen.
   const markers: MapStation[] = trips.map((t) => ({
@@ -63,30 +68,26 @@ function MapPage() {
             <RouteMapLazy
               stations={markers}
               showRoute={false}
-              onSelectStation={(slug) => navigate({ to: "/stories/$slug", params: { slug } })}
+              onSelectStation={openTrip}
               className="route-map-canvas route-map-canvas--tall"
               ariaLabel="Weltkarte mit allen veröffentlichten Reisen"
             />
             <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
               {trips.map((t) => (
                 <li key={t.slug}>
-                  <Link
-                    to="/stories/$slug"
-                    params={{ slug: t.slug }}
-                    className="group block border border-border rounded-sm p-4 hover:border-primary transition-colors"
-                  >
-                    <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                      {t.isOngoing ? "läuft gerade · " : ""}{t.monthLabel} · {t.region}
-                    </p>
-                    <p className="font-display text-2xl tracking-tight font-medium group-hover:text-primary transition-colors">
-                      {t.title}
-                    </p>
-                    <p className="text-sm text-foreground/70 mt-1">
-                      {t.stationCount > 0
-                        ? `${t.stationCount} ${t.stationCount === 1 ? "Station" : "Stationen"}`
-                        : "Route folgt"}
-                    </p>
-                  </Link>
+                  {t.isPublished ? (
+                    <Link
+                      to="/stories/$slug"
+                      params={{ slug: t.slug }}
+                      className="group block border border-border rounded-sm p-4 hover:border-primary transition-colors"
+                    >
+                      <TripListCard trip={t} />
+                    </Link>
+                  ) : (
+                    <div className="block border border-border rounded-sm p-4 opacity-85">
+                      <TripListCard trip={t} />
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
@@ -95,5 +96,26 @@ function MapPage() {
       </main>
       <SiteFooter />
     </div>
+  );
+}
+
+function TripListCard({ trip }: { trip: MapPageTrip }) {
+  return (
+    <>
+      <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+        {trip.isOngoing ? "läuft gerade · " : ""}
+        {trip.monthLabel} · {trip.region}
+      </p>
+      <p className="font-display text-2xl tracking-tight font-medium group-hover:text-primary transition-colors">
+        {trip.title}
+      </p>
+      <p className="text-sm text-foreground/70 mt-1">
+        {trip.stationCount > 0
+          ? `${trip.stationCount} ${trip.stationCount === 1 ? "Station" : "Stationen"}`
+          : trip.isOngoing
+            ? "Route läuft noch"
+            : "Route folgt"}
+      </p>
+    </>
   );
 }
