@@ -256,7 +256,7 @@ export function StationSections({
               stations={mapStations}
               activeStationId={previewId}
               onSelectStation={(id) => setPreviewId(id)}
-              className="absolute inset-0"
+              className="route-map-fullscreen"
               ariaLabel={`Vergrößerte Karte der Reiseroute: ${tripTitle}`}
             />
             {preview && (
