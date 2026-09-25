@@ -229,6 +229,41 @@
   color: #fff;
 }
 
+/* Schlichter Punkt-Marker (Teaser-Karte auf der Startseite) */
+.route-marker.is-dot {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #fff;
+  background: #c2410c;
+  overflow: visible;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+}
+.route-marker.is-dot:hover,
+.route-marker.is-dot:focus-visible {
+  background: #ea580c;
+}
+.route-marker-tip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #1c1917;
+  color: #fff;
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease;
+  z-index: 2;
+}
+.route-marker.is-dot:hover .route-marker-tip,
+.route-marker.is-dot:focus-visible .route-marker-tip {
+  opacity: 1;
+}
+
 /* Stationseditor */
 .station-editor-grid {
   display: grid;

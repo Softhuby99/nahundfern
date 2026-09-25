@@ -1,14 +1,15 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ResponsivePicture } from "@/components/HorizontalTimeline";
-import { listPublishedTrips, type PublicTrip } from "@/lib/trips.functions";
+import { listMapTrips, listPublishedTrips, type PublicTrip } from "@/lib/trips.functions";
+import { RouteMapLazy, type MapStation } from "@/components/map/RouteMapLazy";
 import { ArrowRight, Heart, MapPin } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
-    const trips = await listPublishedTrips();
-    return { trips };
+    const [trips, mapTrips] = await Promise.all([listPublishedTrips(), listMapTrips()]);
+    return { trips, mapTrips };
   },
   head: () => ({
     meta: [
@@ -29,11 +30,23 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
-  const { trips } = Route.useLoaderData() as { trips: PublicTrip[] };
+  const { trips, mapTrips } = Route.useLoaderData();
+  const navigate = useNavigate();
   // listPublishedTrips ist neueste-zuerst sortiert — die ersten Einträge sind
   // die aktuellsten Reisen (nicht das Array-Ende, das wären die ältesten).
   const latest = trips.slice(0, 3);
   const hero = trips[0];
+
+  // Teaser-Karte: ein schlichter Punkt pro veröffentlichter Reise.
+  const mapMarkers: MapStation[] = mapTrips.map((t) => ({
+    id: t.slug,
+    name: t.region ? `${t.title} — ${t.region}` : t.title,
+    latitude: t.latitude,
+    longitude: t.longitude,
+    arrivalDate: null,
+    legMode: "air" as const,
+    legGeometry: null,
+  }));
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -165,9 +178,23 @@ function HomePage() {
           <p className="text-sm text-muted-foreground mt-1">
             Unsere Reisekarte voller Erinnerungen.
           </p>
-          <div className="my-5 aspect-[16/10] rounded-lg bg-[radial-gradient(circle_at_30%_40%,hsl(30_30%_82%),hsl(38_46%_92%))] flex items-center justify-center">
-            <MapPin className="size-8 text-primary" strokeWidth={1.5} />
-          </div>
+          {mapMarkers.length === 0 ? (
+            <div className="my-5 aspect-[16/10] rounded-lg bg-[radial-gradient(circle_at_30%_40%,hsl(30_30%_82%),hsl(38_46%_92%))] flex items-center justify-center">
+              <MapPin className="size-8 text-primary" strokeWidth={1.5} />
+            </div>
+          ) : (
+            <RouteMapLazy
+              stations={mapMarkers}
+              showRoute={false}
+              interactive={false}
+              showControls={false}
+              markerVariant="dot"
+              hoverLabels
+              ariaLabel="Übersichtskarte unserer Reiseziele"
+              className="my-5 aspect-[16/10] w-full rounded-lg overflow-hidden"
+              onSelectStation={(slug) => navigate({ to: "/stories/$slug", params: { slug } })}
+            />
+          )}
           <Link
             to="/map"
             className="text-primary text-sm font-medium hover:underline underline-offset-4"

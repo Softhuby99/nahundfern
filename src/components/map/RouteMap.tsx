@@ -45,6 +45,14 @@ export type RouteMapProps = {
   animateOnMount?: boolean;
   /** Verbindungslinie zwischen den Punkten zeichnen. */
   showRoute?: boolean;
+  /** Zoom/Verschieben per Maus und Touch erlauben. */
+  interactive?: boolean;
+  /** Zoom-Buttons oben rechts anzeigen. */
+  showControls?: boolean;
+  /** Markerform: Vorschaubild oder schlichter Punkt. */
+  markerVariant?: "photo" | "dot";
+  /** Reisename als kleiner Tooltip beim Überfahren. */
+  hoverLabels?: boolean;
   className?: string;
   ariaLabel?: string;
 };
@@ -80,6 +88,10 @@ export default function RouteMap({
   draggableMarkers = false,
   animateOnMount = false,
   showRoute = true,
+  interactive = true,
+  showControls = true,
+  markerVariant = "photo",
+  hoverLabels = false,
   className,
   ariaLabel = "Karte der Reiseroute",
 }: RouteMapProps) {
@@ -101,6 +113,8 @@ export default function RouteMap({
         center: [10, 48],
         zoom: 2,
         attributionControl: { compact: true },
+        // Teaser-Karten sind nicht bedienbar, damit Scrollen nicht hängenbleibt.
+        interactive,
       });
     } catch (err) {
       console.warn("map init failed", err);
@@ -108,7 +122,9 @@ export default function RouteMap({
       return;
     }
     mapRef.current = map;
-    map.addControl(new maplibregl.NavigationControl({ visualizePitch: false }), "top-right");
+    if (showControls) {
+      map.addControl(new maplibregl.NavigationControl({ visualizePitch: false }), "top-right");
+    }
     map.on("load", () => {
       // Globusdarstellung, wenn der Browser sie unterstützt — sonst flach.
       try {
@@ -133,7 +149,7 @@ export default function RouteMap({
       mapRef.current = null;
       setReady(false);
     };
-  }, [reloadKey]);
+  }, [reloadKey, interactive, showControls]);
 
   // --- Kartenklick ----------------------------------------------------------
   useEffect(() => {
@@ -306,9 +322,23 @@ export default function RouteMap({
       }
 
       const el = marker.getElement();
-      el.setAttribute("aria-label", `Station ${index + 1}: ${station.name}`);
+      const isDot = markerVariant === "dot";
+      el.setAttribute("aria-label", isDot ? station.name : `Station ${index + 1}: ${station.name}`);
       el.classList.toggle("is-active", station.id === activeStationId);
+      el.classList.toggle("is-dot", isDot);
       el.innerHTML = "";
+
+      if (isDot) {
+        // Schlichter Akzentpunkt; optional Name als kleiner Tooltip.
+        if (hoverLabels) {
+          const tip = document.createElement("span");
+          tip.className = "route-marker-tip";
+          tip.textContent = station.name;
+          el.appendChild(tip);
+        }
+        return;
+      }
+
       if (station.markerImageSrc) {
         const img = document.createElement("img");
         img.src = station.markerImageSrc;
@@ -336,7 +366,16 @@ export default function RouteMap({
         markersRef.current.delete(id);
       }
     });
-  }, [stations, activeStationId, draggableMarkers, onSelectStation, onMoveStation, ready]);
+  }, [
+    stations,
+    activeStationId,
+    draggableMarkers,
+    onSelectStation,
+    onMoveStation,
+    ready,
+    markerVariant,
+    hoverLabels,
+  ]);
 
   // --- Erstanzeige: Route einpassen, optional animieren --------------------
   const didFitRef = useRef(false);
