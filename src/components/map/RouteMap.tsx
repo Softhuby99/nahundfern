@@ -45,6 +45,14 @@ export type RouteMapProps = {
   animateOnMount?: boolean;
   /** Verbindungslinie zwischen den Punkten zeichnen. */
   showRoute?: boolean;
+  /** Zoom/Verschieben per Maus und Touch erlauben. */
+  interactive?: boolean;
+  /** Zoom-Buttons oben rechts anzeigen. */
+  showControls?: boolean;
+  /** Markerform: Vorschaubild oder schlichter Punkt. */
+  markerVariant?: "photo" | "dot";
+  /** Reisename als kleiner Tooltip beim Überfahren. */
+  hoverLabels?: boolean;
   className?: string;
   ariaLabel?: string;
 };
