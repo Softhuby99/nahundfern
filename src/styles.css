@@ -528,3 +528,10 @@
     animation: none !important;
   }
 }
+
+/* Symbolknöpfe auf der Karte (Vergrößern, Ansicht zurücksetzen) */
+.map-symbol-btn {
+  font-size: 16px;
+  line-height: 29px;
+  color: #0f172a;
+}

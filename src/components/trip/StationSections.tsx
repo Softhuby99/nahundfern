@@ -72,6 +72,8 @@ export function StationSections({
 }) {
   const [activeId, setActiveId] = useState<string | null>(stations[0]?.id ?? null);
   const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
+  const [expanded, setExpanded] = useState(false);
+  const [previewId, setPreviewId] = useState<string | null>(null);
 
   // Beim Scrollen die gerade gelesene Station hervorheben.
   useEffect(() => {
@@ -90,7 +92,34 @@ export function StationSections({
     return () => observer.disconnect();
   }, [stations]);
 
+  // Vollbild: Esc schließt, Hintergrund scrollt nicht mit.
+  useEffect(() => {
+    if (!expanded) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeExpanded();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [expanded]);
+
   if (stations.length === 0) return null;
+
+  function closeExpanded() {
+    setExpanded(false);
+    setPreviewId(null);
+  }
+  function jumpTo(id: string) {
+    sectionRefs.current.get(id)?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "start",
+    });
+  }
+  const preview = stations.find((s) => s.id === previewId) ?? null;
 
   const mapStations: MapStation[] = stations.map((s) => ({
     id: s.id,
@@ -180,13 +209,9 @@ export function StationSections({
             activeStationId={activeId}
             onSelectStation={(id) => {
               setActiveId(id);
-              sectionRefs.current.get(id)?.scrollIntoView({
-                behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-                  ? "auto"
-                  : "smooth",
-                block: "start",
-              });
+              jumpTo(id);
             }}
+            onExpand={() => setExpanded(true)}
             animateOnMount
             className="route-map-canvas"
             ariaLabel={`Karte der Reiseroute: ${tripTitle}`}
@@ -199,10 +224,83 @@ export function StationSections({
         <RouteMapLazy
           stations={mapStations}
           activeStationId={activeId}
+          onExpand={() => setExpanded(true)}
           className="route-map-canvas"
           ariaLabel={`Karte der Reiseroute: ${tripTitle}`}
         />
       </div>
+
+      {expanded && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col bg-background"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Reiseroute · ${tripTitle}`}
+        >
+          <div className="flex items-center justify-between gap-4 px-4 md:px-6 py-3 border-b border-border">
+            <p className="font-mono text-xs uppercase tracking-widest text-foreground truncate">
+              Reiseroute · {tripTitle}
+            </p>
+            <button
+              type="button"
+              onClick={closeExpanded}
+              aria-label="Vergrößerte Karte schließen"
+              className="h-9 w-9 shrink-0 rounded-full border border-border text-lg leading-none hover:bg-card"
+              autoFocus
+            >
+              ✕
+            </button>
+          </div>
+          <div className="relative flex-1 min-h-0">
+            <RouteMapLazy
+              stations={mapStations}
+              activeStationId={previewId}
+              onSelectStation={(id) => setPreviewId(id)}
+              className="absolute inset-0"
+              ariaLabel={`Vergrößerte Karte der Reiseroute: ${tripTitle}`}
+            />
+            {preview && (
+              <div className="absolute inset-x-3 bottom-6 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-[380px] rounded-lg border border-border bg-card p-3 shadow-lg flex gap-3 items-center">
+                {preview.markerImage?.webp[400] && (
+                  <img
+                    src={preview.markerImage.webp[400]}
+                    alt=""
+                    className="h-16 w-16 rounded object-cover shrink-0"
+                  />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="font-display text-lg truncate">{preview.name}</p>
+                  {formatRange(preview.arrivalDate, preview.departureDate) && (
+                    <p className="text-xs text-muted-foreground">
+                      {formatRange(preview.arrivalDate, preview.departureDate)}
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    className="mt-1 text-sm text-primary underline-offset-4 hover:underline"
+                    onClick={() => {
+                      const id = preview.id;
+                      closeExpanded();
+                      setActiveId(id);
+                      setTimeout(() => jumpTo(id), 50);
+                    }}
+                  >
+                    Zu dieser Station springen →
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  aria-label="Vorschau schließen"
+                  onClick={() => setPreviewId(null)}
+                  className="self-start text-muted-foreground hover:text-foreground"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
