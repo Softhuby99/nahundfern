@@ -226,7 +226,9 @@ export default function RouteMap({
     if (!map || !bounds) return;
     const duration = animate && !prefersReducedMotion() ? 700 : 0;
     if (list.length === 1) {
-      map.easeTo({ center: [list[0]!.longitude, list[0]!.latitude], zoom: 6, duration });
+      const only = list[0];
+      if (!only) return;
+      map.easeTo({ center: [only.longitude, only.latitude], zoom: 6, duration });
       return;
     }
     const [w, s, e, n] = bounds;
@@ -584,7 +586,9 @@ export default function RouteMap({
     ];
     const single = stations.length === 1;
     if (single) {
-      map.jumpTo({ center: [stations[0]!.longitude, stations[0]!.latitude], zoom: 6 });
+      const only = stations[0];
+      if (!only) return;
+      map.jumpTo({ center: [only.longitude, only.latitude], zoom: 6 });
       return;
     }
     if (animateOnMount && !prefersReducedMotion()) {
