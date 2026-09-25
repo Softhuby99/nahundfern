@@ -322,9 +322,23 @@ export default function RouteMap({
       }
 
       const el = marker.getElement();
-      el.setAttribute("aria-label", `Station ${index + 1}: ${station.name}`);
+      const isDot = markerVariant === "dot";
+      el.setAttribute("aria-label", isDot ? station.name : `Station ${index + 1}: ${station.name}`);
       el.classList.toggle("is-active", station.id === activeStationId);
+      el.classList.toggle("is-dot", isDot);
       el.innerHTML = "";
+
+      if (isDot) {
+        // Schlichter Akzentpunkt; optional Name als kleiner Tooltip.
+        if (hoverLabels) {
+          const tip = document.createElement("span");
+          tip.className = "route-marker-tip";
+          tip.textContent = station.name;
+          el.appendChild(tip);
+        }
+        return;
+      }
+
       if (station.markerImageSrc) {
         const img = document.createElement("img");
         img.src = station.markerImageSrc;
