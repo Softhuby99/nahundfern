@@ -513,7 +513,7 @@ export default function RouteMap({
       el.classList.toggle("is-ongoing", isOngoing);
       el.innerHTML = "";
 
-      if (isDot) {
+      if (isDot || isOngoing) {
         // Schlichter Akzentpunkt; optional Name als kleiner Tooltip.
         if (isOngoing) {
           const pulse = document.createElement("span");
