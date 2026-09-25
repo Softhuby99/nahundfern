@@ -511,7 +511,10 @@ export default function RouteMap({
       const el = marker.getElement();
       const isDot = markerVariant === "dot";
       const isOngoing = Boolean(station.isOngoing);
-      el.setAttribute("aria-label", isDot ? station.name : `Station ${index + 1}: ${station.name}`);
+      el.setAttribute(
+        "aria-label",
+        isDot || isOngoing ? station.name : `Station ${index + 1}: ${station.name}`,
+      );
       el.classList.toggle("is-active", station.id === activeStationId);
       el.classList.toggle("is-dot", isDot);
       el.classList.toggle("is-ongoing", isOngoing);
