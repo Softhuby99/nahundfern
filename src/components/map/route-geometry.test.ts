@@ -112,6 +112,7 @@ describe("buildRouteLegs", () => {
       },
     ]);
     expect(legs[0]!.dashed).toBe(true);
+    expect(legs[0]!.mode).toBe("air");
     // Flugbogen über die Datumsgrenze wird aufgeteilt oder bleibt zusammenhängend,
     // aber niemals leer.
     expect(legs[0]!.segments.length).toBeGreaterThan(0);
@@ -123,6 +124,15 @@ describe("buildRouteLegs", () => {
       { latitude: 999, longitude: 11, ...base },
     ]);
     expect(legs.length).toBe(0);
+  });
+
+  it("übernimmt die Transportart des Zielpunkts für Verbindungssymbole", () => {
+    const legs = buildRouteLegs([
+      { ...munich, ...base },
+      { latitude: 48.3, longitude: 11.9, legMode: "train", legGeometry: null },
+      { latitude: 48.6, longitude: 12.1, legMode: "cycle", legGeometry: null },
+    ]);
+    expect(legs.map((leg) => leg.mode)).toEqual(["train", "cycle"]);
   });
 });
 

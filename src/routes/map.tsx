@@ -68,9 +68,10 @@ function MapPage() {
             <RouteMapLazy
               stations={markers}
               showRoute={false}
+              hoverLabels
               onSelectStation={openTrip}
               className="route-map-canvas route-map-canvas--tall"
-              ariaLabel="Weltkarte mit allen veröffentlichten Reisen"
+              ariaLabel="Weltkarte mit veröffentlichten und laufenden Reisen"
             />
             <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
               {trips.map((t) => (
