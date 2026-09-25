@@ -1,14 +1,15 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ResponsivePicture } from "@/components/HorizontalTimeline";
-import { listPublishedTrips, type PublicTrip } from "@/lib/trips.functions";
+import { listMapTrips, listPublishedTrips, type PublicTrip } from "@/lib/trips.functions";
+import { RouteMapLazy, type MapStation } from "@/components/map/RouteMapLazy";
 import { ArrowRight, Heart, MapPin } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
-    const trips = await listPublishedTrips();
-    return { trips };
+    const [trips, mapTrips] = await Promise.all([listPublishedTrips(), listMapTrips()]);
+    return { trips, mapTrips };
   },
   head: () => ({
     meta: [
