@@ -53,6 +53,10 @@ export type RouteMapProps = {
   markerVariant?: "photo" | "dot";
   /** Reisename als kleiner Tooltip beim Überfahren. */
   hoverLabels?: boolean;
+  /** Zeigt einen Vergrößern-Button oben rechts. */
+  onExpand?: () => void;
+  /** Lizenzhinweis nur als eingeklapptes ℹ-Symbol. */
+  collapsedAttribution?: boolean;
   className?: string;
   ariaLabel?: string;
 };
@@ -79,6 +83,32 @@ function prefersReducedMotion(): boolean {
   );
 }
 
+/** Einfacher Kartenknopf im MapLibre-Stil. */
+function makeButtonControl(symbol: string, label: string, onClick: () => void): maplibregl.IControl {
+  let box: HTMLDivElement | null = null;
+  return {
+    onAdd() {
+      box = document.createElement("div");
+      box.className = "maplibregl-ctrl maplibregl-ctrl-group";
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.title = label;
+      btn.setAttribute("aria-label", label);
+      btn.className = "map-symbol-btn";
+      btn.textContent = symbol;
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        onClick();
+      });
+      box.appendChild(btn);
+      return box;
+    },
+    onRemove() {
+      box?.remove();
+    },
+  };
+}
+
 export default function RouteMap({
   stations,
   activeStationId = null,
@@ -92,6 +122,8 @@ export default function RouteMap({
   showControls = true,
   markerVariant = "photo",
   hoverLabels = false,
+  onExpand,
+  collapsedAttribution = false,
   className,
   ariaLabel = "Karte der Reiseroute",
 }: RouteMapProps) {
@@ -101,6 +133,30 @@ export default function RouteMap({
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const onExpandRef = useRef(onExpand);
+  onExpandRef.current = onExpand;
+  const stationsRef = useRef(stations);
+  stationsRef.current = stations;
+  // Gesamtansicht der Route (auch für den Reset-Button).
+  const fitAllRef = useRef((animate: boolean) => {
+    const map = mapRef.current;
+    const list = stationsRef.current;
+    const bounds = boundsOf(list);
+    if (!map || !bounds) return;
+    const duration = animate && !prefersReducedMotion() ? 700 : 0;
+    if (list.length === 1) {
+      map.easeTo({ center: [list[0]!.longitude, list[0]!.latitude], zoom: 6, duration });
+      return;
+    }
+    const [w, s, e, n] = bounds;
+    map.fitBounds(
+      [
+        [w, s],
+        [e, n],
+      ],
+      { padding: 60, duration },
+    );
+  });
 
   // --- Karte aufbauen -------------------------------------------------------
   useEffect(() => {
@@ -122,8 +178,18 @@ export default function RouteMap({
       return;
     }
     mapRef.current = map;
+    if (onExpandRef.current) {
+      map.addControl(
+        makeButtonControl("⛶", "Karte vergrößern", () => onExpandRef.current?.()),
+        "top-right",
+      );
+    }
     if (showControls) {
       map.addControl(new maplibregl.NavigationControl({ visualizePitch: false }), "top-right");
+      map.addControl(
+        makeButtonControl("⟲", "Ansicht zurücksetzen", () => fitAllRef.current(true)),
+        "top-right",
+      );
     }
     map.on("load", () => {
       // Globusdarstellung, wenn der Browser sie unterstützt — sonst flach.
@@ -131,6 +197,12 @@ export default function RouteMap({
         map.setProjection({ type: "globe" });
       } catch {
         /* flache Karte ist ein akzeptabler Fallback */
+      }
+      if (collapsedAttribution) {
+        // Lizenzhinweis nur als kleines ℹ-Symbol, Klick klappt ihn auf.
+        containerRef.current
+          ?.querySelectorAll(".maplibregl-ctrl-attrib.maplibregl-compact-show")
+          .forEach((el) => el.classList.remove("maplibregl-compact-show"));
       }
       setReady(true);
     });
