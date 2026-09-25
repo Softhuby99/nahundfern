@@ -41,7 +41,8 @@ function MapPage() {
     arrivalDate: null,
     legMode: "air" as const,
     legGeometry: null,
-    markerImageSrc: t.cover400,
+    markerImageSrc: t.isOngoing ? null : t.cover400,
+    isOngoing: t.isOngoing,
   }));
 
   return (
@@ -75,7 +76,7 @@ function MapPage() {
                     className="group block border border-border rounded-sm p-4 hover:border-primary transition-colors"
                   >
                     <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                      {t.monthLabel} · {t.region}
+                      {t.isOngoing ? "läuft gerade · " : ""}{t.monthLabel} · {t.region}
                     </p>
                     <p className="font-display text-2xl tracking-tight font-medium group-hover:text-primary transition-colors">
                       {t.title}

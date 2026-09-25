@@ -263,6 +263,55 @@
 .route-marker.is-dot:focus-visible .route-marker-tip {
   opacity: 1;
 }
+.route-marker.is-ongoing {
+  width: 26px;
+  height: 26px;
+  border: 3px solid var(--color-primary-foreground);
+  background: var(--color-primary);
+  overflow: visible;
+  box-shadow: 0 0 0 2px var(--color-primary), 0 4px 12px rgb(0 0 0 / 0.35);
+}
+.route-marker.is-ongoing::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: 999px;
+  background: var(--color-primary-foreground);
+}
+.route-marker-pulse {
+  position: absolute;
+  inset: -10px;
+  border: 2px solid var(--color-primary);
+  border-radius: 999px;
+  opacity: 0.55;
+  animation: ongoingPulse 1.9s ease-out infinite;
+}
+
+.route-leg-badge {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--color-primary);
+  border-radius: 999px;
+  background: var(--color-primary-foreground);
+  color: var(--color-foreground);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
+  font-size: 16px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+@keyframes ongoingPulse {
+  from {
+    transform: scale(0.8);
+    opacity: 0.65;
+  }
+  to {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
 
 /* Stationseditor */
 .station-editor-grid {
@@ -525,6 +574,9 @@
 @media (prefers-reduced-motion: reduce) {
   .maplibregl-map * {
     transition: none !important;
+    animation: none !important;
+  }
+  .route-marker-pulse {
     animation: none !important;
   }
 }
