@@ -178,9 +178,23 @@ function HomePage() {
           <p className="text-sm text-muted-foreground mt-1">
             Unsere Reisekarte voller Erinnerungen.
           </p>
-          <div className="my-5 aspect-[16/10] rounded-lg bg-[radial-gradient(circle_at_30%_40%,hsl(30_30%_82%),hsl(38_46%_92%))] flex items-center justify-center">
-            <MapPin className="size-8 text-primary" strokeWidth={1.5} />
-          </div>
+          {mapMarkers.length === 0 ? (
+            <div className="my-5 aspect-[16/10] rounded-lg bg-[radial-gradient(circle_at_30%_40%,hsl(30_30%_82%),hsl(38_46%_92%))] flex items-center justify-center">
+              <MapPin className="size-8 text-primary" strokeWidth={1.5} />
+            </div>
+          ) : (
+            <RouteMapLazy
+              stations={mapMarkers}
+              showRoute={false}
+              interactive={false}
+              showControls={false}
+              markerVariant="dot"
+              hoverLabels
+              ariaLabel="Übersichtskarte unserer Reiseziele"
+              className="my-5 aspect-[16/10] w-full rounded-lg overflow-hidden"
+              onSelectStation={(slug) => navigate({ to: "/stories/$slug", params: { slug } })}
+            />
+          )}
           <Link
             to="/map"
             className="text-primary text-sm font-medium hover:underline underline-offset-4"
