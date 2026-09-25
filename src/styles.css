@@ -260,7 +260,9 @@
   z-index: 2;
 }
 .route-marker.is-dot:hover .route-marker-tip,
-.route-marker.is-dot:focus-visible .route-marker-tip {
+.route-marker.is-dot:focus-visible .route-marker-tip,
+.route-marker.is-ongoing:hover .route-marker-tip,
+.route-marker.is-ongoing:focus-visible .route-marker-tip {
   opacity: 1;
 }
 .route-marker.is-ongoing {
