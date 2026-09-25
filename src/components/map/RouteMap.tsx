@@ -88,6 +88,10 @@ export default function RouteMap({
   draggableMarkers = false,
   animateOnMount = false,
   showRoute = true,
+  interactive = true,
+  showControls = true,
+  markerVariant = "photo",
+  hoverLabels = false,
   className,
   ariaLabel = "Karte der Reiseroute",
 }: RouteMapProps) {
