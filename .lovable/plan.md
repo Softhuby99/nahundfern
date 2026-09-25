@@ -1,39 +1,39 @@
-# Plan: Verkehrsmittel-Symbol pro Kartenverbindung
+# Plan: Kartenverbindungen und laufende Reise sichtbar machen
 
 ## Ziel
-In der Karte soll jede Verbindung zwischen zwei Stationen ein kleines Symbol in der Mitte anzeigen, das zeigt, wie das Ziel erreicht wurde: Auto, Zug, Fahrrad, zu Fuß oder Flug.
+Die Karten sollen zwei Dinge besser zeigen:
+- In Reiseberichten steht pro Verbindung ein kleines Symbol in der Linienmitte: Auto, Zug, Fahrrad, zu Fuß oder Flug.
+- Auf der großen Kartenansicht wird eine gerade laufende Reise wie Korsika mit einem eigenen Kreis-Symbol sichtbar gemacht.
 
 ## Umsetzung
-1. **Verbindungen auswerten**
-   - Die Karte nutzt bereits pro Abschnitt die vorhandene Anreiseart (`drive`, `train`, `cycle`, `walk`, `air`).
-   - Diese Information wird an die gezeichnete Verbindung weitergegeben.
-
-2. **Symbol in der Linienmitte anzeigen**
-   - Für jeden Abschnitt wird ein Mittelpunkt aus der Liniengeometrie berechnet.
-   - Dort erscheint ein dezentes, rundes Symbol direkt auf der Karte.
-   - Vorgesehene Symbole:
+1. **Verkehrsmittel pro Verbindung anzeigen**
+   - Jede Verbindung nutzt die bereits gespeicherte Anreiseart (`drive`, `train`, `cycle`, `walk`, `air`).
+   - In der Mitte jeder Verbindung erscheint ein kleines Symbol:
      - Auto: 🚗
      - Zug: 🚆
      - Fahrrad: 🚲
      - Zu Fuß: 🚶
      - Flug: ✈️
+   - Das Symbol erscheint auch auf gestrichelten Bögen.
+   - Wenn eine Karte keine Routenlinie zeigt, erscheinen dort auch keine Verbindungssymbole.
 
-3. **Nur sinnvolle Anzeigen**
-   - Das Symbol erscheint pro Verbindung, nicht pro Station.
-   - Wenn die Routenlinie ausgeblendet ist, werden auch die Verbindungssymbole ausgeblendet.
-   - Bei gestrichelten Bögen wird das Symbol ebenfalls mittig auf dem Bogen angezeigt.
+2. **Laufende Reise auf der Kartenansicht kennzeichnen**
+   - Eine Reise gilt als laufend, wenn ihr Startdatum erreicht ist und ihr Enddatum fehlt oder noch in der Zukunft liegt.
+   - Laufende Reisen bekommen auf `/map` ein auffälliges Kreis-Symbol statt eines normalen Reisemarkers.
+   - Der Kreis signalisiert „läuft gerade“ und bleibt anklickbar zum Reisebericht.
+   - Wenn kein Zielort gesetzt ist, nutzt die Karte die letzte veröffentlichte Station als Position; falls nötig wird zusätzlich die erste veröffentlichte Station als Fallback geprüft.
 
-4. **Stil und Bedienbarkeit**
-   - Die Symbole bekommen einen kleinen hellen Hintergrund, damit sie auf Karte und Route gut lesbar sind.
-   - Sie blockieren keine Marker-Klicks unnötig.
-   - Auf kleinen Bildschirmen bleiben sie kompakt.
+3. **Beschriftung und Liste anpassen**
+   - In der Kartenliste bekommt eine laufende Reise einen kurzen Hinweis wie „läuft gerade“.
+   - Die übrigen Reisen bleiben unverändert.
 
-5. **Prüfung**
-   - Karte im Reisebericht prüfen.
-   - Große Kartenansicht prüfen.
-   - Startseiten-Karte prüfen, damit dort weiterhin nur die gewünschten Reise-Punkte ohne Routen-Symbole erscheinen.
+4. **Prüfung**
+   - Reisebericht-Karte prüfen: Symbole sitzen mittig auf den Verbindungen.
+   - Vergrößerte Reisebericht-Karte prüfen: Symbole sind ebenfalls sichtbar.
+   - `/map` prüfen: Korsika bzw. laufende Reisen sind sichtbar und anklickbar.
+   - Startseiten-Mini-Karte prüfen: Sie bleibt schlicht und ohne Verbindungssymbole.
 
 ## Technische Details
-- Die Änderung betrifft voraussichtlich `RouteMap.tsx` und die zugehörigen Karten-Styles.
-- Die vorhandene Routenlogik liefert bereits den Abschnittsmodus (`mode`), daher ist keine Datenbankänderung nötig.
-- Die Symbolposition wird clientseitig aus der sichtbaren Liniengeometrie berechnet.
+- Betroffen sind voraussichtlich die Kartenkomponente, die Kartenansicht und die öffentliche Reisedaten-Abfrage.
+- Es ist keine Datenbankänderung nötig, weil Start- und Enddatum sowie Anreiseart bereits vorhanden sind.
+- Die Symbolposition wird clientseitig aus der vorhandenen Liniengeometrie berechnet.
