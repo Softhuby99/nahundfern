@@ -30,11 +30,23 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
-  const { trips } = Route.useLoaderData() as { trips: PublicTrip[] };
+  const { trips, mapTrips } = Route.useLoaderData();
+  const navigate = useNavigate();
   // listPublishedTrips ist neueste-zuerst sortiert — die ersten Einträge sind
   // die aktuellsten Reisen (nicht das Array-Ende, das wären die ältesten).
   const latest = trips.slice(0, 3);
   const hero = trips[0];
+
+  // Teaser-Karte: ein schlichter Punkt pro veröffentlichter Reise.
+  const mapMarkers: MapStation[] = mapTrips.map((t) => ({
+    id: t.slug,
+    name: t.region ? `${t.title} — ${t.region}` : t.title,
+    latitude: t.latitude,
+    longitude: t.longitude,
+    arrivalDate: null,
+    legMode: "air" as const,
+    legGeometry: null,
+  }));
 
   return (
     <div className="min-h-screen bg-background text-foreground">
