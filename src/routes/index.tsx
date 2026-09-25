@@ -30,8 +30,10 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   const { trips } = Route.useLoaderData() as { trips: PublicTrip[] };
-  const latest = trips.slice(-3).reverse();
-  const hero = trips[trips.length - 1];
+  // listPublishedTrips ist neueste-zuerst sortiert — die ersten Einträge sind
+  // die aktuellsten Reisen (nicht das Array-Ende, das wären die ältesten).
+  const latest = trips.slice(0, 3);
+  const hero = trips[0];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
