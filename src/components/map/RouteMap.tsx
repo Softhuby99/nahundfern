@@ -149,7 +149,7 @@ export default function RouteMap({
       mapRef.current = null;
       setReady(false);
     };
-  }, [reloadKey]);
+  }, [reloadKey, interactive, showControls]);
 
   // --- Kartenklick ----------------------------------------------------------
   useEffect(() => {
