@@ -440,12 +440,15 @@ export const listMapTrips = createServerFn({ method: "GET" }).handler(
     if (!isDbConfigured()) return [];
     const rows = await sql`
       SELECT t.slug, t.title, t.month_label, t.region,
+             t.trip_start_date, t.trip_end_date,
              t.latitude AS trip_lat, t.longitude AS trip_lon,
              i.webp_400 AS cover_400,
              d.latitude  AS dest_lat,
              d.longitude AS dest_lon,
              l.latitude  AS last_lat,
              l.longitude AS last_lon,
+             f.latitude  AS first_lat,
+             f.longitude AS first_lon,
              (SELECT count(*) FROM trip_stations s
                WHERE s.trip_id = t.id AND s.published = true) AS station_count
       FROM trips t
