@@ -494,7 +494,9 @@ export default function RouteMap({
         marker.addTo(map);
         if (draggableMarkers && onMoveStation) {
           marker.on("dragend", () => {
-            const pos = marker!.getLngLat();
+            const currentMarker = markersRef.current.get(station.id);
+            if (!currentMarker) return;
+            const pos = currentMarker.getLngLat();
             onMoveStation(station.id, { latitude: pos.lat, longitude: pos.lng });
           });
         }

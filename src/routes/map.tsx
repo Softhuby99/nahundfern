@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { RouteMapLazy, type MapStation } from "@/components/map/RouteMapLazy";
-import { listMapTrips } from "@/lib/trips.functions";
+import { listMapTrips, type MapTrip as MapPageTrip } from "@/lib/trips.functions";
 import { getPublicBaseUrl } from "@/lib/public-base-url";
 
 export const Route = createFileRoute("/map")({
@@ -11,7 +11,7 @@ export const Route = createFileRoute("/map")({
     const url = new URL("/map", getPublicBaseUrl()).toString();
     const title = "Reisekarte — Alle Reisen auf der Weltkarte";
     const description =
-      "Alle veröffentlichten Reisen auf einer Weltkarte: ein Marker pro Reise, direkt zum Reisebericht.";
+      "Alle veröffentlichten und laufenden Reisen auf einer Weltkarte: ein Marker pro Reise, direkt zum Reisebericht.";
     return {
       meta: [
         { title },
