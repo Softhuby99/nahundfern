@@ -1,7 +1,20 @@
 import "./lib/error-capture";
 
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+
+// Das Server-Bundle ist ESM — dort existiert `__dirname` nicht. Native
+// CommonJS-Abhängigkeiten (argon2 via node-gyp-build) referenzieren es aber
+// als freie Variable und werfen sonst "ReferenceError: __dirname is not
+// defined" beim ersten Login-Versuch (HTTP 500). Globaler Shim, bevor
+// irgendein Modul argon2 lädt.
+const globalScope = globalThis as { __dirname?: string };
+if (typeof globalScope.__dirname === "undefined") {
+  globalScope.__dirname = path.dirname(fileURLToPath(import.meta.url));
+}
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
