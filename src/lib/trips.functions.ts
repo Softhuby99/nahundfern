@@ -424,19 +424,36 @@ export type MapTrip = {
   longitude: number;
   cover400: string | null;
   stationCount: number;
+  tripStartDate: string | null;
+  tripEndDate: string | null;
+  isOngoing: boolean;
+  isPublished: boolean;
 };
+
+function isTripOngoing(startDate: string | null, endDate: string | null): boolean {
+  if (!startDate) return false;
+  const today = new Date().toISOString().slice(0, 10);
+  return startDate <= today && (!endDate || endDate >= today);
+}
 
 export const listMapTrips = createServerFn({ method: "GET" }).handler(
   async (): Promise<MapTrip[]> => {
     if (!isDbConfigured()) return [];
     const rows = await sql`
-      SELECT t.slug, t.title, t.month_label, t.region,
+      SELECT t.slug, t.title, t.month_label, t.region, t.published,
+             t.trip_start_date, t.trip_end_date,
              t.latitude AS trip_lat, t.longitude AS trip_lon,
              i.webp_400 AS cover_400,
              d.latitude  AS dest_lat,
              d.longitude AS dest_lon,
              l.latitude  AS last_lat,
              l.longitude AS last_lon,
+             f.latitude  AS first_lat,
+             f.longitude AS first_lon,
+             c.latitude  AS current_lat,
+             c.longitude AS current_lon,
+             a.latitude  AS any_first_lat,
+             a.longitude AS any_first_lon,
              (SELECT count(*) FROM trip_stations s
                WHERE s.trip_id = t.id AND s.published = true) AS station_count
       FROM trips t
@@ -452,14 +469,54 @@ export const listMapTrips = createServerFn({ method: "GET" }).handler(
         ORDER BY s.sort_order DESC, s.created_at DESC
         LIMIT 1
       ) l ON true
+      -- (3) erste veröffentlichte Station als zusätzlicher Fallback
+      LEFT JOIN LATERAL (
+        SELECT s.latitude, s.longitude
+        FROM trip_stations s
+        WHERE s.trip_id = t.id AND s.published = true
+        ORDER BY s.sort_order ASC, s.created_at ASC
+        LIMIT 1
+      ) f ON true
+      -- Für laufende Reisen darf der Marker notfalls auch aus noch nicht
+      -- veröffentlichten Stationen kommen, damit die aktuelle Reise sichtbar ist.
+      LEFT JOIN LATERAL (
+        SELECT s.latitude, s.longitude
+        FROM trip_stations s
+        WHERE s.trip_id = t.id
+        ORDER BY s.sort_order DESC, s.created_at DESC
+        LIMIT 1
+      ) c ON true
+      LEFT JOIN LATERAL (
+        SELECT s.latitude, s.longitude
+        FROM trip_stations s
+        WHERE s.trip_id = t.id
+        ORDER BY s.sort_order ASC, s.created_at ASC
+        LIMIT 1
+      ) a ON true
       WHERE t.published = true
+         OR (t.trip_start_date IS NOT NULL
+             AND t.trip_start_date <= CURRENT_DATE
+             AND (t.trip_end_date IS NULL OR t.trip_end_date >= CURRENT_DATE))
       ORDER BY COALESCE(t.trip_start_date, t.created_at::date) DESC, t.created_at DESC
     `;
     return rows
       .map((r) => {
-        // (3) Trip-Koordinaten, (4) sonst kein Marker.
-        const lat = toNumber(r.dest_lat) ?? toNumber(r.last_lat) ?? toNumber(r.trip_lat);
-        const lon = toNumber(r.dest_lon) ?? toNumber(r.last_lon) ?? toNumber(r.trip_lon);
+        const tripStartDate = toIsoDate(r.trip_start_date);
+        const tripEndDate = toIsoDate(r.trip_end_date);
+        const isOngoing = isTripOngoing(tripStartDate, tripEndDate);
+        // (4) Trip-Koordinaten, (5) sonst kein Marker.
+        const lat =
+          toNumber(r.dest_lat) ??
+          toNumber(r.last_lat) ??
+          toNumber(r.first_lat) ??
+          (isOngoing ? (toNumber(r.current_lat) ?? toNumber(r.any_first_lat)) : null) ??
+          toNumber(r.trip_lat);
+        const lon =
+          toNumber(r.dest_lon) ??
+          toNumber(r.last_lon) ??
+          toNumber(r.first_lon) ??
+          (isOngoing ? (toNumber(r.current_lon) ?? toNumber(r.any_first_lon)) : null) ??
+          toNumber(r.trip_lon);
         if (lat === null || lon === null) return null;
         return {
           slug: r.slug,
@@ -470,6 +527,10 @@ export const listMapTrips = createServerFn({ method: "GET" }).handler(
           longitude: lon,
           cover400: r.cover_400 ?? null,
           stationCount: Number(r.station_count ?? 0),
+          tripStartDate,
+          tripEndDate,
+          isOngoing,
+          isPublished: Boolean(r.published),
         } satisfies MapTrip;
       })
       .filter((x): x is MapTrip => x !== null);

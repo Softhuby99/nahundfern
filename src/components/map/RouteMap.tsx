@@ -8,8 +8,10 @@ import mapWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import {
   boundsOf,
   buildRouteLegs,
+  distanceKm,
   introDurationMs,
   isValidLatLon,
+  type LegMode,
   type RoutePoint,
 } from "./route-geometry";
 
@@ -29,6 +31,8 @@ export type MapStation = RoutePoint & {
   markerImageSrc?: string | null;
   /** Orte, Restaurants, Cafés als kleine Punkte. */
   places?: MapPlace[];
+  /** Markiert laufende Reisen in der Übersichtskarte. */
+  isOngoing?: boolean;
 };
 
 export type RouteMapProps = {
@@ -77,10 +81,86 @@ const PLACE_SOURCE = "trip-places";
 const PLACE_LAYER = "trip-places-dots";
 const PLACE_LABEL_LAYER = "trip-places-labels";
 
+const LEG_MODE_SYMBOLS: Record<LegMode, string> = {
+  drive: "🚗",
+  train: "🚆",
+  cycle: "🚲",
+  walk: "🚶",
+  air: "✈️",
+};
+
+const LEG_MODE_LABELS: Record<LegMode, string> = {
+  drive: "Auto",
+  train: "Zug",
+  cycle: "Fahrrad",
+  walk: "Zu Fuß",
+  air: "Flug",
+};
+
 function prefersReducedMotion(): boolean {
   return (
     typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
   );
+}
+
+function segmentLength(segment: number[][]): number {
+  let total = 0;
+  for (let i = 1; i < segment.length; i++) {
+    const from = segment[i - 1];
+    const to = segment[i];
+    if (!from || !to || from.length < 2 || to.length < 2) continue;
+    total += distanceKm(
+      { longitude: from[0] ?? 0, latitude: from[1] ?? 0 },
+      { longitude: to[0] ?? 0, latitude: to[1] ?? 0 },
+    );
+  }
+  return total;
+}
+
+function midpointOfSegment(segment: number[][]): [number, number] | null {
+  if (segment.length === 0) return null;
+  if (segment.length === 1) {
+    const only = segment[0];
+    if (!only || only.length < 2) return null;
+    return [only[0] ?? 0, only[1] ?? 0];
+  }
+
+  const total = segmentLength(segment);
+  if (total <= 0) {
+    const middle = segment[Math.floor(segment.length / 2)];
+    if (!middle || middle.length < 2) return null;
+    return [middle[0] ?? 0, middle[1] ?? 0];
+  }
+
+  let walked = 0;
+  const target = total / 2;
+  for (let i = 1; i < segment.length; i++) {
+    const from = segment[i - 1];
+    const to = segment[i];
+    if (!from || !to || from.length < 2 || to.length < 2) continue;
+    const leg = distanceKm(
+      { longitude: from[0] ?? 0, latitude: from[1] ?? 0 },
+      { longitude: to[0] ?? 0, latitude: to[1] ?? 0 },
+    );
+    if (walked + leg >= target) {
+      const ratio = leg > 0 ? (target - walked) / leg : 0;
+      const lon = (from[0] ?? 0) + ((to[0] ?? 0) - (from[0] ?? 0)) * ratio;
+      const lat = (from[1] ?? 0) + ((to[1] ?? 0) - (from[1] ?? 0)) * ratio;
+      return [lon, lat];
+    }
+    walked += leg;
+  }
+
+  const last = segment[segment.length - 1];
+  if (!last || last.length < 2) return null;
+  return [last[0] ?? 0, last[1] ?? 0];
+}
+
+function midpointOfLeg(segments: number[][][]): [number, number] | null {
+  const longest = segments
+    .filter((segment) => segment.length > 0)
+    .sort((a, b) => segmentLength(b) - segmentLength(a))[0];
+  return longest ? midpointOfSegment(longest) : null;
 }
 
 /** Einfacher Kartenknopf im MapLibre-Stil. */
@@ -130,6 +210,7 @@ export default function RouteMap({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markersRef = useRef<Map<string, maplibregl.Marker>>(new Map());
+  const legMarkersRef = useRef<Map<string, maplibregl.Marker>>(new Map());
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -145,7 +226,9 @@ export default function RouteMap({
     if (!map || !bounds) return;
     const duration = animate && !prefersReducedMotion() ? 700 : 0;
     if (list.length === 1) {
-      map.easeTo({ center: [list[0]!.longitude, list[0]!.latitude], zoom: 6, duration });
+      const only = list[0];
+      if (!only) return;
+      map.easeTo({ center: [only.longitude, only.latitude], zoom: 6, duration });
       return;
     }
     const [w, s, e, n] = bounds;
@@ -217,6 +300,8 @@ export default function RouteMap({
     return () => {
       markers.forEach((m) => m.remove());
       markers.clear();
+      legMarkersRef.current.forEach((m) => m.remove());
+      legMarkersRef.current.clear();
       map?.remove();
       mapRef.current = null;
       setReady(false);
@@ -244,6 +329,7 @@ export default function RouteMap({
     const legs = showRoute ? buildRouteLegs(stations) : [];
     const dashed = legs.filter((l) => l.dashed).flatMap((l) => l.segments);
     const solid = legs.filter((l) => !l.dashed).flatMap((l) => l.segments);
+    const keepLegMarkers = new Set<string>();
 
     const data = {
       type: "FeatureCollection" as const,
@@ -287,6 +373,33 @@ export default function RouteMap({
         },
       });
     }
+
+    legs.forEach((leg, index) => {
+      const midpoint = midpointOfLeg(leg.segments);
+      if (!midpoint) return;
+      const key = String(index);
+      keepLegMarkers.add(key);
+      let marker = legMarkersRef.current.get(key);
+      if (!marker) {
+        const el = document.createElement("div");
+        el.className = "route-leg-badge";
+        el.setAttribute("aria-hidden", "true");
+        marker = new maplibregl.Marker({ element: el, anchor: "center" });
+        marker.addTo(map);
+        legMarkersRef.current.set(key, marker);
+      }
+      const el = marker.getElement();
+      el.textContent = LEG_MODE_SYMBOLS[leg.mode];
+      el.title = LEG_MODE_LABELS[leg.mode];
+      marker.setLngLat(midpoint);
+    });
+
+    legMarkersRef.current.forEach((marker, key) => {
+      if (!keepLegMarkers.has(key)) {
+        marker.remove();
+        legMarkersRef.current.delete(key);
+      }
+    });
   }, [stations, ready, showRoute]);
 
   // --- Orte/Restaurants/Cafés als kleine Punkte ----------------------------
@@ -383,7 +496,9 @@ export default function RouteMap({
         marker.addTo(map);
         if (draggableMarkers && onMoveStation) {
           marker.on("dragend", () => {
-            const pos = marker!.getLngLat();
+            const currentMarker = markersRef.current.get(station.id);
+            if (!currentMarker) return;
+            const pos = currentMarker.getLngLat();
             onMoveStation(station.id, { latitude: pos.lat, longitude: pos.lng });
           });
         }
@@ -395,13 +510,24 @@ export default function RouteMap({
 
       const el = marker.getElement();
       const isDot = markerVariant === "dot";
-      el.setAttribute("aria-label", isDot ? station.name : `Station ${index + 1}: ${station.name}`);
+      const isOngoing = Boolean(station.isOngoing);
+      el.setAttribute(
+        "aria-label",
+        isDot || isOngoing ? station.name : `Station ${index + 1}: ${station.name}`,
+      );
       el.classList.toggle("is-active", station.id === activeStationId);
       el.classList.toggle("is-dot", isDot);
+      el.classList.toggle("is-ongoing", isOngoing);
+      el.classList.remove("no-image");
       el.innerHTML = "";
 
-      if (isDot) {
+      if (isDot || isOngoing) {
         // Schlichter Akzentpunkt; optional Name als kleiner Tooltip.
+        if (isOngoing) {
+          const pulse = document.createElement("span");
+          pulse.className = "route-marker-pulse";
+          el.appendChild(pulse);
+        }
         if (hoverLabels) {
           const tip = document.createElement("span");
           tip.className = "route-marker-tip";
@@ -464,7 +590,9 @@ export default function RouteMap({
     ];
     const single = stations.length === 1;
     if (single) {
-      map.jumpTo({ center: [stations[0]!.longitude, stations[0]!.latitude], zoom: 6 });
+      const only = stations[0];
+      if (!only) return;
+      map.jumpTo({ center: [only.longitude, only.latitude], zoom: 6 });
       return;
     }
     if (animateOnMount && !prefersReducedMotion()) {

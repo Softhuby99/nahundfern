@@ -95,21 +95,30 @@ export function greatCirclePoints(
  */
 export function splitAtAntimeridian(points: number[][]): number[][][] {
   if (points.length < 2) return points.length ? [points] : [];
+  const first = points[0];
+  if (!first) return [];
   const segments: number[][][] = [];
-  let current: number[][] = [points[0]!];
+  let current: number[][] = [first];
 
   for (let i = 1; i < points.length; i++) {
-    const prev = points[i - 1]!;
-    const cur = points[i]!;
-    const dLon = cur[0]! - prev[0]!;
+    const prev = points[i - 1];
+    const cur = points[i];
+    if (!prev || !cur) continue;
+    const prevLon = prev[0];
+    const prevLat = prev[1];
+    const curLon = cur[0];
+    const curLat = cur[1];
+    if (prevLon === undefined || prevLat === undefined || curLon === undefined || curLat === undefined) {
+      continue;
+    }
+    const dLon = curLon - prevLon;
     if (Math.abs(dLon) > 180) {
       // Kreuzung: Schnittpunkt auf ±180 berechnen und Segment trennen.
       const goingEast = dLon < 0; // +179 → −179
       const boundary = goingEast ? 180 : -180;
-      const prevAdj = prev[0]!;
-      const curAdj = cur[0]! + (goingEast ? 360 : -360);
-      const t = (boundary - prevAdj) / (curAdj - prevAdj);
-      const latAt = prev[1]! + t * (cur[1]! - prev[1]!);
+      const curAdj = curLon + (goingEast ? 360 : -360);
+      const t = (boundary - prevLon) / (curAdj - prevLon);
+      const latAt = prevLat + t * (curLat - prevLat);
       current.push([boundary, latAt]);
       segments.push(current);
       current = [[-boundary, latAt], cur];
@@ -136,9 +145,11 @@ export type RouteLeg = {
 export function buildRouteLegs(points: RoutePoint[]): RouteLeg[] {
   const legs: RouteLeg[] = [];
   for (let i = 1; i < points.length; i++) {
-    const from = points[i - 1]!;
-    const to = points[i]!;
+    const from = points[i - 1];
+    const to = points[i];
     if (
+      !from ||
+      !to ||
       !isValidLatLon(from.latitude, from.longitude) ||
       !isValidLatLon(to.latitude, to.longitude)
     ) {
@@ -152,8 +163,8 @@ export function buildRouteLegs(points: RoutePoint[]): RouteLeg[] {
       road.length > 0 &&
       road.every((line) => Array.isArray(line) && line.length >= 2);
 
-    if (useRoad) {
-      const segments = road!.flatMap((line) => splitAtAntimeridian(line));
+    if (useRoad && road) {
+      const segments = road.flatMap((line) => splitAtAntimeridian(line));
       if (segments.length > 0) {
         legs.push({ segments, dashed: false, mode: to.legMode });
         continue;
@@ -174,10 +185,12 @@ export function boundsOf(
 ): [number, number, number, number] | null {
   const valid = points.filter((p) => isValidLatLon(p.latitude, p.longitude));
   if (valid.length === 0) return null;
-  let west = valid[0]!.longitude;
-  let east = valid[0]!.longitude;
-  let south = valid[0]!.latitude;
-  let north = valid[0]!.latitude;
+  const first = valid[0];
+  if (!first) return null;
+  let west = first.longitude;
+  let east = first.longitude;
+  let south = first.latitude;
+  let north = first.latitude;
   for (const p of valid) {
     west = Math.min(west, p.longitude);
     east = Math.max(east, p.longitude);

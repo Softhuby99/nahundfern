@@ -34,9 +34,11 @@ describe("distanceKm", () => {
 describe("greatCirclePoints", () => {
   it("beginnt und endet an den Eingabepunkten", () => {
     const pts = greatCirclePoints(munich, tokyo, 16);
+    const first = pts[0];
+    const last = pts.at(-1);
     expect(pts.length).toBe(17);
-    expect(pts[0]![0]).toBeCloseTo(munich.longitude, 3);
-    expect(pts[pts.length - 1]![1]).toBeCloseTo(tokyo.latitude, 3);
+    expect(first?.[0]).toBeCloseTo(munich.longitude, 3);
+    expect(last?.[1]).toBeCloseTo(tokyo.latitude, 3);
   });
 
   it("liefert bei identischen Punkten keine Linie", () => {
@@ -52,9 +54,11 @@ describe("splitAtAntimeridian", () => {
       [-178, 14],
       [-170, 15],
     ]);
+    const firstSegment = segments[0];
+    const secondSegment = segments[1];
     expect(segments.length).toBe(2);
-    expect(segments[0]![segments[0]!.length - 1]![0]).toBe(180);
-    expect(segments[1]![0]![0]).toBe(-180);
+    expect(firstSegment?.at(-1)?.[0]).toBe(180);
+    expect(secondSegment?.[0]?.[0]).toBe(-180);
   });
 
   it("lässt normale Linien unverändert", () => {
@@ -63,7 +67,7 @@ describe("splitAtAntimeridian", () => {
       [12, 49],
     ]);
     expect(segments.length).toBe(1);
-    expect(segments[0]!.length).toBe(2);
+    expect(segments[0]?.length).toBe(2);
   });
 });
 
@@ -76,7 +80,7 @@ describe("buildRouteLegs", () => {
       { ...tokyo, ...base },
     ]);
     expect(legs.length).toBe(1);
-    expect(legs[0]!.dashed).toBe(true);
+    expect(legs[0]?.dashed).toBe(true);
   });
 
   it("nutzt gespeicherte Straßengeometrie durchgezogen", () => {
@@ -94,7 +98,7 @@ describe("buildRouteLegs", () => {
         ],
       },
     ]);
-    expect(legs[0]!.dashed).toBe(false);
+    expect(legs[0]?.dashed).toBe(false);
   });
 
   it("ignoriert gespeicherte Geometrie bei Flugabschnitten", () => {
@@ -111,10 +115,11 @@ describe("buildRouteLegs", () => {
         ],
       },
     ]);
-    expect(legs[0]!.dashed).toBe(true);
+    expect(legs[0]?.dashed).toBe(true);
+    expect(legs[0]?.mode).toBe("air");
     // Flugbogen über die Datumsgrenze wird aufgeteilt oder bleibt zusammenhängend,
     // aber niemals leer.
-    expect(legs[0]!.segments.length).toBeGreaterThan(0);
+    expect(legs[0]?.segments.length).toBeGreaterThan(0);
   });
 
   it("überspringt Abschnitte mit ungültigen Koordinaten", () => {
@@ -123,6 +128,15 @@ describe("buildRouteLegs", () => {
       { latitude: 999, longitude: 11, ...base },
     ]);
     expect(legs.length).toBe(0);
+  });
+
+  it("übernimmt die Transportart des Zielpunkts für Verbindungssymbole", () => {
+    const legs = buildRouteLegs([
+      { ...munich, ...base },
+      { latitude: 48.3, longitude: 11.9, legMode: "train", legGeometry: null },
+      { latitude: 48.6, longitude: 12.1, legMode: "cycle", legGeometry: null },
+    ]);
+    expect(legs.map((leg) => leg.mode)).toEqual(["train", "cycle"]);
   });
 });
 
