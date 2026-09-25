@@ -113,6 +113,8 @@ export default function RouteMap({
         center: [10, 48],
         zoom: 2,
         attributionControl: { compact: true },
+        // Teaser-Karten sind nicht bedienbar, damit Scrollen nicht hängenbleibt.
+        interactive,
       });
     } catch (err) {
       console.warn("map init failed", err);
@@ -120,7 +122,9 @@ export default function RouteMap({
       return;
     }
     mapRef.current = map;
-    map.addControl(new maplibregl.NavigationControl({ visualizePitch: false }), "top-right");
+    if (showControls) {
+      map.addControl(new maplibregl.NavigationControl({ visualizePitch: false }), "top-right");
+    }
     map.on("load", () => {
       // Globusdarstellung, wenn der Browser sie unterstützt — sonst flach.
       try {
