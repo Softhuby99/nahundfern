@@ -186,8 +186,15 @@
 }
 
 /* Marker mit kleinem Ortsbild */
+/* Kein position: relative — MapLibre positioniert Marker absolut. Ein
+   relatives position verschiebt jeden Marker um die Höhe der vorherigen. */
+.route-marker,
+.route-leg-badge {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+}
 .route-marker {
-  position: relative;
   width: 44px;
   height: 44px;
   border-radius: 999px;
