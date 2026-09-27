@@ -6,6 +6,7 @@ import { VideoEditor } from "@/components/studio/VideoEditor";
 import { StationEditor } from "@/components/studio/StationEditor";
 import { useConfirm } from "@/components/studio/ConfirmDialog";
 import { RichTextEditor } from "@/components/studio/RichTextEditor";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/studio/$slug")({
   head: () => ({
@@ -87,6 +88,8 @@ function EditorPage() {
   const [error, setError] = useState("");
   /** Uhrzeit des letzten Speicherns — Rückmeldung ohne Seitenwechsel. */
   const [savedAt, setSavedAt] = useState<string | null>(null);
+  /** Noch fehlende Pflichtfelder (nach dem letzten Speichern). */
+  const [missing, setMissing] = useState<string[]>([]);
   const { confirm, dialog: confirmDialog } = useConfirm();
   const [coverProgress, setCoverProgress] = useState<number | null>(null);
   const [galleryProgress, setGalleryProgress] = useState<{
@@ -260,7 +263,39 @@ function EditorPage() {
   const save = async ({ exit = false }: { exit?: boolean } = {}) => {
     setSaving(true);
     setError("");
+    setMissing([]);
     try {
+      // Pflichtfelder für die Veröffentlichung prüfen.
+      const miss: string[] = [];
+      const plain = (s: string) => s.replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").trim();
+      if (!trip.title.trim()) miss.push("Titel");
+      if (!trip.tripStartDate) miss.push("Startdatum");
+      if (!trip.where.trim() || trip.where.trim() === "—") miss.push("Ort");
+      if (!trip.excerpt.trim() || trip.excerpt.trim() === "—") miss.push("Teaser");
+      if (!plain(trip.body ?? "")) miss.push("Reisebericht");
+      if (trip.id) {
+        try {
+          const r = await fetch(`/api/studio/stations?tripId=${trip.id}`, {
+            credentials: "same-origin",
+          });
+          if (r.ok) {
+            const j = (await r.json()) as { stations?: unknown[] };
+            if (!j.stations || j.stations.length === 0) miss.push("Mindestens eine Station");
+          }
+        } catch {
+          /* Stationsprüfung ist best effort */
+        }
+      } else {
+        miss.push("Mindestens eine Station");
+      }
+      setMissing(miss);
+      if (trip.published && miss.length > 0) {
+        setError(
+          `Nicht veröffentlicht — bitte zuerst ausfüllen: ${miss.join(", ")}. Zum Zwischenspeichern „Online stellen“ ausschalten.`,
+        );
+        toast.error("Pflichtfelder fehlen", { description: miss.join(", ") });
+        return;
+      }
       const cc = trip.countryCode ? trip.countryCode.toUpperCase().replace(/[^A-Z]/g, "") : "";
       const payload = {
         ...trip,
@@ -429,10 +464,17 @@ function EditorPage() {
         </div>
 
         <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-4">
-          Felder mit <span className="text-destructive">*</span> sind Pflichtfelder
+          <span className="inline-block w-3 h-3 align-middle mr-1 studio-required border border-border" /> Pflichtfelder (
+          <span className="text-destructive">*</span>) sind farbig hinterlegt — für „Online stellen“ nötig, inkl. mind. einer Station
         </p>
 
         {error && <p className="text-destructive font-mono mb-6">{error}</p>}
+        {!error && missing.length > 0 && (
+          <div role="status" className="mb-6 border border-primary/60 bg-primary/10 p-4 rounded-sm text-sm">
+            <strong>Entwurf gespeichert.</strong> Noch fehlend für die Veröffentlichung:{" "}
+            {missing.join(", ")}
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-[1fr_320px] gap-8">
           <div className="space-y-6">
@@ -474,13 +516,14 @@ function EditorPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
-                  Startdatum
+                  Startdatum<span className="text-destructive ml-1">*</span>
                 </label>
                 <input
                   type="date"
                   value={trip.tripStartDate}
                   onChange={(e) => setField("tripStartDate", e.target.value)}
-                  className="w-full bg-card border border-border focus:border-primary p-3 rounded-sm"
+                  aria-required
+                  className={`w-full studio-required border ${!trip.tripStartDate ? "border-destructive" : "border-border"} focus:border-primary p-3 rounded-sm`}
                 />
               </div>
               <div>
@@ -583,7 +626,7 @@ function EditorPage() {
                 aria-required
                 spellCheck
                 lang="de"
-                className={`w-full bg-card border ${!trip.excerpt ? "border-destructive/50" : "border-border"} focus:border-primary p-3 rounded-sm`}
+                className={`w-full studio-required border ${!trip.excerpt.trim() ? "border-destructive" : "border-border"} focus:border-primary p-3 rounded-sm`}
               />
             </div>
 
@@ -777,7 +820,7 @@ function Input({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         aria-required={required || undefined}
-        className={`w-full bg-card border ${required && !value ? "border-destructive/50" : "border-border"} focus:border-primary focus:outline-none p-3 rounded-sm`}
+        className={`w-full border ${required ? "studio-required" : "bg-card"} ${required && !value.trim() ? "border-destructive" : "border-border"} focus:border-primary focus:outline-none p-3 rounded-sm`}
       />
     </div>
   );

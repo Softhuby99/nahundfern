@@ -92,8 +92,8 @@ export type StationPlace = {
   longitude: number;
 };
 
-function splitBody(bodyMd: string): string[] {
-  return bodyMd.split(/\n\s*\n/).filter((p) => p.trim().length > 0);
+function splitBody(bodyMd: string | null | undefined): string[] {
+  return String(bodyMd ?? "").split(/\n\s*\n/).filter((p) => p.trim().length > 0);
 }
 
 function toIsoDate(value: unknown): string | null {
@@ -157,17 +157,17 @@ function mapRow(
     destinationStationId: stations.find((s) => s.id === r.destination_station_id)?.id ?? null,
     id: r.id,
     slug: r.slug,
-    title: r.title,
+    title: r.title ?? "Ohne Titel",
     kicker: r.kicker,
-    region: r.region,
-    where: r.where_text,
-    when: r.when_text,
-    monthLabel: r.month_label,
-    who: r.who_text,
-    excerpt: r.excerpt,
-    bodyMd: r.body_md,
+    region: r.region ?? "",
+    where: r.where_text ?? "",
+    when: r.when_text ?? "",
+    monthLabel: r.month_label ?? "",
+    who: r.who_text ?? "",
+    excerpt: r.excerpt ?? "",
+    bodyMd: r.body_md ?? "",
     body: splitBody(r.body_md),
-    published: r.published,
+    published: Boolean(r.published),
     createdAt: r.created_at instanceof Date ? r.created_at.toISOString() : String(r.created_at),
     tripStartDate: toIsoDate(r.trip_start_date),
     tripEndDate: toIsoDate(r.trip_end_date),
@@ -180,7 +180,7 @@ function mapRow(
     cover: {
       webp: { 400: r.webp_400, 1200: r.webp_1200, 2000: r.webp_2000 },
       avif: { 400: r.avif_400, 1200: r.avif_1200, 2000: r.avif_2000 },
-      alt: r.cover_alt,
+      alt: r.cover_alt ?? null,
     },
     gallery,
     videos,
@@ -237,12 +237,29 @@ export const listPublishedTrips = createServerFn({ method: "GET" }).handler(asyn
 // Returns `null` when the slug is unpublished or unknown, so the route loader
 // can turn that specific case into `notFound()` while unexpected errors (DB
 // down, programming bugs) keep propagating and produce a proper 500.
+export type TripLoadResult =
+  | { state: "ok" | "preview"; trip: PublicTrip }
+  | { state: "unpublished"; trip: null };
+
+async function viewerIsStudioUser(): Promise<boolean> {
+  try {
+    const { getRequest } = await import("@tanstack/react-start/server");
+    const { parseSessionCookie, verifySessionToken } = await import("@/lib/auth.server");
+    const token = parseSessionCookie(getRequest());
+    if (!token) return false;
+    await verifySessionToken(token);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export const getPublishedTrip = createServerFn({ method: "GET" })
   .inputValidator((data) => {
     if (typeof data !== "string") throw new Error("Expected slug string");
     return data;
   })
-  .handler(async ({ data: slug }): Promise<PublicTrip | null> => {
+  .handler(async ({ data: slug }): Promise<TripLoadResult | null> => {
     if (!isDbConfigured()) return null;
     const [row] = await sql`
       SELECT t.*,
@@ -252,9 +269,12 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
              i.alt as cover_alt
       FROM trips t
       LEFT JOIN images i ON i.id = t.cover_image_id
-      WHERE t.slug = ${slug} AND t.published = true
+      WHERE t.slug = ${slug}
     `;
     if (!row) return null;
+    // Entwürfe sehen nur eingeloggte Studio-Nutzer (Vorschau).
+    const preview = !row.published;
+    if (preview && !(await viewerIsStudioUser())) return { state: "unpublished", trip: null };
     // Gallery = all trip images, cover filtered out in JS to avoid fragile
     // SQL-level uuid casts (studio uses the same simple query and works).
     const galleryRows = await sql`
@@ -279,7 +299,7 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
       SELECT p.id, p.station_id, p.name, p.category, p.latitude, p.longitude
       FROM station_places p
       JOIN trip_stations s ON s.id = p.station_id
-      WHERE s.trip_id = ${row.id} AND s.published = true
+      WHERE s.trip_id = ${row.id} AND (s.published = true OR ${preview})
       ORDER BY p.sort_order, p.created_at
     `;
     // Nur veröffentlichte Stationen verlassen den Server — keine ID, kein Name,
@@ -290,16 +310,18 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
              leg_mode, leg_geometry, marker_image_id, is_destination,
              daily_enabled, day_entries
       FROM trip_stations
-      WHERE trip_id = ${row.id} AND published = true
+      WHERE trip_id = ${row.id} AND (published = true OR ${preview})
       ORDER BY sort_order, created_at
     `;
-    const stations: PublicStation[] = stationRows.map((s) => {
+    const stations: PublicStation[] = stationRows
+      .filter((s) => Number.isFinite(Number(s.latitude)) && Number.isFinite(Number(s.longitude)))
+      .map((s) => {
       const stationImages = filtered.filter((g) => g.station_id === s.id).map(mapGalleryRow);
       const marker =
         stationImages.find((img) => img.id === s.marker_image_id) ?? stationImages[0] ?? null;
       return {
         id: s.id,
-        name: s.name,
+        name: s.name ?? "",
         countryCode: s.country_code ?? null,
         latitude: Number(s.latitude),
         longitude: Number(s.longitude),
@@ -325,12 +347,13 @@ export const getPublishedTrip = createServerFn({ method: "GET" })
     });
     const destinationStationId = stationRows.find((s) => s.is_destination)?.id ?? null;
     // Einleitung zeigt nur Medien, die keiner Station zugeordnet sind.
-    return mapRow(
+    const trip = mapRow(
       { ...row, destination_station_id: destinationStationId },
       filtered.filter((g) => !g.station_id).map(mapGalleryRow),
       videoRows.filter((v) => !v.station_id).map(mapVideoRow),
       stations,
     );
+    return { state: preview ? "preview" : "ok", trip };
   });
 
 /** Slim slug+title projection used to build newer/older links on story pages. */
@@ -479,11 +502,22 @@ export const listMapTrips = createServerFn({ method: "GET" }).handler(
       ) f ON true
       -- Für laufende Reisen darf der Marker notfalls auch aus noch nicht
       -- veröffentlichten Stationen kommen, damit die aktuelle Reise sichtbar ist.
+      -- Laufende Reise: Station, an der man laut Datum heute ist bzw. zuletzt
+      -- angekommen ist; sonst die letzte Station der Route.
       LEFT JOIN LATERAL (
         SELECT s.latitude, s.longitude
         FROM trip_stations s
         WHERE s.trip_id = t.id
-        ORDER BY s.sort_order DESC, s.created_at DESC
+        ORDER BY
+          CASE
+            WHEN s.arrival_date IS NOT NULL AND s.arrival_date <= CURRENT_DATE
+                 AND (s.departure_date IS NULL OR s.departure_date >= CURRENT_DATE) THEN 0
+            WHEN s.arrival_date IS NOT NULL AND s.arrival_date <= CURRENT_DATE THEN 1
+            WHEN s.departure_date IS NOT NULL AND s.departure_date <= CURRENT_DATE THEN 1
+            ELSE 2
+          END,
+          COALESCE(s.arrival_date, s.departure_date) DESC NULLS LAST,
+          s.sort_order DESC, s.created_at DESC
         LIMIT 1
       ) c ON true
       LEFT JOIN LATERAL (
@@ -505,6 +539,26 @@ export const listMapTrips = createServerFn({ method: "GET" }).handler(
         const tripEndDate = toIsoDate(r.trip_end_date);
         const isOngoing = isTripOngoing(tripStartDate, tripEndDate);
         // (4) Trip-Koordinaten, (5) sonst kein Marker.
+        if (isOngoing) {
+          const clat = toNumber(r.current_lat) ?? toNumber(r.dest_lat) ?? toNumber(r.trip_lat);
+          const clon = toNumber(r.current_lon) ?? toNumber(r.dest_lon) ?? toNumber(r.trip_lon);
+          if (clat !== null && clon !== null) {
+            return {
+              slug: r.slug,
+              title: r.title ?? "",
+              monthLabel: r.month_label ?? "",
+              region: r.region ?? "",
+              latitude: clat,
+              longitude: clon,
+              cover400: r.cover_400 ?? null,
+              stationCount: Number(r.station_count ?? 0),
+              tripStartDate,
+              tripEndDate,
+              isOngoing,
+              isPublished: Boolean(r.published),
+            } satisfies MapTrip;
+          }
+        }
         const lat =
           toNumber(r.dest_lat) ??
           toNumber(r.last_lat) ??

@@ -16,19 +16,19 @@ export const Route = createFileRoute("/stories/$slug")({
     // 404; every other failure (DB down, bug, config) is rethrown so the error
     // boundary / SSR middleware can surface a proper 500 instead of silently
     // pretending the story doesn't exist.
-    const [trip, navigationEntries] = await Promise.all([
+    const [result, navigationEntries] = await Promise.all([
       getPublishedTrip({ data: params.slug }),
-      listTripNavigationEntries(),
+      listTripNavigationEntries().catch(() => []),
     ]);
-    if (!trip) throw notFound();
-    return { trip, navigationEntries };
+    if (!result) throw notFound();
+    return { result, navigationEntries };
   },
   head: ({ loaderData, params }) => {
     const baseUrl = getPublicBaseUrl();
     const storyUrl = new URL(`/stories/${encodeURIComponent(params.slug)}`, baseUrl).toString();
 
-    const t = loaderData?.trip;
-    if (!t) {
+    const t = loaderData?.result.trip;
+    if (!t || loaderData?.result.state !== "ok") {
       return {
         meta: [{ title: "Story — Wild Trip Explorer" }, { name: "robots", content: "noindex" }],
       };
@@ -79,11 +79,50 @@ export const Route = createFileRoute("/stories/$slug")({
       </div>
     </div>
   ),
-  component: StoryPage,
+  errorComponent: () => (
+    <div className="min-h-screen bg-background text-foreground">
+      <SiteHeader />
+      <div className="max-w-3xl mx-auto px-6 py-32 text-center">
+        <h1 className="font-display text-4xl tracking-tight font-light mb-6">
+          Dieser Reisebericht kann gerade nicht angezeigt werden
+        </h1>
+        <p className="text-foreground/70 mb-8">Bitte versuche es in einem Moment erneut.</p>
+        <Link to="/stories" className="font-mono text-[10px] uppercase tracking-widest border-b border-border pb-1 hover:text-primary">
+          ← Alle Reisen
+        </Link>
+      </div>
+    </div>
+  ),
+  component: StoryRoute,
 });
 
+function StoryRoute() {
+  const { result } = Route.useLoaderData();
+  if (result.state === "unpublished" || !result.trip) {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <SiteHeader />
+        <div className="max-w-3xl mx-auto px-6 py-32 text-center">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-primary mb-4">In Arbeit</p>
+          <h1 className="font-display text-4xl md:text-5xl tracking-tight font-light mb-6">
+            Dieser Reisebericht ist noch in Bearbeitung und noch nicht öffentlich sichtbar.
+          </h1>
+          <Link to="/stories" className="font-mono text-[10px] uppercase tracking-widest border-b border-border pb-1 hover:text-primary">
+            ← Alle Reisen
+          </Link>
+        </div>
+        <SiteFooter />
+      </div>
+    );
+  }
+  return <StoryPage />;
+}
+
 function StoryPage() {
-  const { trip, navigationEntries } = Route.useLoaderData();
+  const { result, navigationEntries } = Route.useLoaderData();
+  const trip = result.trip!;
+  const isPreview = result.state === "preview";
+  const hasCover = typeof trip.cover.webp[1200] === "string" && trip.cover.webp[1200].length > 0;
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   // List is sorted newest → oldest, so index-1 is the more recent trip and
@@ -98,17 +137,22 @@ function StoryPage() {
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
 
+      {isPreview && (
+        <div role="status" className="bg-primary text-primary-foreground text-center font-mono text-[11px] uppercase tracking-widest py-2">
+          Entwurf-Vorschau (nur für dich sichtbar)
+        </div>
+      )}
       <article>
         {/* Cover */}
-        <div className="relative h-[60vh] md:h-[80vh] overflow-hidden">
-          <ResponsivePicture
+        <div className={`relative overflow-hidden ${hasCover ? "h-[60vh] md:h-[80vh]" : "h-[45vh] bg-gradient-to-br from-primary/30 via-card to-background"}`}>
+          {hasCover && <ResponsivePicture
             webp={trip.cover.webp}
             avif={trip.cover.avif}
             alt={trip.cover.alt ?? trip.title}
             width={1600}
             height={2000}
             className="absolute inset-0 w-full h-full object-cover"
-          />
+          />}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 px-6 md:px-8 pb-12 max-w-5xl mx-auto">
             <p className="font-mono text-primary text-xs uppercase tracking-[0.3em] mb-4">
@@ -122,9 +166,9 @@ function StoryPage() {
 
         {/* Meta */}
         <div className="px-6 md:px-8 max-w-5xl mx-auto py-12 grid md:grid-cols-3 gap-8 border-b border-border">
-          <MetaCell label="Where" value={trip.where} />
-          <MetaCell label="When" value={trip.when} />
-          <MetaCell label="Crew" value={trip.who} />
+          <MetaCell label="Where" value={trip.where || "—"} />
+          <MetaCell label="When" value={trip.when || "—"} />
+          <MetaCell label="Crew" value={trip.who || "—"} />
         </div>
 
         {/* Body */}

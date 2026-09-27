@@ -61,6 +61,8 @@ export type RouteMapProps = {
   onExpand?: () => void;
   /** Lizenzhinweis nur als eingeklapptes ℹ-Symbol. */
   collapsedAttribution?: boolean;
+  /** Nah beieinander liegende Marker bei weitem Zoom zusammenfassen. */
+  cluster?: boolean;
   className?: string;
   ariaLabel?: string;
 };
@@ -204,6 +206,7 @@ export default function RouteMap({
   hoverLabels = false,
   onExpand,
   collapsedAttribution = false,
+  cluster = false,
   className,
   ariaLabel = "Karte der Reiseroute",
 }: RouteMapProps) {
@@ -574,6 +577,48 @@ export default function RouteMap({
     markerVariant,
     hoverLabels,
   ]);
+
+  // --- Zusammenfassen überlappender Marker ------------------------------
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready || !cluster) return;
+    const RADIUS = 28;
+    const update = () => {
+      const kept: { x: number; y: number; el: HTMLElement; n: number }[] = [];
+      stationsRef.current.forEach((st) => {
+        const m = markersRef.current.get(st.id);
+        if (!m) return;
+        const el = m.getElement();
+        const p = map.project(m.getLngLat());
+        const hit = kept.find((k) => Math.hypot(k.x - p.x, k.y - p.y) < RADIUS);
+        if (hit && !st.isOngoing) {
+          hit.n += 1;
+          el.style.visibility = "hidden";
+        } else {
+          el.style.visibility = "";
+          kept.push({ x: p.x, y: p.y, el, n: 1 });
+        }
+      });
+      kept.forEach((k) => {
+        let badge = k.el.querySelector<HTMLElement>(".route-marker-count");
+        if (k.n > 1) {
+          if (!badge) {
+            badge = document.createElement("span");
+            badge.className = "route-marker-count";
+            k.el.appendChild(badge);
+          }
+          badge.textContent = `+${k.n - 1}`;
+        } else badge?.remove();
+      });
+    };
+    update();
+    map.on("zoomend", update);
+    map.on("moveend", update);
+    return () => {
+      map.off("zoomend", update);
+      map.off("moveend", update);
+    };
+  }, [cluster, ready, stations, markerVariant]);
 
   // --- Erstanzeige: Route einpassen, optional animieren --------------------
   const didFitRef = useRef(false);
