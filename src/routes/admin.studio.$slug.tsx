@@ -6,6 +6,7 @@ import { VideoEditor } from "@/components/studio/VideoEditor";
 import { StationEditor } from "@/components/studio/StationEditor";
 import { useConfirm } from "@/components/studio/ConfirmDialog";
 import { RichTextEditor } from "@/components/studio/RichTextEditor";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/studio/$slug")({
   head: () => ({
@@ -463,10 +464,17 @@ function EditorPage() {
         </div>
 
         <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-4">
-          Felder mit <span className="text-destructive">*</span> sind Pflichtfelder
+          <span className="inline-block w-3 h-3 align-middle mr-1 studio-required border border-border" /> Pflichtfelder (
+          <span className="text-destructive">*</span>) sind farbig hinterlegt — für „Online stellen“ nötig, inkl. mind. einer Station
         </p>
 
         {error && <p className="text-destructive font-mono mb-6">{error}</p>}
+        {!error && missing.length > 0 && (
+          <div role="status" className="mb-6 border border-primary/60 bg-primary/10 p-4 rounded-sm text-sm">
+            <strong>Entwurf gespeichert.</strong> Noch fehlend für die Veröffentlichung:{" "}
+            {missing.join(", ")}
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-[1fr_320px] gap-8">
           <div className="space-y-6">
@@ -508,13 +516,14 @@ function EditorPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
-                  Startdatum
+                  Startdatum<span className="text-destructive ml-1">*</span>
                 </label>
                 <input
                   type="date"
                   value={trip.tripStartDate}
                   onChange={(e) => setField("tripStartDate", e.target.value)}
-                  className="w-full bg-card border border-border focus:border-primary p-3 rounded-sm"
+                  aria-required
+                  className={`w-full studio-required border ${!trip.tripStartDate ? "border-destructive" : "border-border"} focus:border-primary p-3 rounded-sm`}
                 />
               </div>
               <div>
@@ -617,7 +626,7 @@ function EditorPage() {
                 aria-required
                 spellCheck
                 lang="de"
-                className={`w-full bg-card border ${!trip.excerpt ? "border-destructive/50" : "border-border"} focus:border-primary p-3 rounded-sm`}
+                className={`w-full studio-required border ${!trip.excerpt.trim() ? "border-destructive" : "border-border"} focus:border-primary p-3 rounded-sm`}
               />
             </div>
 
