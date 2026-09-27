@@ -379,7 +379,7 @@ export default function RouteMap({
 
     legs.forEach((leg, index) => {
       const midpoint = midpointOfLeg(leg.segments);
-      if (!midpoint) return;
+      if (!midpoint || !isValidLatLon(midpoint[1], midpoint[0])) return;
       const key = String(index);
       keepLegMarkers.add(key);
       let marker = legMarkersRef.current.get(key);
@@ -387,7 +387,7 @@ export default function RouteMap({
         const el = document.createElement("div");
         el.className = "route-leg-badge";
         el.setAttribute("aria-hidden", "true");
-        marker = new maplibregl.Marker({ element: el, anchor: "center" });
+        marker = new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat(midpoint);
         marker.addTo(map);
         legMarkersRef.current.set(key, marker);
       }
