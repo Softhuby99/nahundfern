@@ -130,6 +130,30 @@ describe("buildRouteLegs", () => {
     expect(legs.length).toBe(0);
   });
 
+  it("fällt bei beschädigter gespeicherter Geometrie auf einen gültigen Bogen zurück", () => {
+    const legs = buildRouteLegs([
+      { ...munich, ...base },
+      {
+        latitude: 48.3,
+        longitude: 11.9,
+        legMode: "drive",
+        legGeometry: [
+          [
+            [11.575, 48.137],
+            [Number.NaN, 48.3],
+          ],
+        ],
+      },
+    ]);
+    expect(legs).toHaveLength(1);
+    expect(legs[0]?.dashed).toBe(true);
+    expect(
+      legs[0]?.segments.every((line) =>
+        line.every(([longitude, latitude]) => isValidLatLon(latitude, longitude)),
+      ),
+    ).toBe(true);
+  });
+
   it("übernimmt die Transportart des Zielpunkts für Verbindungssymbole", () => {
     const legs = buildRouteLegs([
       { ...munich, ...base },
