@@ -29,6 +29,16 @@ export function isValidLatLon(lat: number, lon: number): boolean {
   );
 }
 
+function isValidCoordinatePair(point: unknown): point is [number, number] {
+  return (
+    Array.isArray(point) &&
+    point.length >= 2 &&
+    typeof point[0] === "number" &&
+    typeof point[1] === "number" &&
+    isValidLatLon(point[1], point[0])
+  );
+}
+
 export function distanceKm(
   a: { latitude: number; longitude: number },
   b: { latitude: number; longitude: number },
@@ -161,7 +171,12 @@ export function buildRouteLegs(points: RoutePoint[]): RouteLeg[] {
       to.legMode !== "train" &&
       Array.isArray(road) &&
       road.length > 0 &&
-      road.every((line) => Array.isArray(line) && line.length >= 2);
+      road.every(
+        (line) =>
+          Array.isArray(line) &&
+          line.length >= 2 &&
+          line.every((point) => isValidCoordinatePair(point)),
+      );
 
     if (useRoad && road) {
       const segments = road.flatMap((line) => splitAtAntimeridian(line));

@@ -5,4 +5,5 @@
 - [x] Klick auf laufende Entwurfs-Reise: Autoren → Vorschau, Besucher → Hinweis.
 - [x] Studio: Pflichtfelder farbig, fehlende Felder beim Speichern, Online nur vollständig.
 - [x] Nah beieinander liegende Marker zusammenfassen.
-- [ ] Mit echten Daten auf dem Server prüfen (nach Deployment).
+- [x] Fehler mit echten Korsika-Daten reproduziert: beschädigte Routengeometrie löst MapLibre-Absturz aus.
+- [ ] Geometrie-Fallback in v0.9.18 nach Deployment mit echten Daten prüfen.
