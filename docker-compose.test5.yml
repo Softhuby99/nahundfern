@@ -6,8 +6,8 @@
 services:
   nginx:
     volumes:
-      - ./nginx/nginx.test5.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d.external:/etc/nginx/conf.d:ro
+
       - ./nginx/snippets:/etc/nginx/snippets:ro
       - ${TLS_CERT_DIR:-/opt/tls-certs/nahundfern}:/etc/nginx/tls:ro
       - uploads:/var/www/uploads:ro
