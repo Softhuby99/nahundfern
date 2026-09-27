@@ -87,6 +87,8 @@ function EditorPage() {
   const [error, setError] = useState("");
   /** Uhrzeit des letzten Speicherns — Rückmeldung ohne Seitenwechsel. */
   const [savedAt, setSavedAt] = useState<string | null>(null);
+  /** Noch fehlende Pflichtfelder (nach dem letzten Speichern). */
+  const [missing, setMissing] = useState<string[]>([]);
   const { confirm, dialog: confirmDialog } = useConfirm();
   const [coverProgress, setCoverProgress] = useState<number | null>(null);
   const [galleryProgress, setGalleryProgress] = useState<{
@@ -260,7 +262,39 @@ function EditorPage() {
   const save = async ({ exit = false }: { exit?: boolean } = {}) => {
     setSaving(true);
     setError("");
+    setMissing([]);
     try {
+      // Pflichtfelder für die Veröffentlichung prüfen.
+      const miss: string[] = [];
+      const plain = (s: string) => s.replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").trim();
+      if (!trip.title.trim()) miss.push("Titel");
+      if (!trip.tripStartDate) miss.push("Startdatum");
+      if (!trip.where.trim() || trip.where.trim() === "—") miss.push("Ort");
+      if (!trip.excerpt.trim() || trip.excerpt.trim() === "—") miss.push("Teaser");
+      if (!plain(trip.body ?? "")) miss.push("Reisebericht");
+      if (trip.id) {
+        try {
+          const r = await fetch(`/api/studio/stations?tripId=${trip.id}`, {
+            credentials: "same-origin",
+          });
+          if (r.ok) {
+            const j = (await r.json()) as { stations?: unknown[] };
+            if (!j.stations || j.stations.length === 0) miss.push("Mindestens eine Station");
+          }
+        } catch {
+          /* Stationsprüfung ist best effort */
+        }
+      } else {
+        miss.push("Mindestens eine Station");
+      }
+      setMissing(miss);
+      if (trip.published && miss.length > 0) {
+        setError(
+          `Nicht veröffentlicht — bitte zuerst ausfüllen: ${miss.join(", ")}. Zum Zwischenspeichern „Online stellen“ ausschalten.`,
+        );
+        toast.error("Pflichtfelder fehlen", { description: miss.join(", ") });
+        return;
+      }
       const cc = trip.countryCode ? trip.countryCode.toUpperCase().replace(/[^A-Z]/g, "") : "";
       const payload = {
         ...trip,
@@ -777,7 +811,7 @@ function Input({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         aria-required={required || undefined}
-        className={`w-full bg-card border ${required && !value ? "border-destructive/50" : "border-border"} focus:border-primary focus:outline-none p-3 rounded-sm`}
+        className={`w-full border ${required ? "studio-required" : "bg-card"} ${required && !value.trim() ? "border-destructive" : "border-border"} focus:border-primary focus:outline-none p-3 rounded-sm`}
       />
     </div>
   );
