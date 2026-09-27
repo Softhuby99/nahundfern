@@ -221,7 +221,7 @@ export function StationSections({
 
       {/* Mobil: Karte unter der Route, nicht mitfliegend. */}
       <div className="lg:hidden mt-10">
-        <RouteMapLazy
+        <RouteMapLazy cluster
           stations={mapStations}
           activeStationId={activeId}
           onExpand={() => setExpanded(true)}
@@ -252,7 +252,7 @@ export function StationSections({
             </button>
           </div>
           <div className="relative flex-1 min-h-0">
-            <RouteMapLazy
+            <RouteMapLazy cluster
               stations={mapStations}
               activeStationId={previewId}
               onSelectStation={(id) => setPreviewId(id)}
