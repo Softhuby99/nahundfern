@@ -609,3 +609,18 @@
 .studio-required {
   background-color: color-mix(in oklab, var(--primary) 9%, var(--card));
 }
+
+.route-marker-count {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  min-width: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--foreground);
+  color: var(--background);
+  font-size: 10px;
+  line-height: 18px;
+  text-align: center;
+  pointer-events: none;
+}

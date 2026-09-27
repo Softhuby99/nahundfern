@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { RouteMapLazy, type MapStation } from "@/components/map/RouteMapLazy";
 import { listMapTrips, type MapTrip as MapPageTrip } from "@/lib/trips.functions";
 import { getPublicBaseUrl } from "@/lib/public-base-url";
+import { useIsAuthenticated } from "@/hooks/useIsAuthenticated";
 
 export const Route = createFileRoute("/map")({
   loader: async () => ({ trips: await listMapTrips() }),
@@ -31,16 +32,21 @@ export const Route = createFileRoute("/map")({
 function MapPage() {
   const { trips } = Route.useLoaderData();
   const navigate = useNavigate();
+  const isAuthed = useIsAuthenticated() === true;
   const openTrip = (slug: string) => {
     const trip = trips.find((t) => t.slug === slug);
-    if (!trip?.isPublished) return;
+    // Entwürfe öffnen nur eingeloggte Studio-Nutzer (Vorschau).
+    if (!trip || (!trip.isPublished && !isAuthed)) return;
     void navigate({ to: "/stories/$slug", params: { slug } });
   };
 
   // Ein Marker pro Reise; keine Route zwischen verschiedenen Reisen.
   const markers: MapStation[] = trips.map((t) => ({
     id: t.slug,
-    name: t.title,
+    name:
+      !t.isPublished && t.isOngoing && !isAuthed
+        ? `${t.title} · Reise läuft gerade (Bericht folgt in Kürze)`
+        : t.title,
     latitude: t.latitude,
     longitude: t.longitude,
     arrivalDate: null,
@@ -69,6 +75,7 @@ Noch keine Reisen mit Kartenposition vorhanden.
               stations={markers}
               showRoute={false}
               hoverLabels
+              cluster
               onSelectStation={openTrip}
               className="route-map-canvas route-map-canvas--tall"
               ariaLabel="Weltkarte mit veröffentlichten und laufenden Reisen"
@@ -76,7 +83,7 @@ Noch keine Reisen mit Kartenposition vorhanden.
             <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
               {trips.map((t) => (
                 <li key={t.slug}>
-                  {t.isPublished ? (
+                  {t.isPublished || isAuthed ? (
                     <Link
                       to="/stories/$slug"
                       params={{ slug: t.slug }}
