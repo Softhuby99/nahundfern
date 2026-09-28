@@ -7,3 +7,4 @@
 - [x] Nah beieinander liegende Marker zusammenfassen.
 - [x] Fehler mit echten Korsika-Daten reproduziert: beschädigte Routengeometrie löst MapLibre-Absturz aus.
 - [ ] Geometrie-Fallback in v0.9.18 nach Deployment mit echten Daten prüfen.
+- [x] Studio-Reiter Netzwerk: DNS/HTTP intern vs. extern protokolliert + KI-Diagnose.
