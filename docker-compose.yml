@@ -58,6 +58,9 @@ services:
       # of a fresh deployment; leave it off in normal operation so the seed
       # script cannot resurrect demo data after a wipe.
       SEED_ON_START: ${SEED_ON_START:-false}
+      INTERNAL_DNS_IP: ${INTERNAL_DNS_IP:-192.168.3.1}
+      EXTERNAL_DNS_IP: ${EXTERNAL_DNS_IP:-1.1.1.1}
+      LOVABLE_API_KEY: ${LOVABLE_API_KEY:-}
     volumes:
       - uploads:/app/uploads
     networks: [web, internal]

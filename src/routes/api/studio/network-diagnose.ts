@@ -28,7 +28,7 @@ export const Route = createFileRoute("/api/studio/network-diagnose")({
         const parsed = Body.safeParse(await request.json().catch(() => ({})));
         if (!parsed.success) return Response.json({ error: "Ungültige Eingabe" }, { status: 400 });
 
-        let latest: unknown[] = [];
+        let latest: readonly unknown[] = [];
         if (isDbConfigured()) {
           latest = await sql`
             SELECT hostname, scope, dns_server, dns_ips, dns_error, dns_ms, http_target,
