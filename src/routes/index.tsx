@@ -41,7 +41,8 @@ function HomePage() {
   const hero = trips[0];
 
   // Teaser-Karte: ein schlichter Punkt pro veröffentlichter Reise.
-  const mapMarkers: MapStation[] = mapTrips.map((t) => ({
+  // Nur veröffentlichte Reisen verlinken — Entwürfe würden auf 404 führen.
+  const mapMarkers: MapStation[] = mapTrips.filter((t) => t.isPublished).map((t) => ({
     id: t.slug,
     name: t.region ? `${t.title} — ${t.region}` : t.title,
     latitude: t.latitude,
