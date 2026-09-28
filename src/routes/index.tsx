@@ -8,7 +8,10 @@ import { ArrowRight, Heart, MapPin } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
-    const [trips, mapTrips] = await Promise.all([listPublishedTrips(), listMapTrips()]);
+    const [trips, mapTrips] = await Promise.all([
+      listPublishedTrips().catch((e) => (console.error(e), [] as Awaited<ReturnType<typeof listPublishedTrips>>)),
+      listMapTrips().catch((e) => (console.error(e), [] as Awaited<ReturnType<typeof listMapTrips>>)),
+    ]);
     return { trips, mapTrips };
   },
   head: () => ({

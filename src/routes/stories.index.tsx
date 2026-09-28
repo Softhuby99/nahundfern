@@ -8,7 +8,9 @@ import { Calendar, MapPin, Clock, Star, Heart } from "lucide-react";
 
 export const Route = createFileRoute("/stories/")({
   loader: async () => {
-    const trips = await listPublishedTrips();
+    const trips = await listPublishedTrips().catch(
+      (e) => (console.error(e), [] as Awaited<ReturnType<typeof listPublishedTrips>>),
+    );
     return { trips };
   },
   head: () => ({
