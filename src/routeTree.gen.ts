@@ -32,6 +32,8 @@ import { Route as ApiStudioTripsRouteImport } from './routes/api/studio/trips'
 import { Route as ApiStudioSystemStatusRouteImport } from './routes/api/studio/system-status'
 import { Route as ApiStudioStationsRouteImport } from './routes/api/studio/stations'
 import { Route as ApiStudioPlacesRouteImport } from './routes/api/studio/places'
+import { Route as ApiStudioNetworkDiagnoseRouteImport } from './routes/api/studio/network-diagnose'
+import { Route as ApiStudioNetworkRouteImport } from './routes/api/studio/network'
 import { Route as ApiStudioImagesRouteImport } from './routes/api/studio/images'
 import { Route as ApiStudioGeocodeRouteImport } from './routes/api/studio/geocode'
 import { Route as ApiStudioAuditRouteImport } from './routes/api/studio/audit'
@@ -40,6 +42,7 @@ import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 import { Route as AdminStudioUsersRouteImport } from './routes/admin.studio.users'
 import { Route as AdminStudioSystemRouteImport } from './routes/admin.studio.system'
+import { Route as AdminStudioNetworkRouteImport } from './routes/admin.studio.network'
 import { Route as AdminStudioLoginsRouteImport } from './routes/admin.studio.logins'
 import { Route as AdminStudioAuditRouteImport } from './routes/admin.studio.audit'
 import { Route as AdminStudioSlugRouteImport } from './routes/admin.studio.$slug'
@@ -161,6 +164,17 @@ const ApiStudioPlacesRoute = ApiStudioPlacesRouteImport.update({
   path: '/places',
   getParentRoute: () => ApiStudioRouteRoute,
 } as any)
+const ApiStudioNetworkDiagnoseRoute =
+  ApiStudioNetworkDiagnoseRouteImport.update({
+    id: '/network-diagnose',
+    path: '/network-diagnose',
+    getParentRoute: () => ApiStudioRouteRoute,
+  } as any)
+const ApiStudioNetworkRoute = ApiStudioNetworkRouteImport.update({
+  id: '/network',
+  path: '/network',
+  getParentRoute: () => ApiStudioRouteRoute,
+} as any)
 const ApiStudioImagesRoute = ApiStudioImagesRouteImport.update({
   id: '/images',
   path: '/images',
@@ -199,6 +213,11 @@ const AdminStudioUsersRoute = AdminStudioUsersRouteImport.update({
 const AdminStudioSystemRoute = AdminStudioSystemRouteImport.update({
   id: '/studio/system',
   path: '/studio/system',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminStudioNetworkRoute = AdminStudioNetworkRouteImport.update({
+  id: '/studio/network',
+  path: '/studio/network',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminStudioLoginsRoute = AdminStudioLoginsRouteImport.update({
@@ -247,6 +266,7 @@ export interface FileRoutesByFullPath {
   '/admin/studio/$slug': typeof AdminStudioSlugRoute
   '/admin/studio/audit': typeof AdminStudioAuditRoute
   '/admin/studio/logins': typeof AdminStudioLoginsRoute
+  '/admin/studio/network': typeof AdminStudioNetworkRoute
   '/admin/studio/system': typeof AdminStudioSystemRoute
   '/admin/studio/users': typeof AdminStudioUsersRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -255,6 +275,8 @@ export interface FileRoutesByFullPath {
   '/api/studio/audit': typeof ApiStudioAuditRoute
   '/api/studio/geocode': typeof ApiStudioGeocodeRoute
   '/api/studio/images': typeof ApiStudioImagesRoute
+  '/api/studio/network': typeof ApiStudioNetworkRoute
+  '/api/studio/network-diagnose': typeof ApiStudioNetworkDiagnoseRoute
   '/api/studio/places': typeof ApiStudioPlacesRoute
   '/api/studio/stations': typeof ApiStudioStationsRoute
   '/api/studio/system-status': typeof ApiStudioSystemStatusRoute
@@ -284,6 +306,7 @@ export interface FileRoutesByTo {
   '/admin/studio/$slug': typeof AdminStudioSlugRoute
   '/admin/studio/audit': typeof AdminStudioAuditRoute
   '/admin/studio/logins': typeof AdminStudioLoginsRoute
+  '/admin/studio/network': typeof AdminStudioNetworkRoute
   '/admin/studio/system': typeof AdminStudioSystemRoute
   '/admin/studio/users': typeof AdminStudioUsersRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -292,6 +315,8 @@ export interface FileRoutesByTo {
   '/api/studio/audit': typeof ApiStudioAuditRoute
   '/api/studio/geocode': typeof ApiStudioGeocodeRoute
   '/api/studio/images': typeof ApiStudioImagesRoute
+  '/api/studio/network': typeof ApiStudioNetworkRoute
+  '/api/studio/network-diagnose': typeof ApiStudioNetworkDiagnoseRoute
   '/api/studio/places': typeof ApiStudioPlacesRoute
   '/api/studio/stations': typeof ApiStudioStationsRoute
   '/api/studio/system-status': typeof ApiStudioSystemStatusRoute
@@ -323,6 +348,7 @@ export interface FileRoutesById {
   '/admin/studio/$slug': typeof AdminStudioSlugRoute
   '/admin/studio/audit': typeof AdminStudioAuditRoute
   '/admin/studio/logins': typeof AdminStudioLoginsRoute
+  '/admin/studio/network': typeof AdminStudioNetworkRoute
   '/admin/studio/system': typeof AdminStudioSystemRoute
   '/admin/studio/users': typeof AdminStudioUsersRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -331,6 +357,8 @@ export interface FileRoutesById {
   '/api/studio/audit': typeof ApiStudioAuditRoute
   '/api/studio/geocode': typeof ApiStudioGeocodeRoute
   '/api/studio/images': typeof ApiStudioImagesRoute
+  '/api/studio/network': typeof ApiStudioNetworkRoute
+  '/api/studio/network-diagnose': typeof ApiStudioNetworkDiagnoseRoute
   '/api/studio/places': typeof ApiStudioPlacesRoute
   '/api/studio/stations': typeof ApiStudioStationsRoute
   '/api/studio/system-status': typeof ApiStudioSystemStatusRoute
@@ -363,6 +391,7 @@ export interface FileRouteTypes {
     | '/admin/studio/$slug'
     | '/admin/studio/audit'
     | '/admin/studio/logins'
+    | '/admin/studio/network'
     | '/admin/studio/system'
     | '/admin/studio/users'
     | '/api/auth/login'
@@ -371,6 +400,8 @@ export interface FileRouteTypes {
     | '/api/studio/audit'
     | '/api/studio/geocode'
     | '/api/studio/images'
+    | '/api/studio/network'
+    | '/api/studio/network-diagnose'
     | '/api/studio/places'
     | '/api/studio/stations'
     | '/api/studio/system-status'
@@ -400,6 +431,7 @@ export interface FileRouteTypes {
     | '/admin/studio/$slug'
     | '/admin/studio/audit'
     | '/admin/studio/logins'
+    | '/admin/studio/network'
     | '/admin/studio/system'
     | '/admin/studio/users'
     | '/api/auth/login'
@@ -408,6 +440,8 @@ export interface FileRouteTypes {
     | '/api/studio/audit'
     | '/api/studio/geocode'
     | '/api/studio/images'
+    | '/api/studio/network'
+    | '/api/studio/network-diagnose'
     | '/api/studio/places'
     | '/api/studio/stations'
     | '/api/studio/system-status'
@@ -438,6 +472,7 @@ export interface FileRouteTypes {
     | '/admin/studio/$slug'
     | '/admin/studio/audit'
     | '/admin/studio/logins'
+    | '/admin/studio/network'
     | '/admin/studio/system'
     | '/admin/studio/users'
     | '/api/auth/login'
@@ -446,6 +481,8 @@ export interface FileRouteTypes {
     | '/api/studio/audit'
     | '/api/studio/geocode'
     | '/api/studio/images'
+    | '/api/studio/network'
+    | '/api/studio/network-diagnose'
     | '/api/studio/places'
     | '/api/studio/stations'
     | '/api/studio/system-status'
@@ -639,6 +676,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStudioPlacesRouteImport
       parentRoute: typeof ApiStudioRouteRoute
     }
+    '/api/studio/network-diagnose': {
+      id: '/api/studio/network-diagnose'
+      path: '/network-diagnose'
+      fullPath: '/api/studio/network-diagnose'
+      preLoaderRoute: typeof ApiStudioNetworkDiagnoseRouteImport
+      parentRoute: typeof ApiStudioRouteRoute
+    }
+    '/api/studio/network': {
+      id: '/api/studio/network'
+      path: '/network'
+      fullPath: '/api/studio/network'
+      preLoaderRoute: typeof ApiStudioNetworkRouteImport
+      parentRoute: typeof ApiStudioRouteRoute
+    }
     '/api/studio/images': {
       id: '/api/studio/images'
       path: '/images'
@@ -695,6 +746,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminStudioSystemRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/studio/network': {
+      id: '/admin/studio/network'
+      path: '/studio/network'
+      fullPath: '/admin/studio/network'
+      preLoaderRoute: typeof AdminStudioNetworkRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/studio/logins': {
       id: '/admin/studio/logins'
       path: '/studio/logins'
@@ -738,6 +796,7 @@ interface AdminRouteChildren {
   AdminStudioSlugRoute: typeof AdminStudioSlugRoute
   AdminStudioAuditRoute: typeof AdminStudioAuditRoute
   AdminStudioLoginsRoute: typeof AdminStudioLoginsRoute
+  AdminStudioNetworkRoute: typeof AdminStudioNetworkRoute
   AdminStudioSystemRoute: typeof AdminStudioSystemRoute
   AdminStudioUsersRoute: typeof AdminStudioUsersRoute
   AdminStudioIndexRoute: typeof AdminStudioIndexRoute
@@ -748,6 +807,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminStudioSlugRoute: AdminStudioSlugRoute,
   AdminStudioAuditRoute: AdminStudioAuditRoute,
   AdminStudioLoginsRoute: AdminStudioLoginsRoute,
+  AdminStudioNetworkRoute: AdminStudioNetworkRoute,
   AdminStudioSystemRoute: AdminStudioSystemRoute,
   AdminStudioUsersRoute: AdminStudioUsersRoute,
   AdminStudioIndexRoute: AdminStudioIndexRoute,
@@ -786,6 +846,8 @@ interface ApiStudioRouteRouteChildren {
   ApiStudioAuditRoute: typeof ApiStudioAuditRoute
   ApiStudioGeocodeRoute: typeof ApiStudioGeocodeRoute
   ApiStudioImagesRoute: typeof ApiStudioImagesRoute
+  ApiStudioNetworkRoute: typeof ApiStudioNetworkRoute
+  ApiStudioNetworkDiagnoseRoute: typeof ApiStudioNetworkDiagnoseRoute
   ApiStudioPlacesRoute: typeof ApiStudioPlacesRoute
   ApiStudioStationsRoute: typeof ApiStudioStationsRoute
   ApiStudioSystemStatusRoute: typeof ApiStudioSystemStatusRoute
@@ -798,6 +860,8 @@ const ApiStudioRouteRouteChildren: ApiStudioRouteRouteChildren = {
   ApiStudioAuditRoute: ApiStudioAuditRoute,
   ApiStudioGeocodeRoute: ApiStudioGeocodeRoute,
   ApiStudioImagesRoute: ApiStudioImagesRoute,
+  ApiStudioNetworkRoute: ApiStudioNetworkRoute,
+  ApiStudioNetworkDiagnoseRoute: ApiStudioNetworkDiagnoseRoute,
   ApiStudioPlacesRoute: ApiStudioPlacesRoute,
   ApiStudioStationsRoute: ApiStudioStationsRoute,
   ApiStudioSystemStatusRoute: ApiStudioSystemStatusRoute,

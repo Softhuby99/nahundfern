@@ -142,6 +142,7 @@ export function StudioNav({ active }: { active: string }) {
   const items: { to: string; key: string; label: string }[] = [
     { to: "/admin/studio", key: "trips", label: "Reisen" },
     { to: "/admin/studio/system", key: "system", label: "System" },
+    { to: "/admin/studio/network", key: "network", label: "Netzwerk" },
     { to: "/admin/studio/users", key: "users", label: "User" },
     { to: "/admin/studio/audit", key: "audit", label: "Audit" },
     { to: "/admin/studio/logins", key: "logins", label: "Logins" },
