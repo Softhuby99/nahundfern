@@ -44,16 +44,44 @@ if [ "${ENCRYPT}" -eq 1 ]; then
   GNUPGHOME=$(mktemp -d)
   export GNUPGHOME
   gpg --batch --quiet --import "${GPG_KEY_FILE}"
-  pg_dump --clean --if-exists --no-owner --no-privileges \
-    | gzip -9 \
+  RAW="${OUT_DIR}/.dump_${STAMP}.sql"
+  pg_dump --clean --if-exists --no-owner --no-privileges > "${RAW}"
+  grep -q "PostgreSQL database dump complete" "${RAW}" \
+    || { echo "backup: FAILED dump incomplete" >&2; rm -f "${RAW}"; exit 1; }
+  gzip -9 < "${RAW}" \
     | gpg --batch --yes --trust-model always \
           --recipient "${BACKUP_GPG_RECIPIENT}" \
           --encrypt --output "${PART}"
+  rm -f "${RAW}"
   rm -rf "${GNUPGHOME}"
 else
-  pg_dump --clean --if-exists --no-owner --no-privileges | gzip -9 > "${PART}"
+  # Erst roh dumpen und prüfen: in einer Pipe würde ein Fehler von pg_dump
+  # verschluckt und eine leere, scheinbar gültige Datei entstehen.
+  RAW="${OUT_DIR}/.dump_${STAMP}.sql"
+  attempt=1
+  while :; do
+    if pg_dump --clean --if-exists --no-owner --no-privileges > "${RAW}" \
+       && grep -q "PostgreSQL database dump complete" "${RAW}"; then
+      break
+    fi
+    echo "backup: ERROR dump attempt ${attempt} failed" >&2
+    rm -f "${RAW}"
+    if [ "${attempt}" -ge 5 ]; then
+      echo "backup: FAILED after ${attempt} attempts — no backup written" >&2
+      exit 1
+    fi
+    attempt=$((attempt + 1))
+    sleep 60
+  done
+  gzip -9 < "${RAW}" > "${PART}"
+  rm -f "${RAW}"
 fi
 
+# Sicherheitsnetz: eine winzige Datei ist nie ein gültiges Backup.
+if [ "$(wc -c < "${PART}")" -lt 1024 ]; then
+  echo "backup: FAILED dump suspiciously small — discarded" >&2
+  exit 1
+fi
 mv "${PART}" "${FINAL}"
 trap - EXIT INT TERM
 

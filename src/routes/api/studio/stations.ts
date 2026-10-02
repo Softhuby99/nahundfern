@@ -5,6 +5,7 @@ import { z } from "zod";
 import { sql } from "@/lib/db.server";
 import { requireAuth, requireSameOrigin } from "@/lib/auth.server";
 import { auditLog } from "@/lib/audit.server";
+import { saveStationVersion, textFingerprint } from "@/lib/station-text.server";
 
 /** Obergrenze pro Reise — schützt Karte, Routing und Payload-Größe. */
 const MAX_STATIONS_PER_TRIP = 100;
@@ -74,6 +75,9 @@ const UpdateInput = z.object({
   markerImageId: z.string().uuid().nullable().optional(),
   dailyEnabled: z.boolean().optional(),
   dayEntries: DayEntries.optional(),
+  /** Text-Stand, den der Editor geladen hatte — erkennt Änderungen anderer Geräte. */
+  baseBodyMd: z.string().max(20000).optional(),
+  baseDayEntries: z.unknown().optional(),
 });
 
 const ReorderInput = z.object({
@@ -168,6 +172,27 @@ export const Route = createFileRoute("/api/studio/stations")({
         const [current] = await sql`SELECT * FROM trip_stations WHERE id = ${d.id}`;
         if (!current) return Response.json({ error: "Station not found" }, { status: 404 });
 
+        // Text wurde inzwischen woanders geändert → nicht still überschreiben.
+        const touchesText = d.bodyMd !== undefined || d.dayEntries !== undefined;
+        if (touchesText && d.baseBodyMd !== undefined) {
+          const serverPrint = textFingerprint(current.body_md, current.day_entries);
+          const basePrint = textFingerprint(d.baseBodyMd, d.baseDayEntries);
+          if (serverPrint !== basePrint) {
+            return Response.json(
+              {
+                error:
+                  "Diese Station wurde inzwischen auf einem anderen Gerät geändert. Kopiere deinen Text, lade die Seite neu und füge ihn wieder ein.",
+                conflict: true,
+              },
+              { status: 409 },
+            );
+          }
+        }
+        const textChanges =
+          touchesText &&
+          textFingerprint(d.bodyMd ?? current.body_md, d.dayEntries ?? current.day_entries) !==
+            textFingerprint(current.body_md, current.day_entries);
+
         const arrival = d.arrivalDate !== undefined ? d.arrivalDate : current.arrival_date;
         const departure = d.departureDate !== undefined ? d.departureDate : current.departure_date;
         const arrivalIso = toIsoDate(arrival);
@@ -201,6 +226,9 @@ export const Route = createFileRoute("/api/studio/stations")({
         const destination = willPublish ? nextDestination : false;
 
         const [station] = await sql.begin(async (tx) => {
+          if (textChanges) {
+            await saveStationVersion(tx, current as never, session.userId);
+          }
           const [updated] = await tx`
             UPDATE trip_stations SET
             name            = COALESCE(${d.name ?? null}, name),

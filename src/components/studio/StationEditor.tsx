@@ -7,6 +7,7 @@ import { RouteMapLazy, type MapStation } from "@/components/map/RouteMapLazy";
 import { distanceKm, sortByArrival, type LegMode } from "@/components/map/route-geometry";
 import { RichTextEditor } from "@/components/studio/RichTextEditor";
 import { useConfirm } from "@/components/studio/ConfirmDialog";
+import { StationVersions } from "@/components/studio/StationVersions";
 import {
   Dialog,
   DialogContent,
@@ -486,6 +487,10 @@ export function StationEditor({
           markerImageId: stationDraft.marker_image_id,
           dailyEnabled: Boolean(stationDraft.daily_enabled),
           dayEntries: stationDraft.day_entries ?? [],
+          // Stand beim Öffnen: der Server lehnt ab, wenn ein anderes Gerät
+          // den Text inzwischen geändert hat.
+          baseBodyMd: savedStationDraft?.body_md ?? "",
+          baseDayEntries: savedStationDraft?.day_entries ?? [],
         }),
       });
       const responseText = await res.text();
@@ -1492,6 +1497,17 @@ export function StationEditor({
                       </ul>
                     </div>
                   </div>}
+                    <StationVersions
+                      stationId={station.id}
+                      refreshKey={savedStationDraft?.updated_at}
+                      hasUnsavedChanges={hasUnsavedStationChanges}
+                      onRestored={(row) => {
+                        const restored = draftFrom(row as StationRow);
+                        setStations((cur) => cur.map((s) => (s.id === restored.id ? restored : s)));
+                        setStationDraft(restored);
+                        setSavedStationDraft(restored);
+                      }}
+                    />
                     <DialogFooter>
                       <button
                         type="button"

@@ -29,6 +29,7 @@ export type AuditAction =
   | "station.update"
   | "station.delete"
   | "station.reorder"
+  | "station.restore"
   | "station.destination"
   | "station.publish"
   | "station.unpublish"
