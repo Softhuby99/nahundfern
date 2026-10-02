@@ -127,9 +127,14 @@ services:
     # BACKUP_KEEP_DAYS daily dumps and deletes older ones.
     command: >
       -c "trap exit TERM;
+      sleep 60;
       while :; do
-        /bin/sh /usr/local/bin/backup.sh || echo 'backup: run failed';
-        sleep 24h & wait $${!};
+        if /bin/sh /usr/local/bin/backup.sh; then
+          sleep 24h & wait $${!};
+        else
+          echo 'backup: run failed — retry in 15 min';
+          sleep 15m & wait $${!};
+        fi;
       done"
     networks: [internal]
 
