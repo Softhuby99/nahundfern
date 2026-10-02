@@ -374,9 +374,10 @@ export function StationEditor({
   function draftFrom(station: StationRow): StationRow {
     const raw: unknown = station.day_entries;
     let entries: unknown = raw;
-    if (typeof raw === "string") {
+    // Ältere Speicherungen konnten mehrfach als Text kodiert sein — auspacken.
+    for (let i = 0; i < 5 && typeof entries === "string"; i++) {
       try {
-        entries = JSON.parse(raw);
+        entries = JSON.parse(entries);
       } catch {
         entries = [];
       }
