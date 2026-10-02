@@ -851,10 +851,18 @@ export function StationEditor({
 
   const handleMoveStation = useCallback(
     (id: string, coords: { latitude: number; longitude: number }) => {
+      // Nur die Koordinate speichern. Ein offener, noch nicht gespeicherter
+      // Text der Station bleibt in der Arbeitskopie erhalten.
+      const lat = coords.latitude.toFixed(6);
+      const lon = coords.longitude.toFixed(6);
+      const moveCoords = (s: StationRow | null) =>
+        s && s.id === id ? { ...s, latitude: lat, longitude: lon } : s;
+      setStationDraft(moveCoords);
+      setSavedStationDraft(moveCoords);
       void patchStation(id, { latitude: coords.latitude, longitude: coords.longitude });
       setRouteStatus("Koordinate geändert — Route neu berechnen.");
     },
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
