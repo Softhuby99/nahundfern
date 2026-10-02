@@ -226,6 +226,9 @@ export const Route = createFileRoute("/api/studio/stations")({
         const destination = willPublish ? nextDestination : false;
 
         const [station] = await sql.begin(async (tx) => {
+          if (textChanges) {
+            await saveStationVersion(tx, current as never, session.userId);
+          }
           const [updated] = await tx`
             UPDATE trip_stations SET
             name            = COALESCE(${d.name ?? null}, name),
