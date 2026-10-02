@@ -7,6 +7,7 @@ import { RouteMapLazy, type MapStation } from "@/components/map/RouteMapLazy";
 import { distanceKm, sortByArrival, type LegMode } from "@/components/map/route-geometry";
 import { RichTextEditor } from "@/components/studio/RichTextEditor";
 import { useConfirm } from "@/components/studio/ConfirmDialog";
+import { StationVersions } from "@/components/studio/StationVersions";
 import {
   Dialog,
   DialogContent,
