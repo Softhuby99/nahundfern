@@ -116,7 +116,8 @@ function toNumber(value: unknown): number | null {
  */
 function parseDayEntries(value: unknown): { date: string; bodyMd: string }[] {
   let raw = value;
-  if (typeof raw === "string") {
+  // Ältere Speicherungen konnten mehrfach als Text kodiert sein — auspacken.
+  for (let i = 0; i < 5 && typeof raw === "string"; i++) {
     try {
       raw = JSON.parse(raw);
     } catch {
