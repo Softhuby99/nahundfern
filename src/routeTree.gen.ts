@@ -31,6 +31,7 @@ import { Route as ApiStudioUsersRouteImport } from './routes/api/studio/users'
 import { Route as ApiStudioTripsRouteImport } from './routes/api/studio/trips'
 import { Route as ApiStudioSystemStatusRouteImport } from './routes/api/studio/system-status'
 import { Route as ApiStudioStationsRouteImport } from './routes/api/studio/stations'
+import { Route as ApiStudioStationVersionsRouteImport } from './routes/api/studio/station-versions'
 import { Route as ApiStudioPlacesRouteImport } from './routes/api/studio/places'
 import { Route as ApiStudioNetworkDiagnoseRouteImport } from './routes/api/studio/network-diagnose'
 import { Route as ApiStudioNetworkRouteImport } from './routes/api/studio/network'
@@ -159,6 +160,12 @@ const ApiStudioStationsRoute = ApiStudioStationsRouteImport.update({
   path: '/stations',
   getParentRoute: () => ApiStudioRouteRoute,
 } as any)
+const ApiStudioStationVersionsRoute =
+  ApiStudioStationVersionsRouteImport.update({
+    id: '/station-versions',
+    path: '/station-versions',
+    getParentRoute: () => ApiStudioRouteRoute,
+  } as any)
 const ApiStudioPlacesRoute = ApiStudioPlacesRouteImport.update({
   id: '/places',
   path: '/places',
@@ -278,6 +285,7 @@ export interface FileRoutesByFullPath {
   '/api/studio/network': typeof ApiStudioNetworkRoute
   '/api/studio/network-diagnose': typeof ApiStudioNetworkDiagnoseRoute
   '/api/studio/places': typeof ApiStudioPlacesRoute
+  '/api/studio/station-versions': typeof ApiStudioStationVersionsRoute
   '/api/studio/stations': typeof ApiStudioStationsRoute
   '/api/studio/system-status': typeof ApiStudioSystemStatusRoute
   '/api/studio/trips': typeof ApiStudioTripsRoute
@@ -318,6 +326,7 @@ export interface FileRoutesByTo {
   '/api/studio/network': typeof ApiStudioNetworkRoute
   '/api/studio/network-diagnose': typeof ApiStudioNetworkDiagnoseRoute
   '/api/studio/places': typeof ApiStudioPlacesRoute
+  '/api/studio/station-versions': typeof ApiStudioStationVersionsRoute
   '/api/studio/stations': typeof ApiStudioStationsRoute
   '/api/studio/system-status': typeof ApiStudioSystemStatusRoute
   '/api/studio/trips': typeof ApiStudioTripsRoute
@@ -360,6 +369,7 @@ export interface FileRoutesById {
   '/api/studio/network': typeof ApiStudioNetworkRoute
   '/api/studio/network-diagnose': typeof ApiStudioNetworkDiagnoseRoute
   '/api/studio/places': typeof ApiStudioPlacesRoute
+  '/api/studio/station-versions': typeof ApiStudioStationVersionsRoute
   '/api/studio/stations': typeof ApiStudioStationsRoute
   '/api/studio/system-status': typeof ApiStudioSystemStatusRoute
   '/api/studio/trips': typeof ApiStudioTripsRoute
@@ -403,6 +413,7 @@ export interface FileRouteTypes {
     | '/api/studio/network'
     | '/api/studio/network-diagnose'
     | '/api/studio/places'
+    | '/api/studio/station-versions'
     | '/api/studio/stations'
     | '/api/studio/system-status'
     | '/api/studio/trips'
@@ -443,6 +454,7 @@ export interface FileRouteTypes {
     | '/api/studio/network'
     | '/api/studio/network-diagnose'
     | '/api/studio/places'
+    | '/api/studio/station-versions'
     | '/api/studio/stations'
     | '/api/studio/system-status'
     | '/api/studio/trips'
@@ -484,6 +496,7 @@ export interface FileRouteTypes {
     | '/api/studio/network'
     | '/api/studio/network-diagnose'
     | '/api/studio/places'
+    | '/api/studio/station-versions'
     | '/api/studio/stations'
     | '/api/studio/system-status'
     | '/api/studio/trips'
@@ -669,6 +682,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStudioStationsRouteImport
       parentRoute: typeof ApiStudioRouteRoute
     }
+    '/api/studio/station-versions': {
+      id: '/api/studio/station-versions'
+      path: '/station-versions'
+      fullPath: '/api/studio/station-versions'
+      preLoaderRoute: typeof ApiStudioStationVersionsRouteImport
+      parentRoute: typeof ApiStudioRouteRoute
+    }
     '/api/studio/places': {
       id: '/api/studio/places'
       path: '/places'
@@ -849,6 +869,7 @@ interface ApiStudioRouteRouteChildren {
   ApiStudioNetworkRoute: typeof ApiStudioNetworkRoute
   ApiStudioNetworkDiagnoseRoute: typeof ApiStudioNetworkDiagnoseRoute
   ApiStudioPlacesRoute: typeof ApiStudioPlacesRoute
+  ApiStudioStationVersionsRoute: typeof ApiStudioStationVersionsRoute
   ApiStudioStationsRoute: typeof ApiStudioStationsRoute
   ApiStudioSystemStatusRoute: typeof ApiStudioSystemStatusRoute
   ApiStudioTripsRoute: typeof ApiStudioTripsRoute
@@ -863,6 +884,7 @@ const ApiStudioRouteRouteChildren: ApiStudioRouteRouteChildren = {
   ApiStudioNetworkRoute: ApiStudioNetworkRoute,
   ApiStudioNetworkDiagnoseRoute: ApiStudioNetworkDiagnoseRoute,
   ApiStudioPlacesRoute: ApiStudioPlacesRoute,
+  ApiStudioStationVersionsRoute: ApiStudioStationVersionsRoute,
   ApiStudioStationsRoute: ApiStudioStationsRoute,
   ApiStudioSystemStatusRoute: ApiStudioSystemStatusRoute,
   ApiStudioTripsRoute: ApiStudioTripsRoute,
