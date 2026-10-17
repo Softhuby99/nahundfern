@@ -15,27 +15,36 @@ function StationMedia({
   videos,
   altBase,
   title,
+  onOpenImage,
 }: {
   images: GalleryImage[];
   videos: TripVideo[];
   altBase: string;
   title: string;
+  onOpenImage: (index: number) => void;
 }) {
   if (images.length === 0 && videos.length === 0) return null;
   return (
     <>
       {images.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-          {images.map((img) => (
-            <ResponsivePicture
+          {images.map((img, i) => (
+            <button
               key={img.id}
-              webp={img.webp}
-              avif={img.avif}
-              alt={img.alt ?? altBase}
-              width={img.width}
-              height={img.height}
-              className="w-full h-full object-cover aspect-[4/3] rounded-sm bg-card"
-            />
+              type="button"
+              onClick={() => onOpenImage(i)}
+              className="block overflow-hidden rounded-sm bg-card p-0 text-left cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              aria-label={`Bild ${i + 1} von ${images.length} vergrößern: ${img.alt ?? title}`}
+            >
+              <ResponsivePicture
+                webp={img.webp}
+                avif={img.avif}
+                alt={img.alt ?? altBase}
+                width={img.width}
+                height={img.height}
+                className="w-full h-full object-cover aspect-[4/3] hover:opacity-90 transition-opacity"
+              />
+            </button>
           ))}
         </div>
       )}
