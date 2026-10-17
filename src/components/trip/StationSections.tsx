@@ -6,6 +6,7 @@ import { RouteMapLazy, type MapStation } from "@/components/map/RouteMapLazy";
 import { ResponsivePicture } from "@/components/HorizontalTimeline";
 import { VideoPlayer } from "@/components/trip/VideoPlayer";
 import { RichText } from "@/components/RichText";
+import { GalleryLightbox } from "@/components/trip/GalleryLightbox";
 import type { GalleryImage, PublicStation, TripVideo } from "@/lib/trips.functions";
 
 /** Bilder und Videos einer Station oder eines einzelnen Tages. */
