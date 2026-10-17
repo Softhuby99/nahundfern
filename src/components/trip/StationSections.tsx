@@ -6,6 +6,7 @@ import { RouteMapLazy, type MapStation } from "@/components/map/RouteMapLazy";
 import { ResponsivePicture } from "@/components/HorizontalTimeline";
 import { VideoPlayer } from "@/components/trip/VideoPlayer";
 import { RichText } from "@/components/RichText";
+import { GalleryLightbox } from "@/components/trip/GalleryLightbox";
 import type { GalleryImage, PublicStation, TripVideo } from "@/lib/trips.functions";
 
 /** Bilder und Videos einer Station oder eines einzelnen Tages. */
@@ -14,27 +15,36 @@ function StationMedia({
   videos,
   altBase,
   title,
+  onOpenImage,
 }: {
   images: GalleryImage[];
   videos: TripVideo[];
   altBase: string;
   title: string;
+  onOpenImage: (index: number) => void;
 }) {
   if (images.length === 0 && videos.length === 0) return null;
   return (
     <>
       {images.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-          {images.map((img) => (
-            <ResponsivePicture
+          {images.map((img, i) => (
+            <button
               key={img.id}
-              webp={img.webp}
-              avif={img.avif}
-              alt={img.alt ?? altBase}
-              width={img.width}
-              height={img.height}
-              className="w-full h-full object-cover aspect-[4/3] rounded-sm bg-card"
-            />
+              type="button"
+              onClick={() => onOpenImage(i)}
+              className="block overflow-hidden rounded-sm bg-card p-0 text-left cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              aria-label={`Bild ${i + 1} von ${images.length} vergrößern: ${img.alt ?? title}`}
+            >
+              <ResponsivePicture
+                webp={img.webp}
+                avif={img.avif}
+                alt={img.alt ?? altBase}
+                width={img.width}
+                height={img.height}
+                className="w-full h-full object-cover aspect-[4/3] hover:opacity-90 transition-opacity"
+              />
+            </button>
           ))}
         </div>
       )}
@@ -74,6 +84,8 @@ export function StationSections({
   const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
   const [expanded, setExpanded] = useState(false);
   const [previewId, setPreviewId] = useState<string | null>(null);
+  // Lightbox für Stationsbilder: geöffnete Bildliste + Startindex.
+  const [lightbox, setLightbox] = useState<{ images: GalleryImage[]; index: number; title: string } | null>(null);
 
   // Beim Scrollen die gerade gelesene Station hervorheben.
   useEffect(() => {
@@ -175,6 +187,13 @@ export function StationSections({
                   videos={station.videos.filter((v) => !v.dayDate)}
                   altBase={`${station.name} — ${tripTitle}`}
                   title={station.name}
+                  onOpenImage={(i) =>
+                    setLightbox({
+                      images: station.images.filter((img) => !img.dayDate),
+                      index: i,
+                      title: station.name,
+                    })
+                  }
                 />
 
                 {station.dayEntries.length > 0 && (
@@ -193,6 +212,13 @@ export function StationSections({
                           videos={station.videos.filter((v) => v.dayDate === day.date)}
                           altBase={`${station.name} — ${tripTitle}`}
                           title={station.name}
+                          onOpenImage={(i) =>
+                            setLightbox({
+                              images: station.images.filter((img) => img.dayDate === day.date),
+                              index: i,
+                              title: `${station.name} · ${formatRange(day.date, null) ?? ""}`.trim(),
+                            })
+                          }
                         />
                       </div>
                     ))}
@@ -300,6 +326,16 @@ export function StationSections({
             )}
           </div>
         </div>
+      )}
+
+      {lightbox && (
+        <GalleryLightbox
+          open
+          images={lightbox.images}
+          startIndex={lightbox.index}
+          onClose={() => setLightbox(null)}
+          title={lightbox.title}
+        />
       )}
     </div>
   );
