@@ -187,6 +187,13 @@ export function StationSections({
                   videos={station.videos.filter((v) => !v.dayDate)}
                   altBase={`${station.name} — ${tripTitle}`}
                   title={station.name}
+                  onOpenImage={(i) =>
+                    setLightbox({
+                      images: station.images.filter((img) => !img.dayDate),
+                      index: i,
+                      title: station.name,
+                    })
+                  }
                 />
 
                 {station.dayEntries.length > 0 && (
@@ -205,6 +212,13 @@ export function StationSections({
                           videos={station.videos.filter((v) => v.dayDate === day.date)}
                           altBase={`${station.name} — ${tripTitle}`}
                           title={station.name}
+                          onOpenImage={(i) =>
+                            setLightbox({
+                              images: station.images.filter((img) => img.dayDate === day.date),
+                              index: i,
+                              title: `${station.name} · ${formatRange(day.date, null) ?? ""}`.trim(),
+                            })
+                          }
                         />
                       </div>
                     ))}
