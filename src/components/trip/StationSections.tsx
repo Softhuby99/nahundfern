@@ -84,6 +84,8 @@ export function StationSections({
   const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
   const [expanded, setExpanded] = useState(false);
   const [previewId, setPreviewId] = useState<string | null>(null);
+  // Lightbox für Stationsbilder: geöffnete Bildliste + Startindex.
+  const [lightbox, setLightbox] = useState<{ images: GalleryImage[]; index: number; title: string } | null>(null);
 
   // Beim Scrollen die gerade gelesene Station hervorheben.
   useEffect(() => {
