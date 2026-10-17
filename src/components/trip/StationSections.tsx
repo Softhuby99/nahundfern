@@ -327,6 +327,16 @@ export function StationSections({
           </div>
         </div>
       )}
+
+      {lightbox && (
+        <GalleryLightbox
+          open
+          images={lightbox.images}
+          startIndex={lightbox.index}
+          onClose={() => setLightbox(null)}
+          title={lightbox.title}
+        />
+      )}
     </div>
   );
 }
