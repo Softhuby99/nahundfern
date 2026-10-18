@@ -200,9 +200,17 @@
   border-radius: 999px;
   border: 2px solid #c2410c;
   background: #111;
-  overflow: hidden;
+  /* Ortsname-Tooltip und Zählerbadge ragen über den Marker hinaus. */
+  overflow: visible;
   cursor: pointer;
   padding: 0;
+}
+/* Bildausschnitt: hier, nicht am Marker, wird das Vorschaubild beschnitten. */
+.route-marker-media {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
 }
 .route-marker img {
   width: 100%;
@@ -265,11 +273,14 @@
   pointer-events: none;
   transition: opacity 150ms ease;
   z-index: 2;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.3);
 }
-.route-marker.is-dot:hover .route-marker-tip,
-.route-marker.is-dot:focus-visible .route-marker-tip,
-.route-marker.is-ongoing:hover .route-marker-tip,
-.route-marker.is-ongoing:focus-visible .route-marker-tip {
+.route-marker:hover,
+.route-marker:focus-visible {
+  z-index: 100 !important;
+}
+.route-marker:hover .route-marker-tip,
+.route-marker:focus-visible .route-marker-tip {
   opacity: 1;
 }
 .route-marker.is-ongoing {
