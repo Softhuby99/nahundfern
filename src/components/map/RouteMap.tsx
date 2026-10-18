@@ -478,6 +478,24 @@ export default function RouteMap({
     if (!map || !ready) return;
     const keep = new Set<string>();
 
+    // Stationen am selben Ort (z. B. Start und Ziel = Heimatort) nebeneinander
+    // versetzt zeigen, damit beide Nummern anklickbar bleiben.
+    const sameSpot = new Map<string, string[]>();
+    stations.forEach((s) => {
+      if (!isValidLatLon(s.latitude, s.longitude)) return;
+      const key = `${s.latitude.toFixed(4)},${s.longitude.toFixed(4)}`;
+      const list = sameSpot.get(key) ?? [];
+      list.push(s.id);
+      sameSpot.set(key, list);
+    });
+    const offsets = new Map<string, [number, number]>();
+    const spacing = markerVariant === "dot" ? 16 : 36;
+    sameSpot.forEach((ids) => {
+      ids.forEach((id, i) => {
+        offsets.set(id, ids.length > 1 ? [(i - (ids.length - 1) / 2) * spacing, 0] : [0, 0]);
+      });
+    });
+
     stations.forEach((station, index) => {
       if (!isValidLatLon(station.latitude, station.longitude)) return;
       keep.add(station.id);
@@ -511,6 +529,7 @@ export default function RouteMap({
         marker.setDraggable(draggableMarkers);
       }
 
+      marker.setOffset(offsets.get(station.id) ?? [0, 0]);
       const el = marker.getElement();
       const isDot = markerVariant === "dot";
       const isOngoing = Boolean(station.isOngoing);
