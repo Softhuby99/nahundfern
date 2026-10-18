@@ -1,4 +1,4 @@
-import { Instagram, Mail, Heart } from "lucide-react";
+import { Mail, Heart } from "lucide-react";
 
 export function SiteFooter() {
   return (
@@ -8,24 +8,15 @@ export function SiteFooter() {
           Danke, dass du hier bist!{" "}
           <Heart className="size-5 fill-white/60 text-white/60" strokeWidth={1.5} />
         </p>
-        <div className="flex items-center gap-3">
-          <span className="grid size-10 place-items-center rounded-full bg-white/10">
-            <Instagram className="size-5" strokeWidth={1.5} />
-          </span>
-          <div className="text-sm leading-tight">
-            <p className="opacity-80">Folge uns auf Instagram</p>
-            <p className="font-medium">@reisejournal.laura</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
+        <a href="mailto:info@servuswir.de" className="flex items-center gap-3">
           <span className="grid size-10 place-items-center rounded-full bg-white/10">
             <Mail className="size-5" strokeWidth={1.5} />
           </span>
           <div className="text-sm leading-tight">
             <p className="opacity-80">Lass uns in Kontakt bleiben</p>
-            <p className="font-medium">hallo@reisejournal.de</p>
+            <p className="font-medium">info@servuswir.de</p>
           </div>
-        </div>
+        </a>
       </div>
       <div className="border-t border-white/10 py-4 text-center text-xs opacity-60">
         © {new Date().getFullYear()} Wild Trip Explorer — Unser Weg. Unsere Welt. · v{__APP_VERSION__}
