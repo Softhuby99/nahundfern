@@ -613,7 +613,11 @@ export default function RouteMap({
         const m = markersRef.current.get(st.id);
         if (!m) return;
         const el = m.getElement();
-        const p = map.project(m.getLngLat());
+        // Mittlere Bildschirmposition des Elements — darin steckt der seitliche
+        // Versatz zweier Stationen am selben Ort, sonst würden sie als ein
+        // Punkt zusammengefasst und einer verschwindet.
+        const rect = el.getBoundingClientRect();
+        const p = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
         const hit = kept.find((k) => Math.hypot(k.x - p.x, k.y - p.y) < RADIUS);
         if (hit && !st.isOngoing) {
           hit.n += 1;
