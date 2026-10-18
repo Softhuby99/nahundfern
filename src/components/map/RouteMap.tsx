@@ -529,6 +529,7 @@ export default function RouteMap({
         marker.setDraggable(draggableMarkers);
       }
 
+      marker.setOffset(offsets.get(station.id) ?? [0, 0]);
       const el = marker.getElement();
       const isDot = markerVariant === "dot";
       const isOngoing = Boolean(station.isOngoing);
