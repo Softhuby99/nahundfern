@@ -464,7 +464,7 @@ export const listMapTrips = createServerFn({ method: "GET" }).handler(
   async (): Promise<MapTrip[]> => {
     if (!isDbConfigured()) return [];
     const rows = await sql`
-      SELECT t.slug, t.title, t.month_label, t.region, t.published,
+      SELECT t.id AS trip_id, t.slug, t.title, t.month_label, t.region, t.published,
              t.trip_start_date, t.trip_end_date,
              t.latitude AS trip_lat, t.longitude AS trip_lon,
              i.webp_400 AS cover_400,
@@ -538,6 +538,29 @@ export const listMapTrips = createServerFn({ method: "GET" }).handler(
              AND (t.trip_end_date IS NULL OR t.trip_end_date >= CURRENT_DATE))
       ORDER BY COALESCE(t.trip_start_date, t.created_at::date) DESC, t.created_at DESC
     `;
+    // Automatischen Zielort in JS bestimmen statt per SQL-Sortierung, damit
+    // das Ergebnis nicht von Datenbanktypen/Planer-Details abhängt.
+    const stationRows = await sql`
+      SELECT s.trip_id, s.latitude, s.longitude, s.sort_order
+      FROM trip_stations s
+      WHERE s.published = true AND s.latitude IS NOT NULL AND s.longitude IS NOT NULL
+        AND s.trip_id IN (SELECT id FROM trips WHERE slug = ANY(${rows.map((r) => r.slug)}))
+    `;
+    const byTrip = new Map<string, { latitude: number; longitude: number; sortOrder: number }[]>();
+    for (const s of stationRows) {
+      const lat = toNumber(s.latitude);
+      const lon = toNumber(s.longitude);
+      if (lat === null || lon === null || !isValidLatLon(lat, lon)) continue;
+      const key = String(s.trip_id);
+      const list = byTrip.get(key) ?? [];
+      list.push({ latitude: lat, longitude: lon, sortOrder: Number(s.sort_order ?? 0) });
+      byTrip.set(key, list);
+    }
+    for (const r of rows) {
+      const far = pickFarthestStation(byTrip.get(String(r.trip_id)) ?? []);
+      r.last_lat = far ? far.latitude : null;
+      r.last_lon = far ? far.longitude : null;
+    }
     return rows
       .map((r) => {
         const tripStartDate = toIsoDate(r.trip_start_date);
