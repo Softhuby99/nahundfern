@@ -485,15 +485,7 @@ export const listMapTrips = createServerFn({ method: "GET" }).handler(
       -- (1) manuell markierter, veröffentlichter Zielort
       LEFT JOIN trip_stations d
              ON d.trip_id = t.id AND d.is_destination = true AND d.published = true
-      -- (2) letzte veröffentlichte Station
-      LEFT JOIN LATERAL (
-        SELECT s.latitude, s.longitude
-        FROM trip_stations s
-        WHERE s.trip_id = t.id AND s.published = true
-        ORDER BY s.sort_order DESC, s.created_at DESC
-        LIMIT 1
-      ) l ON true
-      -- (3) erste veröffentlichte Station als zusätzlicher Fallback
+      -- (3) erste veröffentlichte Station (Startpunkt)
       LEFT JOIN LATERAL (
         SELECT s.latitude, s.longitude
         FROM trip_stations s
@@ -501,6 +493,18 @@ export const listMapTrips = createServerFn({ method: "GET" }).handler(
         ORDER BY s.sort_order ASC, s.created_at ASC
         LIMIT 1
       ) f ON true
+      -- (2) automatischer Zielort: am weitesten vom Start entfernte
+      -- veröffentlichte Station (Rundreisen enden oft wieder am Start).
+      LEFT JOIN LATERAL (
+        SELECT s.latitude, s.longitude
+        FROM trip_stations s
+        WHERE s.trip_id = t.id AND s.published = true
+        ORDER BY
+          power((s.latitude - f.latitude)::float8, 2)
+          + power(((s.longitude - f.longitude) * cos(radians(f.latitude)))::float8, 2) DESC,
+          s.sort_order ASC
+        LIMIT 1
+      ) l ON true
       -- Für laufende Reisen darf der Marker notfalls auch aus noch nicht
       -- veröffentlichten Stationen kommen, damit die aktuelle Reise sichtbar ist.
       -- Laufende Reise: Station, an der man laut Datum heute ist bzw. zuletzt
