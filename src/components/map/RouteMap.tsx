@@ -55,7 +55,7 @@ export type RouteMapProps = {
   showControls?: boolean;
   /** Markerform: Vorschaubild oder schlichter Punkt. */
   markerVariant?: "photo" | "dot";
-  /** Reisename als kleiner Tooltip beim Überfahren. */
+  /** Ortsname als kleiner Tooltip beim Überfahren mit der Maus (standardmäßig an). */
   hoverLabels?: boolean;
   /** Zeigt einen Vergrößern-Button oben rechts. */
   onExpand?: () => void;
@@ -203,7 +203,7 @@ export default function RouteMap({
   interactive = true,
   showControls = true,
   markerVariant = "photo",
-  hoverLabels = false,
+  hoverLabels = true,
   onExpand,
   collapsedAttribution = false,
   cluster = false,
@@ -544,22 +544,17 @@ export default function RouteMap({
       el.innerHTML = "";
 
       if (isDot || isOngoing) {
-        // Schlichter Akzentpunkt; optional Name als kleiner Tooltip.
+        // Schlichter Akzentpunkt ohne Bild.
         if (isOngoing) {
           const pulse = document.createElement("span");
           pulse.className = "route-marker-pulse";
           el.appendChild(pulse);
         }
-        if (hoverLabels) {
-          const tip = document.createElement("span");
-          tip.className = "route-marker-tip";
-          tip.textContent = station.name;
-          el.appendChild(tip);
-        }
-        return;
-      }
-
-      if (station.markerImageSrc) {
+      } else if (station.markerImageSrc) {
+        // Das Bild steckt in einem eigenen Ausschnitt, damit der Marker selbst
+        // den überstehenden Ortsnamen-Tooltip nicht abschneidet.
+        const media = document.createElement("span");
+        media.className = "route-marker-media";
         const img = document.createElement("img");
         img.src = station.markerImageSrc;
         img.alt = "";
@@ -567,17 +562,27 @@ export default function RouteMap({
         img.decoding = "async";
         // Fällt das Bild aus, bleibt der Punkt sichtbar.
         img.addEventListener("error", () => {
-          img.remove();
+          media.remove();
           el.classList.add("no-image");
         });
-        el.appendChild(img);
+        media.appendChild(img);
+        el.appendChild(media);
       } else {
         el.classList.add("no-image");
       }
-      const label = document.createElement("span");
-      label.className = "route-marker-index";
-      label.textContent = String(index + 1);
-      el.appendChild(label);
+      if (!isDot && !isOngoing) {
+        const label = document.createElement("span");
+        label.className = "route-marker-index";
+        label.textContent = String(index + 1);
+        el.appendChild(label);
+      }
+      // Ortsname zeigen, sobald die Maus über dem Marker steht.
+      if (hoverLabels) {
+        const tip = document.createElement("span");
+        tip.className = "route-marker-tip";
+        tip.textContent = station.name;
+        el.appendChild(tip);
+      }
     });
 
     markersRef.current.forEach((marker, id) => {
