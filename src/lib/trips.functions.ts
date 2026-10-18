@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { sql, isDbConfigured } from "@/lib/db.server";
+import { pickFarthestStation } from "@/lib/map-destination";
+import { isValidLatLon } from "@/components/map/route-geometry";
 
 export type PublicTrip = {
   id: string;
