@@ -1,6 +1,6 @@
 services:
   nginx:
-    image: nginx:1.27-alpine
+    image: nginx:1.30-alpine
     container_name: nahundfern-nginx
     restart: unless-stopped
     depends_on:
@@ -66,7 +66,7 @@ services:
     networks: [web, internal]
 
   db:
-    image: postgres:16.6-alpine
+    image: postgres:16.15-alpine
     container_name: nahundfern-db
     restart: unless-stopped
     environment:
@@ -84,7 +84,7 @@ services:
     networks: [internal]
 
   certbot:
-    image: certbot/certbot:v3.0.1
+    image: certbot/certbot:v5.8.0
     container_name: nahundfern-certbot
     restart: unless-stopped
     volumes:

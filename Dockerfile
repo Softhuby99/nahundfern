@@ -1,5 +1,5 @@
 # ---------- build stage ----------
-FROM node:20-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 
 # Bun version is pinned here, in .github/workflows/ci.yml, and in
@@ -38,10 +38,10 @@ ENV NODE_OPTIONS=--max-old-space-size=1536
 RUN if [ -f bun.lock ]; then bun run build ; else npm run build ; fi
 
 # ---------- runtime stage ----------
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 
-RUN apk add --no-cache vips tini ffmpeg \
+RUN apk upgrade --no-cache && apk add --no-cache vips tini ffmpeg \
     && addgroup -S app && adduser -S app -G app
 
 ENV NODE_ENV=production
